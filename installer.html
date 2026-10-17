@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cardputer Pet Installer</title>
+<style>
+  :root {
+    --bg: #14121a;
+    --card: #1e1b27;
+    --line: #2e2a3b;
+    --text: #ece9f5;
+    --muted: #9a94ad;
+    --accent: #ff7ac6;
+    --ok: #6ee7a8;
+    --warn: #ffc56e;
+    --bad: #ff6e6e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+  main { width: 100%; max-width: 640px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  .notice {
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .notice code { color: var(--text); }
+  .pets { display: grid; gap: 12px; }
+  .pet {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .emoji { font-size: 34px; width: 44px; text-align: center; flex-shrink: 0; }
+  .info { flex: 1; min-width: 0; }
+  .name { font-weight: 600; font-size: 17px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .desc { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+  .tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    border: 1px solid currentColor;
+  }
+  .tag.ok { color: var(--ok); }
+  .tag.warn { color: var(--warn); }
+  .tag.current { color: var(--accent); }
+  button {
+    font: inherit;
+    font-weight: 600;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 18px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #1a0f17;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+    flex-shrink: 0;
+  }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .status {
+    margin-top: 24px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: none;
+  }
+  .status-text { font-weight: 600; }
+  .status-text.ok { color: var(--ok); }
+  .status-text.bad { color: var(--bad); }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 12px; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
+  details { margin-top: 12px; color: var(--muted); font-size: 13px; }
+  pre {
+    margin: 8px 0 0;
+    max-height: 220px;
+    overflow: auto;
+    background: #0e0c13;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 12px;
+    white-space: pre-wrap;
+  }
+  .footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Cardputer Pet Installer</h1>
+  <p class="sub">Plug in the Cardputer over USB-C, then click Install. Use Chrome or Edge.</p>
+
+  <div class="notice" id="notice"></div>
+
+  <div class="pets" id="pets"></div>
+
+  <div class="status" id="status">
+    <div class="status-text" id="statusText"></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <details>
+      <summary>Details</summary>
+      <pre id="log"></pre>
+    </details>
+  </div>
+
+  <div class="footer">
+    <span>Restore the firmware the Cardputer came with (8 MB, takes a few minutes).</span>
+    <button class="ghost" id="restoreBtn">Restore original</button>
+  </div>
+</main>
+
+<input type="file" id="filePicker" accept=".bin" hidden>
+
+<script type="module">
+import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.js";
+
+const RAISING_HELL = "raising-hell-m5burner-v3.0.0.bin";
+
+const PETS = [
+  {
+    id: "demonym",
+    emoji: "👹",
+    name: "Demonym",
+    desc: "Made for the ADV. Saves to internal memory.",
+    tag: ["ok", "No SD card"],
+    parts: [{ file: "Demonym-M5Burner-v0.9.23.2-alpha-dev.bin", address: 0x0 }],
+  },
+  {
+    id: "raising-hell",
+    emoji: "😈",
+    name: "Raising Hell",
+    desc: "The most popular one. Downloads its graphics to the SD card over Wi-Fi.",
+    tag: ["warn", "SD card"],
+    parts: [{ file: RAISING_HELL, address: 0x0 }],
+  },
+  {
+    id: "tamaputer",
+    emoji: "🥚",
+    name: "Tamaputer",
+    desc: "Real Tamagotchi P1 emulator. Needs your own ROM at /tamaputer/tama.b on the SD card.",
+    tag: ["warn", "SD card + ROM"],
+    // App-only image, so it borrows Raising Hell's bootloader and partition table.
+    parts: [
+      { file: RAISING_HELL, address: 0x0, slice: [0, 0x10000] },
+      { file: "tamaputer-v1.1.0.bin", address: 0x10000 },
+    ],
+  },
+];
+
+const RESTORE = {
+  id: "original",
+  name: "Original firmware",
+  parts: [{ file: "backup-original-firmware.bin", address: 0x0 }],
+};
+
+const $ = (id) => document.getElementById(id);
+const buttons = [];
+let busy = false;
+
+if (!("serial" in navigator)) {
+  showNotice("This browser can't talk to USB devices. Open this page in Chrome or Edge on a computer.");
+}
+
+function showNotice(html) {
+  $("notice").innerHTML = html;
+  $("notice").style.display = "block";
+}
+
+function render() {
+  const current = localStorage.getItem("installed");
+  $("pets").innerHTML = "";
+  buttons.length = 0;
+  for (const pet of PETS) {
+    const el = document.createElement("div");
+    el.className = "pet";
+    el.innerHTML = `
+      <div class="emoji">${pet.emoji}</div>
+      <div class="info">
+        <div class="name">${pet.name}
+          <span class="tag ${pet.tag[0]}">${pet.tag[1]}</span>
+          ${current === pet.id ? '<span class="tag current">Installed</span>' : ""}
+        </div>
+        <div class="desc">${pet.desc}</div>
+      </div>`;
+    const btn = document.createElement("button");
+    btn.textContent = "Install";
+    btn.onclick = () => install(pet);
+    el.appendChild(btn);
+    buttons.push(btn);
+    $("pets").appendChild(el);
+  }
+  buttons.push($("restoreBtn"));
+  setBusy(busy);
+}
+
+function setBusy(value) {
+  busy = value;
+  for (const b of buttons) b.disabled = value || !("serial" in navigator);
+}
+
+function setStatus(text, kind = "") {
+  $("status").style.display = "block";
+  $("statusText").textContent = text;
+  $("statusText").className = "status-text " + kind;
+}
+
+function setProgress(fraction) {
+  $("barFill").style.width = `${Math.round(fraction * 100)}%`;
+}
+
+function log(line) {
+  $("log").textContent += line + "\n";
+  $("log").scrollTop = $("log").scrollHeight;
+}
+
+const terminal = {
+  clean() {},
+  writeLine: log,
+  write: (s) => { $("log").textContent += s; },
+};
+
+// file:// pages can't fetch neighbouring files, so fall back to asking for the file.
+function pickFile(name) {
+  return new Promise((resolve, reject) => {
+    const picker = $("filePicker");
+    picker.value = "";
+    picker.onchange = async () => {
+      const f = picker.files[0];
+      if (!f) return reject(new Error("No file chosen"));
+      resolve(new Uint8Array(await f.arrayBuffer()));
+    };
+    picker.oncancel = () => reject(new Error(`Cancelled. Please choose ${name}`));
+    setStatus(`Choose ${name} from the cardputer folder`);
+    picker.click();
+  });
+}
+
+const fileCache = new Map();
+async function loadFile(name) {
+  if (fileCache.has(name)) return fileCache.get(name);
+  let data;
+  try {
+    const res = await fetch(name);
+    if (!res.ok) throw new Error(res.statusText);
+    data = new Uint8Array(await res.arrayBuffer());
+  } catch {
+    data = await pickFile(name);
+  }
+  fileCache.set(name, data);
+  return data;
+}
+
+async function install(target) {
+  if (busy) return;
+  if (target === RESTORE && !confirm("Replace the current pet with the original firmware?")) return;
+
+  setBusy(true);
+  $("log").textContent = "";
+  setProgress(0);
+  let transport;
+
+  try {
+    setStatus("Pick the Cardputer in the popup…");
+    const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] });
+
+    setStatus("Loading firmware…");
+    const fileArray = [];
+    for (const part of target.parts) {
+      let data = await loadFile(part.file);
+      if (part.slice) data = data.slice(...part.slice);
+      fileArray.push({ data, address: part.address });
+    }
+    const total = fileArray.reduce((n, f) => n + f.data.length, 0);
+    const before = fileArray.map((_, i) => fileArray.slice(0, i).reduce((n, f) => n + f.data.length, 0));
+
+    setStatus("Connecting…");
+    transport = new Transport(port, false);
+    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+    const chip = await loader.main();
+    log(`Connected to ${chip}`);
+
+    setStatus(`Installing ${target.name}…`);
+    await loader.writeFlash({
+      fileArray,
+      flashMode: "keep",
+      flashFreq: "keep",
+      flashSize: "keep",
+      eraseAll: false,
+      compress: true,
+      reportProgress: (i, written, size) => {
+        const done = before[i] + (written / size) * fileArray[i].data.length;
+        setProgress(done / total);
+        setStatus(`Installing ${target.name}… ${Math.round((done / total) * 100)}%`);
+      },
+    });
+
+    setStatus("Restarting the Cardputer…");
+    await loader.after("hard_reset");
+    setProgress(1);
+    localStorage.setItem("installed", target.id);
+    setStatus(`${target.name} is installed. Have fun!`, "ok");
+  } catch (err) {
+    log(String(err?.stack || err));
+    const msg = err?.name === "NotFoundError" ? "No device picked." : String(err?.message || err);
+    setStatus(`Install failed: ${msg}`, "bad");
+    if (/busy|open/i.test(msg)) {
+      showNotice("The USB port is busy. Close other tabs or apps using the Cardputer (like M5Burner or a terminal running esptool) and try again.");
+    }
+  } finally {
+    try { await transport?.disconnect(); } catch {}
+    setBusy(false);
+    render();
+  }
+}
+
+$("restoreBtn").onclick = () => install(RESTORE);
+render();
+</script>
+</body>
+</html>
