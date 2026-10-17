@@ -146,6 +146,32 @@ import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.
 
 const RAISING_HELL = "raising-hell-m5burner-v3.0.0.bin";
 
+// Purplx's partitions_8mb_launcher.csv: [name, type, subtype, offset, size]
+const PURPLX_PARTITIONS = [
+  ["nvs", 1, 0x02, 0x9000, 0x5000],
+  ["otadata", 1, 0x00, 0xe000, 0x2000],
+  ["factory", 0, 0x00, 0x10000, 0x180000],
+  ["ota_0", 0, 0x10, 0x190000, 0x570000],
+  ["storage", 1, 0x81, 0x700000, 0x100000],
+];
+
+// Raising Hell's bootloader plus a custom partition table. NVS and otadata are
+// left blank so the bootloader starts the factory app.
+async function bootWithPartitions(partitions) {
+  const buf = new Uint8Array(0x10000).fill(0xff);
+  buf.set((await loadFile(RAISING_HELL)).slice(0, 0x8000));
+  const view = new DataView(buf.buffer);
+  partitions.forEach(([name, type, subtype, offset, size], i) => {
+    const at = 0x8000 + i * 32;
+    buf.set([0xaa, 0x50, type, subtype], at);
+    view.setUint32(at + 4, offset, true);
+    view.setUint32(at + 8, size, true);
+    buf.fill(0, at + 12, at + 32);
+    buf.set(new TextEncoder().encode(name), at + 12);
+  });
+  return buf;
+}
+
 const PETS = [
   {
     id: "demonym",
@@ -154,6 +180,25 @@ const PETS = [
     desc: "Made for the ADV. Saves to internal memory.",
     tag: ["ok", "No SD card"],
     parts: [{ file: "Demonym-M5Burner-v0.9.23.2-alpha-dev.bin", address: 0x0 }],
+  },
+  {
+    id: "viperpet",
+    emoji: "🐍",
+    name: "ViperPet",
+    desc: "Small pet made for the ADV. Saves to internal memory.",
+    tag: ["ok", "No SD card"],
+    parts: [{ file: "viperpet-v0.3.bin", address: 0x0 }],
+  },
+  {
+    id: "purplx",
+    emoji: "💜",
+    name: "Purplx",
+    desc: "A whole cyberdeck OS. The pet is in the “My Pet” app.",
+    tag: ["ok", "No SD card"],
+    parts: [
+      { address: 0x0, build: () => bootWithPartitions(PURPLX_PARTITIONS) },
+      { file: "purplx-v1.0.1.bin", address: 0x10000 },
+    ],
   },
   {
     id: "raising-hell",
@@ -174,6 +219,22 @@ const PETS = [
       { file: RAISING_HELL, address: 0x0, slice: [0, 0x10000] },
       { file: "tamaputer-v1.1.0.bin", address: 0x10000 },
     ],
+  },
+  {
+    id: "game-station",
+    emoji: "🎮",
+    name: "Game Station",
+    desc: "Game Boy and other consoles. Play the 1997 Tamagotchi .gb game from the SD card.",
+    tag: ["warn", "SD card + game"],
+    parts: [{ file: "game-station-v1.2.bin", address: 0x0 }],
+  },
+  {
+    id: "gameboy-enhanced",
+    emoji: "🕹️",
+    name: "Gameboy Enhanced",
+    desc: "Game Boy emulator with save states. Play the Tamagotchi .gb game from the SD card.",
+    tag: ["warn", "SD card + game"],
+    parts: [{ file: "gameboy-enhanced-v0.79.66.bin", address: 0x0 }],
   },
 ];
 
@@ -296,7 +357,7 @@ async function install(target) {
     setStatus("Loading firmware…");
     const fileArray = [];
     for (const part of target.parts) {
-      let data = await loadFile(part.file);
+      let data = part.build ? await part.build() : await loadFile(part.file);
       if (part.slice) data = data.slice(...part.slice);
       fileArray.push({ data, address: part.address });
     }
