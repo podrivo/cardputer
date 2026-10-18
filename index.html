@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cardputer Installers</title>
 <meta name="description" content="Flash firmware onto an M5Stack Cardputer ADV from the browser — pets, games, tools, music, mesh, and more. No M5Burner required.">
-<meta name="theme-color" content="#14121a">
+<meta name="theme-color" content="#141414">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -23,15 +23,15 @@
 <meta name="twitter:image" content="https://cardputer-installers.netlify.app/og.png">
 <style>
   :root {
-    --bg: #14121a;
-    --card: #1e1b27;
-    --line: #2e2a3b;
-    --text: #ece9f5;
-    --muted: #9a94ad;
-    --accent: #ff7ac6;
-    --ok: #6ee7a8;
-    --warn: #ffc56e;
-    --bad: #ff6e6e;
+    --bg: #141414;
+    --card: #1c1c1c;
+    --line: #2e2e2e;
+    --text: #f2f2f2;
+    --muted: #9a9a9a;
+    --accent: #ea6f42; /* fn */
+    --ok: #66c99c;     /* opt */
+    --warn: #e8a054;
+    --bad: #e05555;
   }
   * { box-sizing: border-box; }
   body {
@@ -93,7 +93,7 @@
     padding: 0 12px 0 34px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text);
     font: inherit;
     font-size: 14px;
@@ -111,24 +111,47 @@
     padding: 0 12px;
     font-size: 14px;
     border: 1px solid var(--line);
+    border-radius: 10px;
     background: transparent;
     color: var(--muted);
     transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
   }
   .chip:hover { color: var(--text); }
-  .chip.active { color: #1a0f17; background: var(--accent); border-color: var(--accent); }
+  .chip.active { color: #1b1b1b; background: var(--accent); border-color: var(--accent); }
   .hidden { display: none !important; }
   .empty { color: var(--muted); text-align: center; padding: 48px 0; }
   .pets { display: grid; gap: 12px; }
   .pet {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 18px;
+    border-radius: 16px;
+    padding: 18px 24px 18px 18px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 24px;
+    --mx: 50%;
+    --my: 50%;
   }
+  .pet::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      720px circle at var(--mx) var(--my),
+      color-mix(in srgb, var(--text) 4%, transparent),
+      transparent 62%
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .pet:hover::before { opacity: 1; }
+  .pet > * { position: relative; z-index: 1; }
   .pet.current {
     border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
   }
@@ -142,30 +165,30 @@
   .name {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-weight: 600;
     font-size: 16px;
     min-width: 0;
   }
   .name .label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .desc { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .name .label + .tag { margin-left: 6px; }
+  .desc { color: var(--muted); font-size: 16px; margin-top: 6px; }
   .icon-btn {
     position: relative;
     display: inline-grid;
     place-items: center;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     flex-shrink: 0;
     border-radius: 8px;
-    background: transparent;
+    background: color-mix(in srgb, var(--line) 55%, transparent);
     color: var(--muted);
     border: 0;
     text-decoration: none;
   }
-  .icon-btn:hover { color: var(--text); background: color-mix(in srgb, var(--line) 55%, transparent); }
-  .icon-btn + .icon-btn { margin-left: -4px; }
-  .icon-btn svg { width: 15px; height: 15px; display: block; }
+  .icon-btn:hover { color: var(--text); background: color-mix(in srgb, var(--line) 85%, transparent); }
+  .icon-btn svg { width: 16px; height: 16px; display: block; }
   .icon-btn[data-tip]::after,
   .copy-log-btn[data-tip]::after {
     content: attr(data-tip);
@@ -175,7 +198,7 @@
     transform: translateX(-50%) translateY(2px);
     padding: 4px 8px;
     border-radius: 6px;
-    background: #0b0a0f;
+    background: #0f0f0f;
     border: 1px solid var(--line);
     color: var(--text);
     font-size: 12px;
@@ -205,15 +228,26 @@
   .actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .pet:hover .actions,
+  .pet:focus-within .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  @media (hover: none) {
+    .actions { opacity: 1; pointer-events: auto; }
   }
   .tag {
     font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
-    border-radius: 100px;
-    border: 1px solid currentColor;
+    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, currentColor 35%, #000);
     color: var(--muted);
     white-space: nowrap;
   }
@@ -229,9 +263,12 @@
     padding: 0 14px;
     cursor: pointer;
     background: var(--accent);
-    color: #1a0f17;
-    transition: transform 0.1s ease, opacity 0.15s ease;
+    color: #1b1b1b;
+    transition: transform 0.1s ease, opacity 0.15s ease, filter 0.15s ease, background 0.15s ease;
     flex-shrink: 0;
+  }
+  button:hover:not(:disabled):not(.ghost):not(.warn):not(.danger):not(.icon-btn):not(.chip) {
+    filter: brightness(1.12);
   }
   button:active { transform: scale(0.97); }
   .icon-btn:active,
@@ -260,7 +297,7 @@
   /* Install dialog only: let copy-log tip paint outside the box */
   #dialog { overflow: visible; }
   dialog[open] { animation: dialog-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  dialog::backdrop { background: rgba(8, 6, 12, 0.7); backdrop-filter: blur(3px); }
+  dialog::backdrop { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(3px); }
   html:has(dialog[open]) { overflow: hidden; }
   @keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
   .dlg-head { display: flex; align-items: center; gap: 14px; }
@@ -282,13 +319,13 @@
     margin: 0;
     height: 240px;
     overflow: auto;
-    background: #0b0a0f;
+    background: #0f0f0f;
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 12px;
     padding-right: 40px;
     font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: #c9c4d8;
+    color: #c8c8c8;
     white-space: pre-wrap;
     word-break: break-all;
   }
@@ -545,7 +582,7 @@ const PETS = [
     emoji: "👹",
     name: "Demonym",
     repo: "https://github.com/eyeofbri/Demonym",
-    desc: "Digital pet made for the ADV",
+    desc: "Hatch and raise a creature: train, roam, battle, and pass traits to the next generation",
     parts: [{ file: bin("Demonym-M5Burner-v0.9.23.2-alpha-dev.bin"), address: 0x0 }],
   },
   {
@@ -553,7 +590,7 @@ const PETS = [
     emoji: "🐍",
     name: "ViperPet",
     repo: "https://github.com/viper0013/ViperPet",
-    desc: "Small digital pet made for the ADV",
+    desc: "Tamagotchi-style pet with evolutions, a reflex minigame, care streaks and offline decay",
     parts: [{ file: bin("viperpet-v0.3.bin"), address: 0x0 }],
   },
   {
@@ -561,7 +598,7 @@ const PETS = [
     emoji: "😈",
     name: "Raising Hell",
     repo: "https://github.com/acpayers-alt/raising-hell-cardputer",
-    desc: "Popular pet. The installer can copy graphics to the SD card so you can skip the slow Wi-Fi download",
+    desc: "Raise an infernal companion through life stages, mini-games, sleep, and maybe resurrection",
     tag: ["warn", "Requires SD"],
     sdAssets: {
       file: "assets/rh_assetpack_1.1.13.zip",
@@ -577,8 +614,8 @@ const PETS = [
     emoji: "🐣",
     name: "Tamaputer",
     repo: "https://github.com/mindovermiles262/tamaputer",
-    desc: "Real Tamagotchi P1 emulator. The installer copies your ROM to the SD over USB, then flashes stock firmware",
-    tag: ["warn", "Requires ROM"],
+    desc: "Play the original Tamagotchi P1 on your Cardputer",
+    tag: ["warn", "Requires ROM + SD"],
     needsFile: {
       title: "Add your Tamagotchi ROM",
       status: "We'll copy your P1 ROM to /tamaputer/tama.b on the SD, then flash Tamaputer",
@@ -672,7 +709,7 @@ const GAMES = [
     emoji: "🎮",
     name: "Game Station",
     repo: "https://github.com/geo-tp/Cardputer-Game-Station-Emulators",
-    desc: "Game Boy and other consoles with the 1997 Tamagotchi .gb game from the SD card",
+    desc: "Multi-console emulator for Game Boy, NES, Master System, Genesis and more",
     tag: ["warn", "Requires game"],
     needsFile: {
       title: "Add a game ROM",
@@ -691,7 +728,7 @@ const GAMES = [
     emoji: "🕹️",
     name: "Gameboy Enhanced",
     repo: "https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
-    desc: "Game Boy emulator with save states for the Tamagotchi .gb game on SD",
+    desc: "Game Boy emulator with save states",
     tag: ["warn", "Requires game"],
     needsFile: {
       title: "Add a Game Boy ROM",
@@ -753,7 +790,7 @@ const MORE = [
         emoji: "🎚️",
         name: "MicroGroove",
         repo: "https://github.com/matoslav/MicroGroove",
-        desc: "Four-track acid groovebox with three 303 voices and 808/909 drums, samples from the SD card",
+        desc: "Four-track acid groovebox with three 303 voices and 808/909 drums",
         tag: ["warn", "Requires samples"],
         parts: [{ file: bin("microgroove-v1.0.bin"), address: 0x0 }],
       },
@@ -762,7 +799,7 @@ const MORE = [
         emoji: "📻",
         name: "WebRadio",
         repo: "https://github.com/cyberwisk/M5Cardputer_WebRadio",
-        desc: "Internet radio over Wi-Fi that reads its station list from the SD card",
+        desc: "Stream internet radio stations over Wi-Fi",
         tag: ["warn", "Requires stations"],
         needsFile: {
           title: "Add your station list",
@@ -883,7 +920,7 @@ const MORE = [
         emoji: "💳",
         name: "BadCard",
         repo: "https://github.com/VoidNoi/BadCard",
-        desc: "BadUSB with Ducky Script support, payloads live in /BadCard on the SD card",
+        desc: "BadUSB with Ducky Script support",
         tag: ["warn", "Use responsibly"],
         parts: [{ file: bin("badcard-v1.7.2.bin"), address: 0x0 }],
       },
@@ -901,7 +938,7 @@ const MORE = [
         emoji: "👁️",
         name: "GhostBLE",
         repo: "https://github.com/SmonSE/GhostBLE",
-        desc: "BLE privacy scanner with a mascot, SD card needed on the Cardputer for logging",
+        desc: "BLE privacy scanner with a little mascot companion",
         tag: ["warn", "Use responsibly"],
         parts: [{ file: bin("ghostble-v1.4.9.bin"), address: 0x0 }],
       },
@@ -1100,15 +1137,26 @@ function cardEl(item, current, danger) {
       <div class="name"></div>
       <div class="desc">${item.desc}</div>
     </div>
-    <div class="actions">
-      ${item.tag ? `<span class="tag ${item.tag[0]}">${item.tag[1]}</span>` : ""}
-    </div>`;
+    <div class="actions"></div>`;
   el.dataset.search = `${item.name} ${item.desc} ${item.tag?.[1] || ""}`.toLowerCase();
   const nameRow = el.querySelector(".name");
   const label = document.createElement("span");
   label.className = "label";
   label.textContent = item.name;
   nameRow.appendChild(label);
+  if (item.tag) {
+    const tag = document.createElement("span");
+    tag.className = `tag ${item.tag[0]}`;
+    tag.textContent = item.tag[1];
+    nameRow.appendChild(tag);
+  }
+  if (isCurrent) {
+    const installed = document.createElement("span");
+    installed.className = "tag current";
+    installed.textContent = "Installed";
+    nameRow.appendChild(installed);
+  }
+  const actions = el.querySelector(".actions");
   if (item.repo) {
     const origin = document.createElement("a");
     origin.className = "icon-btn";
@@ -1118,7 +1166,7 @@ function cardEl(item, current, danger) {
     origin.dataset.tip = "Source";
     origin.setAttribute("aria-label", "Source");
     origin.innerHTML = ICON_EXTERNAL;
-    nameRow.appendChild(origin);
+    actions.appendChild(origin);
   }
   const keys = resolveKeys(item);
   if (keys) {
@@ -1129,19 +1177,13 @@ function cardEl(item, current, danger) {
     keysBtn.setAttribute("aria-label", "Shortcuts");
     keysBtn.innerHTML = ICON_KEYBOARD;
     keysBtn.onclick = () => openKeysDialog(item, keys);
-    nameRow.appendChild(keysBtn);
-  }
-  if (isCurrent) {
-    const installed = document.createElement("span");
-    installed.className = "tag current";
-    installed.textContent = "Installed";
-    nameRow.appendChild(installed);
+    actions.appendChild(keysBtn);
   }
   const btn = document.createElement("button");
   btn.textContent = item.button || "Install";
   if (item.buttonClass) btn.className = item.buttonClass;
   btn.onclick = () => (item.action === "erase" ? eraseDevice() : install(item));
-  el.querySelector(".actions").appendChild(btn);
+  actions.appendChild(btn);
   buttons.push(btn);
   return el;
 }
@@ -1205,6 +1247,47 @@ function render() {
 }
 
 $("search").addEventListener("input", (e) => { query = e.target.value; applyFilters(); });
+
+{
+  const glow = new WeakMap();
+  let raf = 0;
+
+  const tick = () => {
+    raf = 0;
+    let moving = false;
+    for (const pet of $("catalog").querySelectorAll(".pet:hover")) {
+      const state = glow.get(pet);
+      if (!state) continue;
+      state.x += (state.tx - state.x) * 0.025;
+      state.y += (state.ty - state.y) * 0.025;
+      pet.style.setProperty("--mx", `${state.x}px`);
+      pet.style.setProperty("--my", `${state.y}px`);
+      if (Math.abs(state.tx - state.x) > 0.3 || Math.abs(state.ty - state.y) > 0.3) moving = true;
+    }
+    if (moving) raf = requestAnimationFrame(tick);
+  };
+
+  const kick = () => {
+    if (!raf) raf = requestAnimationFrame(tick);
+  };
+
+  $("catalog").addEventListener("pointermove", (e) => {
+    const pet = e.target.closest(".pet");
+    if (!pet) return;
+    const r = pet.getBoundingClientRect();
+    const tx = e.clientX - r.left;
+    const ty = e.clientY - r.top;
+    let state = glow.get(pet);
+    if (!state) {
+      state = { x: tx, y: ty, tx, ty };
+      glow.set(pet, state);
+    } else {
+      state.tx = tx;
+      state.ty = ty;
+    }
+    kick();
+  });
+}
 
 new IntersectionObserver(
   ([entry]) => $("nav").classList.toggle("stuck", !entry.isIntersecting),
