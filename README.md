@@ -1,4 +1,4 @@
-# Cardputer Installers
+# Cardputer ADV Installers
 
 A one-page browser installer for the [M5Stack Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv) (ESP32-S3, 8 MB flash). Open `index.html` in Chrome or Edge, plug the Cardputer in over USB-C, and click **Install**.
 
