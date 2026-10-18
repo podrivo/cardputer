@@ -77,6 +77,7 @@ The serial port is typically `/dev/cu.usbmodem*` on macOS. Adjust as needed.
 ## Gotchas
 
 - **"Port is busy":** Chrome can hold the serial port if a Web Serial page (this installer or M5Burner) already connected. Close that tab and check with `lsof /dev/cu.usbmodem101`.
+- **Black screen after Install:** some M5Burner bins are app-only (no bootloader). The installer flashes those at `0x10000`. If an older build already overwrote `0x0`, use **Restore original** to recover.
 - **M5Burner's catalog** can be searched as JSON at `https://m5burner-api.m5stack.com/api/firmware`. Firmware files download from `https://m5burner-cdn.m5stack.com/firmware/<file>`.
 - **USB-C only provides power and flashing.** Apps that load files from "the SD card" need a real SD card (or a build that embeds those files).
 - **Security / audit firmwares** (Bruce, Evil-Cardputer, GhostESP, etc.): only use attack features on networks and devices you own or have permission to test.
