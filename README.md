@@ -124,3 +124,29 @@ A wider sweep of the ecosystem. Unlike the catalog above, these aren't verified 
 **Systems:** [M5MonsterC5-CardputerADV](https://github.com/C5Lab/M5MonsterC5-CardputerADV) · [PyDOS](https://github.com/RetiredWizard/PyDOS)
 
 **Oddities:** [cardputer-claude-os](https://github.com/dakshaymehta/cardputer-claude-os) · [bitmap16dx](https://github.com/bradmcnally/bitmap16dx)
+
+## License
+
+Released under the [MIT license](LICENSE).
+
+## Colophon
+
+A one-page browser installer for the M5Stack Cardputer ADV. Flash pets, games, tools, and more over USB-C without M5Burner or a local Python toolchain. Catalog with per-app keymaps, an in-device SD writer helper, and Netlify hosting for the bins. Vibe coded in a day with [Cursor](https://cursor.com).
+
+**Stack**
+
+| Piece | Choice |
+|---|---|
+| Page | Single `index.html` (HTML / CSS / JS) |
+| Flash | [esptool-js](https://github.com/espressif/esptool-js) over Web Serial |
+| Assets | JSZip for SD packs; catalog extras in `catalog-extra.js` / `catalog-keys.js` |
+| Dev server | Vite |
+| SD helper | PlatformIO firmware in `helper-sd-writer/` |
+| Hosting | Netlify |
+
+**Tools**
+
+- [esptool-js](https://github.com/espressif/esptool-js): browser flashing
+- [Vite](https://vite.dev/): local serve / reload
+- [PlatformIO](https://platformio.org/): SD writer helper builds
+- [M5Stack Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv): the device
