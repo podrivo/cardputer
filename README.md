@@ -11,12 +11,12 @@ Firmware images live in [`bins/`](bins/). The page uses [esptool-js](https://git
 | **Pets** | Demonym, ViperPet, Raising Hell, Tamaputer |
 | **Games** | Doom, Hazke, Card Craft, Silicon Casino, Puzzles, Battleship, MiniMaze, CardLife, Sound Terrarium, Game Station, Gameboy Enhanced |
 | **Tools** | Launcher, Bruce, Evil-Cardputer, Flashlight |
-| **Music** | miniacid, MicroGroove, WebRadio |
+| **Music** | GLIDE, miniacid, MicroGroove, WebRadio |
 | **AI** | Cardputer AI, AI Offline Chat |
 | **Mesh** | Meshtastic, Plai, MeshCore, rsCardputer, SSH, Ultimate Remote |
 | **Security** | GhostESP, ChimeraBLE, BadCard, Wi-Fi & BLE Radar, GhostBLE |
 | **Sensing** | CSI Radar, CSI Human Detector, CardSat, IMU Acoustic Analyzer |
-| **Systems** | MicroHydra, PaperOS, NucleoOS, Wikipedia Offline |
+| **Systems** | Picoware, MicroHydra, PaperOS, NucleoOS, Wikipedia Offline |
 | **Device** | Restore official User Demo v0.3, or erase the whole flash |
 
 Some apps need an SD card (assets, ROMs, samples, databases). Those are tagged in the UI.
@@ -115,11 +115,9 @@ A wider sweep of the ecosystem. Unlike the catalog above, these aren't verified 
 
 **Pets & toys:** [ClawPuter](https://github.com/bryant24hao/ClawPuter) · [Purplx](https://github.com/purplxhazee/Purplx-) (doesn't work on a stock ADV — see [issue #2](https://github.com/purplxhazee/Purplx-/issues/2)) · HaroPet (M5Burner 0.1 — boots on ADV but keys dead; original Cardputer keyboard only)
 
-**Music:** [GLIDE-Synth](https://github.com/CHARL3X/GLIDE-Synth-Cardputer-ADV) · [Winamp-style MP3 player](https://github.com/AndyAiCardputer/mp3-player-winamp-cardputer-adv)
+**Music:** [Winamp-style MP3 player](https://github.com/AndyAiCardputer/mp3-player-winamp-cardputer-adv) · [C.P.S.](https://github.com/oldtokage-collab/C.P.S.--Cardputer-SYHNTH--)
 
 **AI:** [M5CardputerAI](https://github.com/FelipeLima2/M5CardputerAI)
-
-**Mesh / RF:** [Picoware](https://github.com/jblanked/Picoware)
 
 **Sensing:** [cardputer-oscilloscope](https://github.com/AndyAiCardputer/cardputer-oscilloscope) · [cardputer-satellite-tracker](https://github.com/adammelancon/cardputer-satellite-tracker) · [stellar-map](https://github.com/wisnc/stellar-map)
 

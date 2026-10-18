@@ -940,6 +940,30 @@ const MORE = [
     title: "Music",
     items: [
       {
+        id: "glide",
+        emoji: "🎸",
+        name: "GLIDE",
+        repo: "https://github.com/CHARL3X/GLIDE-Synth-Cardputer-ADV",
+        desc: "Pocket slide-synth with generative sounds, tilt morph, and mic key detection on ADV",
+        keys: {
+          rows: [
+            ["1-0 / Q-P / A-; / Z-/", "Play four string rows (hi to lo)"],
+            ["- / =", "Octave down / up"],
+            ["[ / ]", "Bend down / up"],
+            ["\\", "Tap tempo"],
+            ["Enter", "Toggle tilt morph"],
+            ["Space", "Sustain"],
+            ["Bksp", "Panic (silence)"],
+            ["Tab", "Settings"],
+            ["Fn + Q-P", "Switch live sound slots"],
+            ["Fn + K / S", "Cycle key / scale (hold K: listen and retune)"],
+            ["` (hold)", "Restart to Launcher"],
+          ],
+          source: "https://github.com/CHARL3X/GLIDE-Synth-Cardputer-ADV/blob/master/README.md",
+        },
+        parts: [{ file: bin("glide-v3.7.bin"), address: 0x0 }],
+      },
+      {
         id: "miniacid",
         emoji: "🎛️",
         name: "miniacid",
@@ -1072,7 +1096,7 @@ const MORE = [
         name: "Ultimate Remote",
         repo: "https://github.com/geo-tp/Ultimate-Remote",
         desc: "Universal IR remote with 3498 profiles, load more from an SD card",
-        parts: [{ file: bin("ultimate-remote-v1.2.bin"), address: 0x0 }],
+        parts: [{ file: bin("ultimate-remote-v1.3.bin"), address: 0x0 }],
       },
     ],
   },
@@ -1179,6 +1203,25 @@ const MORE = [
   {
     title: "Systems",
     items: [
+      {
+        id: "picoware",
+        emoji: "🐚",
+        name: "Picoware",
+        repo: "https://github.com/jblanked/Picoware",
+        desc: "Custom MicroPython firmware with app store, games, REPL, Wi-Fi, Bluetooth, and more",
+        tag: ["warn", "Requires SD"],
+        keys: {
+          rows: [
+            ["Enter / Center", "Open Library or select"],
+            ["Arrows", "Navigate menus"],
+            ["Up (desktop)", "Notifications"],
+            ["Left (desktop)", "System Info"],
+            ["` / Esc / Back", "Back to previous screen"],
+          ],
+          source: "https://github.com/jblanked/Picoware/blob/main/guides/Basics.md",
+        },
+        parts: [{ file: bin("picoware-cardputer-adv-v2.5.0.bin"), address: 0x0 }],
+      },
       {
         id: "microhydra",
         emoji: "💧",
