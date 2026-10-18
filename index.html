@@ -884,6 +884,22 @@ const TOOLS = [
     tag: ["warn", "Use responsibly"],
     parts: [{ file: bin("evil-cardputer-v1-5-6.bin"), address: 0x0 }],
   },
+  {
+    id: "flashlight-adv",
+    emoji: "🔦",
+    name: "Flashlight",
+    repo: "https://github.com/Zeloksa/Cardputer-Flashlight-ADV",
+    desc: "Tactical flashlight using the ADV screen and RGB LED with white, red, and strobe",
+    keys: {
+      rows: [
+        ["Single click", "Power on/off (restores last color)"],
+        ["Double click", "Toggle strobe"],
+        ["Hold (>500ms)", "Toggle white / tactical red"],
+      ],
+      source: "https://github.com/Zeloksa/Cardputer-Flashlight-ADV",
+    },
+    parts: [{ file: bin("flashlight-adv-v1.1.bin"), address: 0x0 }],
+  },
 ];
 
 const MORE = [
@@ -938,6 +954,26 @@ const MORE = [
         repo: "https://github.com/therezor/cardputer-ai",
         desc: "A fully offline tiny LLM baked into the firmware with no account or network",
         parts: [{ file: bin("cardputer-ai-v2.2.bin"), address: 0x0 }],
+      },
+      {
+        id: "ai-offline-chat-adv",
+        emoji: "🧠",
+        name: "AI Offline Chat",
+        repo: "https://github.com/Zeloksa/AI-Offline-Chat-ADV",
+        desc: "Offline ELIZA therapist chatbot for the ADV, saves session memory to SD",
+        tag: ["warn", "Requires SD"],
+        keys: {
+          rows: [
+            ["Keyboard", "Type messages"],
+            ["Enter", "Send to ELIZA"],
+            ["Del", "Backspace"],
+            ["; / .", "Scroll chat history"],
+            ["- / =", "Volume down / up"],
+            ["Esc / `", "System menu"],
+          ],
+          source: "https://github.com/Zeloksa/AI-Offline-Chat-ADV",
+        },
+        parts: [{ file: bin("ai-offline-chat-adv-v1.1.bin"), address: 0x0 }],
       },
     ],
   },
@@ -1084,6 +1120,26 @@ const MORE = [
         repo: "https://github.com/prstoetzer/CardSat",
         desc: "Satellite tracker with multi-radio CAT Doppler control",
         parts: [{ file: bin("cardsat-v0.9.76.bin"), address: 0x0 }],
+      },
+      {
+        id: "imu-acoustic-analyzer",
+        emoji: "📐",
+        name: "IMU Acoustic Analyzer",
+        repo: "https://github.com/Zeloksa/IMU-Acoustic-Analyzer",
+        desc: "Acoustic scleroscope that measures surface hardness and elasticity with the ADV IMU",
+        keys: {
+          rows: [
+            ["1", "Start 3-drop measurement"],
+            ["2", "Add new material (5-drop)"],
+            ["3", "Open database list"],
+            ["< / >", "Database pages"],
+            ["1-4", "Delete material on page"],
+            ["- / =", "Volume down / up"],
+            ["Esc / `", "Cancel / main menu"],
+          ],
+          source: "https://github.com/Zeloksa/IMU-Acoustic-Analyzer",
+        },
+        parts: [{ file: bin("imu-acoustic-analyzer-v1.0.bin"), address: 0x0 }],
       },
     ],
   },
