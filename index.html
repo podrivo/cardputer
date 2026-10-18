@@ -302,6 +302,8 @@
 <script type="module">
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.js";
 
+const bin = (name) => `bins/${name}`;
+
 const PETS = [
   {
     id: "demonym",
@@ -309,7 +311,7 @@ const PETS = [
     name: "Demonym",
     repo: "https://github.com/eyeofbri/Demonym",
     desc: "Digital pet made for the ADV",
-    parts: [{ file: "Demonym-M5Burner-v0.9.23.2-alpha-dev.bin", address: 0x0 }],
+    parts: [{ file: bin("Demonym-M5Burner-v0.9.23.2-alpha-dev.bin"), address: 0x0 }],
   },
   {
     id: "viperpet",
@@ -317,7 +319,7 @@ const PETS = [
     name: "ViperPet",
     repo: "https://github.com/viper0013/ViperPet",
     desc: "Small digital pet made for the ADV",
-    parts: [{ file: "viperpet-v0.3.bin", address: 0x0 }],
+    parts: [{ file: bin("viperpet-v0.3.bin"), address: 0x0 }],
   },
   {
     id: "raising-hell",
@@ -326,7 +328,35 @@ const PETS = [
     repo: "https://github.com/acpayers-alt/raising-hell-cardputer",
     desc: "Popular pet that downloads its graphics to the SD card over Wi-Fi",
     tag: ["warn", "Heavy game"],
-    parts: [{ file: "raising-hell-m5burner-v3.0.0.bin", address: 0x0 }],
+    parts: [{ file: bin("raising-hell-m5burner-v3.0.0.bin"), address: 0x0 }],
+  },
+  {
+    id: "tamaputer",
+    emoji: "🐣",
+    name: "Tamaputer",
+    repo: "https://github.com/mindovermiles262/tamaputer",
+    desc: "Real Tamagotchi P1 emulator — put tama.b at /tamaputer/tama.b on the SD card",
+    tag: ["warn", "Needs ROM"],
+    parts: [{ file: bin("tamaputer-m5burner-v1.1.0.bin"), address: 0x0 }],
+  },
+];
+
+const GAMES = [
+  {
+    id: "doom",
+    emoji: "💀",
+    name: "Doom",
+    repo: "https://github.com/zspuspoki/CardPuterAdvancedDoom",
+    desc: "Full Doom on the ADV with sound, music and grove-cable multiplayer",
+    parts: [{ file: bin("doom-adv-v0.0.1.bin"), address: 0x0 }],
+  },
+  {
+    id: "sound-terrarium",
+    emoji: "🌍",
+    name: "Sound Terrarium",
+    repo: "https://github.com/kariagepompadour/SOUND-TERRARIUM",
+    desc: "A tiny living world shaped by sound, tilt, time and weather using the ADV's IMU",
+    parts: [{ file: bin("sound-terrarium-v108cs.bin"), address: 0x0 }],
   },
   {
     id: "game-station",
@@ -335,7 +365,7 @@ const PETS = [
     repo: "https://github.com/geo-tp/Cardputer-Game-Station-Emulators",
     desc: "Game Boy and other consoles with the 1997 Tamagotchi .gb game from the SD card",
     tag: ["warn", "Needs game"],
-    parts: [{ file: "game-station-v1.2.bin", address: 0x0 }],
+    parts: [{ file: bin("game-station-v1.2.bin"), address: 0x0 }],
   },
   {
     id: "gameboy-enhanced",
@@ -344,7 +374,7 @@ const PETS = [
     repo: "https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
     desc: "Game Boy emulator with save states for the Tamagotchi .gb game on SD",
     tag: ["warn", "Needs game"],
-    parts: [{ file: "gameboy-enhanced-v0.79.66.bin", address: 0x0 }],
+    parts: [{ file: bin("gameboy-enhanced-v0.79.66.bin"), address: 0x0 }],
   },
 ];
 
@@ -355,7 +385,7 @@ const TOOLS = [
     name: "Launcher",
     repo: "https://github.com/bmorcelli/Launcher",
     desc: "Switch apps from the SD card or over Wi-Fi, without a computer",
-    parts: [{ file: "launcher-v2.9.1.bin", address: 0x0 }],
+    parts: [{ file: bin("launcher-v2.9.1.bin"), address: 0x0 }],
   },
   {
     id: "bruce",
@@ -364,7 +394,7 @@ const TOOLS = [
     repo: "https://github.com/BruceDevices/firmware",
     desc: "Security-research toolkit: Wi-Fi, Bluetooth, IR, RF and BadUSB",
     tag: ["warn", "Use responsibly"],
-    parts: [{ file: "bruce-v1.16.1.bin", address: 0x0 }],
+    parts: [{ file: bin("bruce-v1.16.1.bin"), address: 0x0 }],
   },
   {
     id: "evil",
@@ -373,24 +403,11 @@ const TOOLS = [
     repo: "https://github.com/7h30th3r0n3/Evil-M5Project",
     desc: "Wi-Fi auditing with portals, scanning, deauth and more, SD card recommended",
     tag: ["warn", "Use responsibly"],
-    parts: [{ file: "evil-cardputer-v1-5-6.bin", address: 0x0 }],
+    parts: [{ file: bin("evil-cardputer-v1-5-6.bin"), address: 0x0 }],
   },
 ];
 
 const MORE = [
-  {
-    title: "Games",
-    items: [
-      {
-        id: "sound-terrarium",
-        emoji: "🌍",
-        name: "Sound Terrarium",
-        repo: "https://github.com/kariagepompadour/SOUND-TERRARIUM",
-        desc: "A tiny living world shaped by sound, tilt, time and weather using the ADV's IMU",
-        parts: [{ file: "sound-terrarium-v108cs.bin", address: 0x0 }],
-      },
-    ],
-  },
   {
     title: "Music",
     items: [
@@ -400,7 +417,7 @@ const MORE = [
         name: "miniacid",
         repo: "https://github.com/urtubia/miniacid",
         desc: "Acid-style mini groovebox made for the ADV",
-        parts: [{ file: "miniacid-v0.0.8.bin", address: 0x0 }],
+        parts: [{ file: bin("miniacid-v0.0.8.bin"), address: 0x0 }],
       },
       {
         id: "microgroove",
@@ -409,7 +426,7 @@ const MORE = [
         repo: "https://github.com/matoslav/MicroGroove",
         desc: "Four-track acid groovebox with three 303 voices and 808/909 drums, samples from the SD card",
         tag: ["warn", "Needs samples"],
-        parts: [{ file: "microgroove-v1.0.bin", address: 0x0 }],
+        parts: [{ file: bin("microgroove-v1.0.bin"), address: 0x0 }],
       },
       {
         id: "webradio",
@@ -418,7 +435,7 @@ const MORE = [
         repo: "https://github.com/cyberwisk/M5Cardputer_WebRadio",
         desc: "Internet radio over Wi-Fi that reads its station list from the SD card",
         tag: ["warn", "Needs stations"],
-        parts: [{ file: "webradio.bin", address: 0x0 }],
+        parts: [{ file: bin("webradio.bin"), address: 0x0 }],
       },
     ],
   },
@@ -431,7 +448,7 @@ const MORE = [
         name: "Cardputer AI",
         repo: "https://github.com/therezor/cardputer-ai",
         desc: "A fully offline tiny LLM baked into the firmware with no account or network",
-        parts: [{ file: "cardputer-ai-v2.2.bin", address: 0x0 }],
+        parts: [{ file: bin("cardputer-ai-v2.2.bin"), address: 0x0 }],
       },
     ],
   },
@@ -445,7 +462,7 @@ const MORE = [
         repo: "https://github.com/anton-vinogradov/meshtastic-adv",
         desc: "Keyboard-first Meshtastic client using its own Cap LoRa-1262 or any BLE node's radio",
         tag: ["warn", "LoRa / BLE node"],
-        parts: [{ file: "meshtastic-adv-v1.1.2.bin", address: 0x0 }],
+        parts: [{ file: bin("meshtastic-adv-v1.1.2.bin"), address: 0x0 }],
       },
       {
         id: "plai",
@@ -454,7 +471,7 @@ const MORE = [
         repo: "https://github.com/d4rkmen/plai",
         desc: "Standalone Meshtastic node with no phone, needs the LoRa cap and an SD card for history",
         tag: ["warn", "LoRa cap"],
-        parts: [{ file: "plai-v2.1.bin", address: 0x0 }],
+        parts: [{ file: bin("plai-v2.1.bin"), address: 0x0 }],
       },
       {
         id: "meshcore-tft",
@@ -463,7 +480,7 @@ const MORE = [
         repo: "https://github.com/Stachugit/MeshCore-Cardputer-ADV",
         desc: "MeshCore client with an enhanced TFT interface, needs the Cap LoRa-1262",
         tag: ["warn", "LoRa cap"],
-        parts: [{ file: "meshcore-tft-v1.10.bin", address: 0x0 }],
+        parts: [{ file: bin("meshcore-tft-v1.10.bin"), address: 0x0 }],
       },
       {
         id: "meshcore-adv",
@@ -472,7 +489,7 @@ const MORE = [
         repo: "https://github.com/sosprz/meshcore-cardputer-adv",
         desc: "MeshCore companion radio client for the ADV, needs a LoRa cap",
         tag: ["warn", "LoRa cap"],
-        parts: [{ file: "meshcore-adv-v1.15.81.bin", address: 0x0 }],
+        parts: [{ file: bin("meshcore-adv-v1.15.81.bin"), address: 0x0 }],
       },
       {
         id: "rscardputer",
@@ -481,7 +498,7 @@ const MORE = [
         repo: "https://github.com/ratspeak/rsCardputer",
         desc: "Reticulum / LXMF messenger and RNode in one, needs a LoRa cap",
         tag: ["warn", "LoRa cap"],
-        parts: [{ file: "rscardputer-v2.0.3.bin", address: 0x0 }],
+        parts: [{ file: bin("rscardputer-v2.0.3.bin"), address: 0x0 }],
       },
       {
         id: "cardputer-ssh",
@@ -489,7 +506,7 @@ const MORE = [
         name: "SSH Client",
         repo: "https://github.com/MangoX0567/M5Stack-Cardputer-SSH",
         desc: "A portable SSH client for the ADV over Wi-Fi",
-        parts: [{ file: "cardputer-ssh-v1.0.0.bin", address: 0x0 }],
+        parts: [{ file: bin("cardputer-ssh-v1.0.0.bin"), address: 0x0 }],
       },
       {
         id: "ultimate-remote",
@@ -497,7 +514,7 @@ const MORE = [
         name: "Ultimate Remote",
         repo: "https://github.com/geo-tp/Ultimate-Remote",
         desc: "Universal IR remote with 3498 profiles, load more from an SD card",
-        parts: [{ file: "ultimate-remote-v1.2.bin", address: 0x0 }],
+        parts: [{ file: bin("ultimate-remote-v1.2.bin"), address: 0x0 }],
       },
     ],
   },
@@ -511,7 +528,7 @@ const MORE = [
         repo: "https://github.com/GhostESP-Revival/GhostESP",
         desc: "Open-source wireless research platform with SD card for captures",
         tag: ["warn", "Use responsibly"],
-        parts: [{ file: "ghostesp-v2.2.2.bin", address: 0x0 }],
+        parts: [{ file: bin("ghostesp-v2.2.2.bin"), address: 0x0 }],
       },
       {
         id: "chimerable",
@@ -520,7 +537,7 @@ const MORE = [
         repo: "https://github.com/MatthewKuKanich/ChimeraBLE",
         desc: "BLE security and reverse-engineering: scan, GATT dump, clone, MITM",
         tag: ["warn", "Use responsibly"],
-        parts: [{ file: "chimerable-v1.0.1.bin", address: 0x0 }],
+        parts: [{ file: bin("chimerable-v1.0.1.bin"), address: 0x0 }],
       },
       {
         id: "badcard",
@@ -529,7 +546,7 @@ const MORE = [
         repo: "https://github.com/VoidNoi/BadCard",
         desc: "BadUSB with Ducky Script support, payloads live in /BadCard on the SD card",
         tag: ["warn", "Use responsibly"],
-        parts: [{ file: "badcard-v1.7.2.bin", address: 0x0 }],
+        parts: [{ file: bin("badcard-v1.7.2.bin"), address: 0x0 }],
       },
       {
         id: "wifi-ble-radar",
@@ -538,7 +555,7 @@ const MORE = [
         repo: "https://github.com/Zeloksa/Cardputer-ADV-WiFi-BLE-Radar",
         desc: "Spectrum analyzer and tracking radar with a retro CRT UI for the ADV only",
         tag: ["warn", "Use responsibly"],
-        parts: [{ file: "wifi-ble-radar-v3.1.bin", address: 0x0 }],
+        parts: [{ file: bin("wifi-ble-radar-v3.1.bin"), address: 0x0 }],
       },
       {
         id: "ghostble",
@@ -547,7 +564,7 @@ const MORE = [
         repo: "https://github.com/SmonSE/GhostBLE",
         desc: "BLE privacy scanner with a mascot, SD card needed on the Cardputer for logging",
         tag: ["warn", "Use responsibly"],
-        parts: [{ file: "ghostble-v1.4.9.bin", address: 0x0 }],
+        parts: [{ file: bin("ghostble-v1.4.9.bin"), address: 0x0 }],
       },
     ],
   },
@@ -560,7 +577,7 @@ const MORE = [
         name: "Wi-Fi CSI Radar",
         repo: "https://github.com/Zeloksa/Cardputer-ADV-CSI-Radar",
         desc: "High-performance Wi-Fi CSI sensing, self-contained on the ADV",
-        parts: [{ file: "csi-radar-v2.0.bin", address: 0x0 }],
+        parts: [{ file: bin("csi-radar-v2.0.bin"), address: 0x0 }],
       },
       {
         id: "csi-human-detector",
@@ -569,7 +586,7 @@ const MORE = [
         repo: "https://github.com/skizzophrenic/Cardputer-CSI-Human-Detector",
         desc: "Detects people through Wi-Fi signal changes, radar scope wants an external TFT",
         tag: ["warn", "Extra screen"],
-        parts: [{ file: "csi-human-detector-v1.2.0.bin", address: 0x0 }],
+        parts: [{ file: bin("csi-human-detector-v1.2.0.bin"), address: 0x0 }],
       },
       {
         id: "cardsat",
@@ -577,7 +594,7 @@ const MORE = [
         name: "CardSat",
         repo: "https://github.com/prstoetzer/CardSat",
         desc: "Satellite tracker with multi-radio CAT Doppler control",
-        parts: [{ file: "cardsat-v0.9.76.bin", address: 0x0 }],
+        parts: [{ file: bin("cardsat-v0.9.76.bin"), address: 0x0 }],
       },
     ],
   },
@@ -590,7 +607,7 @@ const MORE = [
         name: "MicroHydra",
         repo: "https://github.com/echo-lalia/MicroHydra",
         desc: "MicroPython app switcher for apps in /apps on flash or SD, ADV build is a preview",
-        parts: [{ file: "microhydra-v2.6-preview.bin", address: 0x0 }],
+        parts: [{ file: bin("microhydra-v2.6-preview.bin"), address: 0x0 }],
       },
       {
         id: "paperos",
@@ -598,7 +615,7 @@ const MORE = [
         name: "PaperOS",
         repo: "https://github.com/Artem76228/PaperOS",
         desc: "A whole little OS with files, paint, browser, offline AI, emulator and Lua, keep an SD card in",
-        parts: [{ file: "paperos-v1.3.bin", address: 0x0 }],
+        parts: [{ file: bin("paperos-v1.3.bin"), address: 0x0 }],
       },
       {
         id: "nucleoos",
@@ -607,7 +624,7 @@ const MORE = [
         repo: "https://github.com/indecenti/NucleoOs",
         desc: "Web-native OS with a browser shell, offline AI and OTA, needs a FAT32 SD card",
         tag: ["warn", "Needs SD"],
-        parts: [{ file: "nucleoos-v0.7.2.bin", address: 0x0 }],
+        parts: [{ file: bin("nucleoos-v0.7.2.bin"), address: 0x0 }],
       },
       {
         id: "wikipedia-offline",
@@ -616,7 +633,7 @@ const MORE = [
         repo: "https://github.com/Zeloksa/Wikipedia-Offline-ADV",
         desc: "6.4M offline Wikipedia articles needing a 32 GB SD card and the 18 GB database",
         tag: ["warn", "Needs DB"],
-        parts: [{ file: "wikipedia-offline-v1.2.bin", address: 0x0 }],
+        parts: [{ file: bin("wikipedia-offline-v1.2.bin"), address: 0x0 }],
       },
     ],
   },
@@ -631,7 +648,7 @@ const DEVICE = [
     desc: "M5Stack's official User Demo v0.3 — the firmware the Cardputer came with",
     button: "Restore",
     buttonClass: "warn",
-    parts: [{ file: "cardputer-adv-user-demo-v0.3.bin", address: 0x0 }],
+    parts: [{ file: bin("cardputer-adv-user-demo-v0.3.bin"), address: 0x0 }],
   },
   {
     id: "erase",
@@ -659,6 +676,7 @@ function showNotice(html) {
 
 const BLOCKS = [
   { title: "Pets", items: PETS },
+  { title: "Games", items: GAMES },
   { title: "Tools", items: TOOLS },
   ...MORE.map((g) => ({ title: g.title, items: g.items })),
   { title: "Device", items: DEVICE, danger: true },
@@ -876,7 +894,7 @@ function pickFile(name) {
       resolve(new Uint8Array(await f.arrayBuffer()));
     };
     picker.oncancel = () => reject(new Error(`Cancelled. Please choose ${name}`));
-    setStatus(`Choose ${name} from the cardputer folder`);
+    setStatus(`Choose ${name} from the bins folder`);
     picker.click();
   });
 }
