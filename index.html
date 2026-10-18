@@ -29,6 +29,7 @@
     --text: #f2f2f2;
     --muted: #9a9a9a;
     --accent: #ea6f42; /* fn */
+    --secondary: #7eb8e8;
     --ok: #66c99c;     /* opt */
     --warn: #e8a054;
     --bad: #e05555;
@@ -268,6 +269,16 @@
     transition: transform 0.1s ease, opacity 0.15s ease, filter 0.15s ease, background 0.15s ease;
     flex-shrink: 0;
   }
+  .actions > button:not(.icon-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .actions > button:not(.icon-btn) svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+  }
   button:hover:not(:disabled):not(.ghost):not(.warn):not(.danger):not(.icon-btn):not(.chip) {
     filter: brightness(1.12);
   }
@@ -275,7 +286,15 @@
   .icon-btn:active,
   .copy-log-btn:active { transform: none; }
   button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  button.ghost {
+    background: color-mix(in srgb, var(--line) 55%, transparent);
+    color: var(--muted);
+    border: 0;
+  }
+  button.ghost:hover:not(:disabled) {
+    color: var(--text);
+    background: color-mix(in srgb, var(--line) 85%, transparent);
+  }
   button.warn {
     background: transparent;
     color: var(--warn);
@@ -308,7 +327,7 @@
   .status-text.bad { color: var(--bad); }
   .pct { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
   .bar { height: 6px; background: var(--line); border-radius: 100px; overflow: hidden; margin-top: 16px; }
-  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
+  .bar > div { height: 100%; width: 0; background: var(--secondary); transition: width 0.2s ease; }
   .bar.ok > div { background: var(--ok); }
   .bar.bad > div { background: var(--bad); }
   .log-wrap {
@@ -330,7 +349,7 @@
     white-space: pre-wrap;
     word-break: break-all;
   }
-  .terminal .step { color: var(--accent); }
+  .terminal .step { color: var(--secondary); }
   .terminal .ok { color: var(--ok); }
   .terminal .bad { color: var(--bad); }
   .copy-log-btn {
@@ -387,13 +406,49 @@
   .done-text { color: var(--muted); margin-top: 4px; font-size: 14px; }
   .dlg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
   .dlg-actions[hidden] { display: none; }
-  #closeBtn, #keysCloseBtn { margin-left: auto; }
-  #keysDialog {
+  #closeBtn, #keysCloseBtn, #confirmCancelBtn { margin-left: auto; }
+  #keysDialog, #confirmDialog {
     width: min(380px, calc(100vw - 32px));
     padding: 22px;
   }
-  #keysDialog .dlg-head { margin-bottom: 20px; }
-  #keysDialog .dlg-actions { margin-top: 20px; }
+  #keysDialog .dlg-head,
+  #confirmDialog .dlg-head { margin-bottom: 20px; }
+  #keysDialog .dlg-actions,
+  #confirmDialog .dlg-actions { margin-top: 20px; }
+  #confirmDialog .confirm-text {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.45;
+    margin: 0;
+  }
+  #confirmDialog.danger .confirm-text { color: color-mix(in srgb, var(--bad) 70%, var(--muted)); }
+  #confirmMeta {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  #confirmMeta[hidden] { display: none; }
+  #confirmMeta li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 13px;
+    min-width: 0;
+  }
+  #confirmMeta .meta-label {
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  #confirmMeta .meta-value {
+    color: var(--text);
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  #confirmMeta .meta-value.warn { color: var(--warn); }
   .keys-list {
     list-style: none;
     margin: 0;
@@ -589,6 +644,22 @@
   <ul class="keys-list" id="keysList"></ul>
   <div class="dlg-actions">
     <button id="keysCloseBtn">Close</button>
+  </div>
+</dialog>
+
+<dialog id="confirmDialog">
+  <div class="dlg-head">
+    <div class="emoji" id="confirmEmoji"></div>
+    <div>
+      <div class="dlg-title" id="confirmTitle"></div>
+      <div class="status-text" id="confirmSubtitle">Confirm</div>
+    </div>
+  </div>
+  <p class="confirm-text" id="confirmText"></p>
+  <ul class="confirm-meta" id="confirmMeta" hidden></ul>
+  <div class="dlg-actions">
+    <button type="button" class="ghost" id="confirmCancelBtn">Cancel</button>
+    <button type="button" id="confirmOkBtn">Confirm and install</button>
   </div>
 </dialog>
 
@@ -846,6 +917,22 @@ const TOOLS = [
     tag: ["warn", "Use responsibly"],
     parts: [{ file: bin("evil-cardputer-v1-5-6.bin"), address: 0x0 }],
   },
+  {
+    id: "flashlight-adv",
+    emoji: "🔦",
+    name: "Flashlight",
+    repo: "https://github.com/Zeloksa/Cardputer-Flashlight-ADV",
+    desc: "Tactical flashlight using the ADV screen and RGB LED with white, red, and strobe",
+    keys: {
+      rows: [
+        ["Single click", "Power on/off (restores last color)"],
+        ["Double click", "Toggle strobe"],
+        ["Hold (>500ms)", "Toggle white / tactical red"],
+      ],
+      source: "https://github.com/Zeloksa/Cardputer-Flashlight-ADV",
+    },
+    parts: [{ file: bin("flashlight-adv-v1.1.bin"), address: 0x0 }],
+  },
 ];
 
 const MORE = [
@@ -900,6 +987,26 @@ const MORE = [
         repo: "https://github.com/therezor/cardputer-ai",
         desc: "A fully offline tiny LLM baked into the firmware with no account or network",
         parts: [{ file: bin("cardputer-ai-v2.2.bin"), address: 0x0 }],
+      },
+      {
+        id: "ai-offline-chat-adv",
+        emoji: "🧠",
+        name: "AI Offline Chat",
+        repo: "https://github.com/Zeloksa/AI-Offline-Chat-ADV",
+        desc: "Offline ELIZA therapist chatbot for the ADV, saves session memory to SD",
+        tag: ["warn", "Requires SD"],
+        keys: {
+          rows: [
+            ["Keyboard", "Type messages"],
+            ["Enter", "Send to ELIZA"],
+            ["Del", "Backspace"],
+            ["; / .", "Scroll chat history"],
+            ["- / =", "Volume down / up"],
+            ["Esc / `", "System menu"],
+          ],
+          source: "https://github.com/Zeloksa/AI-Offline-Chat-ADV",
+        },
+        parts: [{ file: bin("ai-offline-chat-adv-v1.1.bin"), address: 0x0 }],
       },
     ],
   },
@@ -1046,6 +1153,26 @@ const MORE = [
         repo: "https://github.com/prstoetzer/CardSat",
         desc: "Satellite tracker with multi-radio CAT Doppler control",
         parts: [{ file: bin("cardsat-v0.9.76.bin"), address: 0x0 }],
+      },
+      {
+        id: "imu-acoustic-analyzer",
+        emoji: "📐",
+        name: "IMU Acoustic Analyzer",
+        repo: "https://github.com/Zeloksa/IMU-Acoustic-Analyzer",
+        desc: "Acoustic scleroscope that measures surface hardness and elasticity with the ADV IMU",
+        keys: {
+          rows: [
+            ["1", "Start 3-drop measurement"],
+            ["2", "Add new material (5-drop)"],
+            ["3", "Open database list"],
+            ["< / >", "Database pages"],
+            ["1-4", "Delete material on page"],
+            ["- / =", "Volume down / up"],
+            ["Esc / `", "Cancel / main menu"],
+          ],
+          source: "https://github.com/Zeloksa/IMU-Acoustic-Analyzer",
+        },
+        parts: [{ file: bin("imu-acoustic-analyzer-v1.0.bin"), address: 0x0 }],
       },
     ],
   },
@@ -1200,8 +1327,141 @@ $("keysDialog").addEventListener("click", (e) => {
   if (e.target === $("keysDialog")) $("keysDialog").close();
 });
 
+/** @type {{ resolve: (ok: boolean) => void } | null} */
+let confirmPending = null;
+
+function settleConfirm(ok) {
+  const pending = confirmPending;
+  confirmPending = null;
+  $("confirmDialog").close();
+  pending?.resolve(ok);
+}
+
+function askConfirm({
+  emoji,
+  title,
+  subtitle = "Confirm",
+  text,
+  meta = [],
+  okLabel = "Confirm and install",
+  danger = false,
+}) {
+  settleConfirm(false);
+  $("confirmEmoji").textContent = emoji || "↺";
+  $("confirmTitle").textContent = title;
+  $("confirmSubtitle").textContent = subtitle;
+  $("confirmText").textContent = text;
+  const metaEl = $("confirmMeta");
+  metaEl.innerHTML = "";
+  metaEl.hidden = !meta.length;
+  for (const row of meta) {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.className = "meta-label";
+    label.textContent = row.label;
+    const value = document.createElement("span");
+    value.className = "meta-value" + (row.warn ? " warn" : "");
+    value.textContent = row.value;
+    li.append(label, value);
+    metaEl.appendChild(li);
+  }
+  $("confirmOkBtn").textContent = okLabel;
+  $("confirmOkBtn").className = danger ? "danger" : "";
+  $("confirmDialog").classList.toggle("danger", danger);
+  return new Promise((resolve) => {
+    confirmPending = { resolve };
+    $("confirmDialog").showModal();
+    $("confirmOkBtn").focus();
+  });
+}
+
+const sizeCache = new Map();
+
+function formatBytes(n) {
+  if (n == null || !Number.isFinite(n) || n < 0) return null;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) {
+    const kb = n / 1024;
+    return `${kb < 10 ? kb.toFixed(1) : Math.round(kb)} KB`;
+  }
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function probeFileSize(url) {
+  if (sizeCache.has(url)) return sizeCache.get(url);
+  let size = null;
+  try {
+    const head = await fetch(url, { method: "HEAD" });
+    const len = head.headers.get("content-length");
+    if (head.ok && len) size = Number(len);
+  } catch {}
+  if (size == null) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) size = (await res.arrayBuffer()).byteLength;
+    } catch {}
+  }
+  sizeCache.set(url, size);
+  return size;
+}
+
+async function confirmMetaFor(target) {
+  /** @type {{ label: string, value: string, warn?: boolean }[]} */
+  const meta = [];
+  if (target.parts?.length) {
+    const sizes = await Promise.all(target.parts.map((p) => probeFileSize(p.file)));
+    const total = sizes.every((n) => n != null) ? sizes.reduce((a, b) => a + b, 0) : null;
+    const formatted = formatBytes(total);
+    if (formatted) {
+      meta.push({
+        label: target.parts.length > 1 ? "Firmware" : "Size",
+        value: target.parts.length > 1 ? `${formatted} · ${target.parts.length} parts` : formatted,
+      });
+    }
+  }
+  if (target.sdAssets?.file) {
+    const packSize = formatBytes(await probeFileSize(target.sdAssets.file));
+    meta.push({
+      label: "SD assets",
+      value: packSize
+        ? `${packSize} → /${target.sdAssets.sdRoot}/`
+        : `Writes to /${target.sdAssets.sdRoot}/`,
+    });
+  }
+  if (target.needsFile) {
+    meta.push({
+      label: "Also needs",
+      value: target.needsFile.sdPath
+        ? `Your file → /${target.needsFile.sdPath}`
+        : "A file copied to the SD card",
+      warn: true,
+    });
+  }
+  if (target.tag?.[1]) {
+    const note = target.tag[1];
+    const redundant =
+      (target.sdAssets && /^Requires SD$/i.test(note))
+      || (target.needsFile && /Requires (ROM|game|stations)/i.test(note));
+    if (!redundant) {
+      meta.push({ label: "Note", value: note, warn: target.tag[0] === "warn" });
+    }
+  }
+  return meta;
+}
+
+$("confirmOkBtn").onclick = () => settleConfirm(true);
+$("confirmCancelBtn").onclick = () => settleConfirm(false);
+$("confirmDialog").addEventListener("click", (e) => {
+  if (e.target === $("confirmDialog")) settleConfirm(false);
+});
+$("confirmDialog").addEventListener("cancel", (e) => {
+  e.preventDefault();
+  settleConfirm(false);
+});
+
 const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`;
 const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>`;
+const ICON_INSTALL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
 
 function cardEl(item, current, danger) {
   const el = document.createElement("div");
@@ -1256,8 +1516,13 @@ function cardEl(item, current, danger) {
     actions.appendChild(keysBtn);
   }
   const btn = document.createElement("button");
-  btn.textContent = item.button || "Install";
+  const btnLabel = item.button || "Install";
   if (item.buttonClass) btn.className = item.buttonClass;
+  if (btnLabel === "Install") {
+    btn.innerHTML = ICON_INSTALL + `<span>${btnLabel}</span>`;
+  } else {
+    btn.textContent = btnLabel;
+  }
   btn.onclick = () => (item.action === "erase" ? eraseDevice() : install(item));
   actions.appendChild(btn);
   buttons.push(btn);
@@ -2193,7 +2458,19 @@ function resolveFlashAddress(data, address) {
 
 async function install(target) {
   if (busy) return;
-  if (target.id === "original" && !confirm("Replace the current firmware with the original User Demo?")) return;
+
+  const meta = await confirmMetaFor(target);
+  const ok = await askConfirm({
+    emoji: target.emoji,
+    title: target.name,
+    subtitle: "Install firmware",
+    text: target.id === "original"
+      ? "This replaces whatever is on the Cardputer with the original User Demo."
+      : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
+    meta,
+    okLabel: "Confirm and install",
+  });
+  if (!ok) return;
 
   setBusy(true);
   pendingExtra = null;
@@ -2376,7 +2653,16 @@ async function install(target) {
 
 async function eraseDevice() {
   if (busy) return;
-  if (!confirm("Erase the entire Cardputer flash? Everything on the device will be wiped and it won't boot until you install firmware.")) return;
+
+  const ok = await askConfirm({
+    emoji: "🧹",
+    title: "Erase flash",
+    subtitle: "Destructive action",
+    text: "Wipe the entire Cardputer flash? Everything on the device will be gone and it won't boot until you install firmware.",
+    okLabel: "Erase",
+    danger: true,
+  });
+  if (!ok) return;
 
   setBusy(true);
   openDialog({
