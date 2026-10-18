@@ -52,6 +52,54 @@ export const KEYS = {
     ],
     "source": "https://raw.githubusercontent.com/chatelp/geek-casino-cardputeradv/main/README.md",
   },
+  "cardputer-puzzles": {
+    "rows": [
+      ["; . , /", "Move cursor (up / down / left / right)"],
+      ["Enter", "Select / click at crosshair"],
+      ["Space", "Select2 / mark (flag, pencil, …)"],
+      ["Digits / letters / ⌫", "Per-game input"],
+      ["Ctrl+Z / Ctrl+Y", "Undo / Redo"],
+      ["Ctrl+N / Ctrl+R", "New game / Restart"],
+      ["Tab", "Menu / Help / Settings"],
+      ["Ctrl+P", "Toggle IMU tilt pointer"],
+      ["Ctrl+Space", "Recenter tilt pointer"],
+      ["Ctrl+L", "Toggle 2× zoom"],
+      ["Ctrl+F", "Star game on list"],
+      ["`", "Back"],
+    ],
+    "source": "https://raw.githubusercontent.com/chongjiazhen/cardputer-puzzles/main/README.md",
+  },
+  "battleship": {
+    "rows": [
+      ["1 / 2", "Start: vs AI / local 2P"],
+      ["; . , / or WASD", "Move ship / aim"],
+      ["R", "Rotate ship while placing"],
+      ["Space", "Place ship / fire / continue"],
+      ["1–8", "Jump aim to row"],
+      ["Enter / Backspace", "Confirm / edit name"],
+    ],
+    "source": "https://github.com/sakkra-adv/battleship/blob/main/src/main.cpp",
+  },
+  "minimaze": {
+    "rows": [
+      ["Arrows (; . , /)", "Move"],
+      ["Ctrl", "Toggle auto-play pathfinding"],
+      ["BtnGO", "Screenshot to SD"],
+      ["Esc", "Exit / menu"],
+    ],
+    "source": "https://raw.githubusercontent.com/chillyc0de/MiniMaze-for-Cardputer-ADV/main/src/main.cpp",
+  },
+  "cardlife": {
+    "rows": [
+      ["1", "Nuke current run and restart"],
+      ["2", "Randomize alive-cell color"],
+      ["3", "Open Resolution Menu"],
+      ["4", "Open Max Generation Menu"],
+      ["H", "Open Help screen"],
+      ["Enter / `", "Exit any menu"],
+    ],
+    "source": "https://raw.githubusercontent.com/personwithbeans/CardLife/main/README.md",
+  },
   "cardputer-ssh": {
     "rows": [
       [

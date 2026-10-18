@@ -9,7 +9,7 @@ Firmware images live in [`bins/`](bins/). The page uses [esptool-js](https://git
 | Section | Examples |
 |---|---|
 | **Pets** | Demonym, ViperPet, Raising Hell, Tamaputer |
-| **Games** | Doom, Hazke, Card Craft, Silicon Casino, Sound Terrarium, Game Station, Gameboy Enhanced |
+| **Games** | Doom, Hazke, Card Craft, Silicon Casino, Puzzles, Battleship, MiniMaze, CardLife, Sound Terrarium, Game Station, Gameboy Enhanced |
 | **Tools** | Launcher, Bruce, Evil-Cardputer, Flashlight |
 | **Music** | miniacid, MicroGroove, WebRadio |
 | **AI** | Cardputer AI, AI Offline Chat |
