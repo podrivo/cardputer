@@ -26,7 +26,7 @@ The full manual is in the repo's [`player_manual.md`](https://github.com/eyeofbr
 |---|---|
 | [Demonym](https://github.com/eyeofbri/Demonym) | Installed. Built for the ADV and actively maintained. Releases include a merged image for direct flashing (`Demonym-M5Burner-*.bin`). The source code is private. |
 | [ViperPet](https://github.com/viper0013/ViperPet) | Made for the ADV and saves to NVS. Small project with no prebuilt release, so it has to be built with PlatformIO. |
-| [Purplx](https://github.com/purplxhazee/Purplx-) | A full "cyberdeck OS" for the ADV. It includes a "My Pet" Tamagotchi among many other apps. |
+| [Purplx](https://github.com/purplxhazee/Purplx-) | A full "cyberdeck OS" for the ADV with a "My Pet" app. **Doesn't work on a stock ADV:** most apps draw on an external ILI9341 screen, and choosing "I don't have it" still locks it into two-screen mode ([issue #2](https://github.com/purplxhazee/Purplx-/issues/2)). After flashing it, the Cardputer stopped showing up on USB. Not in the installer. |
 
 ### SD card needed
 
@@ -36,6 +36,88 @@ The full manual is in the repo's [`player_manual.md`](https://github.com/eyeofbr
 | [Tamaputer](https://github.com/mindovermiles262/tamaputer) | A real Tamagotchi P1 emulator (the example from [M5Burner](https://burner.m5stack.com/2ZCJHE)). It needs a ROM file at `/tamaputer/tama.b` on the SD card. See the next section. |
 | [Game Station Emulators](https://github.com/geo-tp/Cardputer-Game-Station-Emulators) | Supports the ADV and emulates Game Boy and many other consoles. It can run the 1997 Game Boy *Tamagotchi* game (`.gb`) from the SD card. |
 | [Gameboy Enhanced Firmware](https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-) | A Game Boy emulator for the ADV with save states and partial Super Game Boy support. |
+
+### Tools
+
+| App | Notes |
+|---|---|
+| [Launcher](https://github.com/bmorcelli/Launcher) | An app launcher, not a pet. It installs other firmware from the SD card, from a web page it hosts, or over Wi-Fi from M5Burner and GitHub, so you can switch apps without a computer. The `Launcher-m5stack-cardputer.bin` release supports both the original Cardputer and the ADV, and is a merged image (flash at `0x0`). An SD card is optional but makes it more useful. It should be SDHC, 32 GB or smaller, FAT32 with an MBR partition scheme. |
+| [Bruce](https://github.com/BruceDevices/firmware) | A security-research firmware with Wi-Fi, Bluetooth, infrared, RF and BadUSB tools. The `Bruce-m5stack-cardputer.bin` release supports the ADV and is a merged image (flash at `0x0`). Only use its attack features on networks and devices you own or have permission to test. |
+| [Evil-Cardputer](https://github.com/7h30th3r0n3/Evil-M5Project) | A Wi-Fi auditing firmware (captive portals, scanning, deauth, and more) from the Evil-M5Project. The `binaries/Evil-Cardputer-*.bin` build supports the ADV and is a merged image (flash at `0x0`). An SD card is recommended for captured data and portals. Only use it on networks and devices you own or have permission to test. |
+
+## More to explore
+
+A wider sweep of the Cardputer ecosystem from GitHub, beyond what's in the installer. These are grouped by category and favour the ADV where possible. Unlike the apps above, I haven't verified each one's ADV support or whether it ships a merged image for direct flashing, so check before flashing.
+
+**Curated lists (start here)**
+
+- [awesome-m5stack-cardputer](https://github.com/terremoth/awesome-m5stack-cardputer) — the big index.
+- [Cardputer-firmware-list](https://github.com/ru84r8/Cardputer-firmware-list) — firmware-focused list.
+
+**Games & emulators**
+
+- [m5cardputer_doom](https://github.com/romalik/m5cardputer_doom) and [Cardputer-Doom-REBORN](https://github.com/skizzophrenic/Cardputer-Doom-REBORN) — Doom.
+- [cardputer-game-os](https://github.com/dkyazzentwatwa/cardputer-game-os) — game launcher + 15 games (ADV).
+- [gb_cardputer](https://github.com/matteofo/gb_cardputer) — Game Boy (Peanut-GB port).
+
+**Pets & toys**
+
+- [ClawPuter](https://github.com/bryant24hao/ClawPuter) — pixel desktop companion with AI chat, weather, desktop pet.
+
+**Music & audio**
+
+- [miniacid](https://github.com/urtubia/miniacid) — acid groovebox (ADV).
+- [MicroGroove](https://github.com/matoslav/MicroGroove) — 4-track acid groovebox (ADV).
+- [GLIDE-Synth](https://github.com/CHARL3X/GLIDE-Synth-Cardputer-ADV) — generative glide synth (ADV).
+- [Winamp-style MP3 player](https://github.com/AndyAiCardputer/mp3-player-winamp-cardputer-adv) (ADV).
+- [M5Cardputer_WebRadio](https://github.com/cyberwisk/M5Cardputer_WebRadio) — internet radio.
+
+**AI**
+
+- [cardputer-ai](https://github.com/therezor/cardputer-ai) — fully offline tiny LLM baked into firmware (ADV).
+- [M5CardputerAI](https://github.com/FelipeLima2/M5CardputerAI) — AI chat via cloud APIs.
+
+**Mesh, radio & comms**
+
+- [plai](https://github.com/d4rkmen/plai) — standalone Meshtastic node (ADV).
+- [meshtastic-adv](https://github.com/anton-vinogradov/meshtastic-adv) — Meshtastic client (ADV), advertises one-click browser install.
+- [MeshCore-Cardputer-ADV](https://github.com/Stachugit/MeshCore-Cardputer-ADV) / [meshcore-cardputer-adv](https://github.com/sosprz/meshcore-cardputer-adv) — MeshCore clients (ADV).
+- [rsCardputer](https://github.com/ratspeak/rsCardputer) — Reticulum/LXMF (ADV).
+- [M5Stack-Cardputer-SSH](https://github.com/MangoX0567/M5Stack-Cardputer-SSH) — SSH client (ADV).
+- [Ultimate-Remote](https://github.com/geo-tp/Ultimate-Remote) — universal IR remote, 3498 profiles.
+
+**Security / RF / Wi-Fi tools**
+
+- [GhostESP](https://github.com/GhostESP-Revival/GhostESP) — wireless research platform.
+- [Picoware](https://github.com/jblanked/Picoware) — multi-device custom firmware, lists the Cardputer ADV.
+- [ChimeraBLE](https://github.com/MatthewKuKanich/ChimeraBLE) — BLE security tool with a Cardputer UI.
+- [BadCard](https://github.com/VoidNoi/BadCard) — BadUSB with ducky script.
+- [Cardputer-ADV-WiFi-BLE-Radar](https://github.com/Zeloksa/Cardputer-ADV-WiFi-BLE-Radar) — Wi-Fi/BLE radar (ADV), ships a precompiled `.bin`.
+- [GhostBLE](https://github.com/SmonSE/GhostBLE) — BLE privacy scanner.
+
+Only use the attack features of these on networks and devices you own or have permission to test.
+
+**Sensing & instruments**
+
+- [Cardputer-CSI-Human-Detector](https://github.com/skizzophrenic/Cardputer-CSI-Human-Detector) and [Cardputer-ADV-CSI-Radar](https://github.com/Zeloksa/Cardputer-ADV-CSI-Radar) — detect people through Wi-Fi signal changes.
+- [cardputer-oscilloscope](https://github.com/AndyAiCardputer/cardputer-oscilloscope) — pocket oscilloscope + signal generator (has an ADV build).
+- [cardputer-satellite-tracker](https://github.com/adammelancon/cardputer-satellite-tracker) / [CardSat](https://github.com/prstoetzer/CardSat) — satellite trackers (ADV).
+- [stellar-map](https://github.com/wisnc/stellar-map) — Stellarium-style planetarium (ADV).
+
+**Full OSes, launchers & productivity**
+
+- [MicroHydra](https://github.com/echo-lalia/MicroHydra) — MicroPython app switcher.
+- [PaperOS](https://github.com/Artem76228/PaperOS) — launcher, file manager, paint, browser, offline AI, emulator, Lua.
+- [NucleoOs](https://github.com/indecenti/NucleoOs) — firmware + browser shell, offline AI, OTA.
+- [M5MonsterC5-CardputerADV](https://github.com/C5Lab/M5MonsterC5-CardputerADV) — ADV firmware.
+- [Wikipedia-Offline-ADV](https://github.com/Zeloksa/Wikipedia-Offline-ADV) — 6.4M offline Wikipedia articles (ADV).
+- [PyDOS](https://github.com/RetiredWizard/PyDOS) — DOS-like OS on MicroPython/CircuitPython.
+
+**Notable oddities**
+
+- [cardputer-claude-os](https://github.com/dakshaymehta/cardputer-claude-os) — Claude companion, BLE + voice (ADV).
+- [bitmap16dx](https://github.com/bradmcnally/bitmap16dx) — pixel-art sketchbook (ADV).
+- [SOUND-TERRARIUM](https://github.com/kariagepompadour/SOUND-TERRARIUM) — generative world driven by tilt, time and weather (ADV).
 
 ## About Tamaputer and the ROM
 
@@ -63,7 +145,7 @@ xxd -s 0x8000 -l 4 firmware.bin   # "aa50" at 0x8000 means a partition table is 
 ```
 
 - **Merged image:** the entry point is around `0x403c9xxx` and the bytes at `0x8000` are `aa50`. Flash it at `0x0`.
-- **App-only image:** the entry point is around `0x4037xxxx` and there is no partition table at `0x8000`. Flash it at `0x10000`, but only if a compatible bootloader and partition table are already on the device. Otherwise build from source, or use M5Launcher from an SD card. The Tamaputer `.bin` is app-only.
+- **App-only image:** the entry point is around `0x4037xxxx` and there is no partition table at `0x8000`. Flash it at `0x10000`, but only if a compatible bootloader and partition table are already on the device. Otherwise build from source, or use [Launcher](https://github.com/bmorcelli/Launcher) to install it from an SD card. The Tamaputer `.bin` is app-only.
 
 ```bash
 # Flash a merged image

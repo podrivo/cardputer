@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cardputer Pet Installer</title>
+<title>Cardputer Installer</title>
 <style>
   :root {
     --bg: #14121a;
@@ -39,6 +39,9 @@
     display: none;
   }
   .notice code { color: var(--text); }
+  .section { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 28px 0 12px; }
+  .section:first-of-type { margin-top: 0; }
+  .section-sub { color: var(--muted); font-size: 13px; margin: -6px 0 12px; }
   .pets { display: grid; gap: 12px; }
   .pet {
     background: var(--card);
@@ -52,6 +55,9 @@
   .emoji { font-size: 34px; width: 44px; text-align: center; flex-shrink: 0; }
   .info { flex: 1; min-width: 0; }
   .name { font-weight: 600; font-size: 17px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .name a { color: inherit; text-decoration: none; }
+  .name a:hover .label { text-decoration: underline; text-underline-offset: 3px; }
+  .name .arrow { color: var(--muted); font-size: 13px; font-weight: 400; }
   .desc { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
   .tag {
     font-size: 11px;
@@ -78,34 +84,76 @@
   button:active { transform: scale(0.97); }
   button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
-  .status {
-    margin-top: 24px;
+  dialog {
+    width: min(560px, calc(100vw - 32px));
+    padding: 22px;
     background: var(--card);
+    color: var(--text);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 16px 18px;
-    display: none;
+    border-radius: 16px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
   }
-  .status-text { font-weight: 600; }
-  .status-text.ok { color: var(--ok); }
+  dialog[open] { animation: dialog-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  dialog::backdrop { background: rgba(8, 6, 12, 0.7); backdrop-filter: blur(3px); }
+  @keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+  .dlg-head { display: flex; align-items: center; gap: 14px; }
+  .dlg-head .emoji { font-size: 30px; width: 38px; }
+  .dlg-title { font-weight: 600; font-size: 17px; }
+  .status-text { color: var(--muted); font-size: 13.5px; }
   .status-text.bad { color: var(--bad); }
-  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 12px; }
+  .pct { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+  .bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 16px; }
   .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
-  details { margin-top: 12px; color: var(--muted); font-size: 13px; }
-  pre {
-    margin: 8px 0 0;
-    max-height: 220px;
+  .bar.ok > div { background: var(--ok); }
+  .bar.bad > div { background: var(--bad); }
+  .terminal {
+    margin: 14px 0 0;
+    height: 240px;
     overflow: auto;
-    background: #0e0c13;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 12px;
+    background: #0b0a0f;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #c9c4d8;
     white-space: pre-wrap;
+    word-break: break-all;
   }
+  .terminal .step { color: var(--accent); }
+  .terminal .ok { color: var(--ok); }
+  .terminal .bad { color: var(--bad); }
+  .terminal.collapsed { display: none; }
+  .done { text-align: center; padding: 18px 0 4px; }
+  .done[hidden] { display: none; }
+  .check {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--ok) 16%, transparent);
+    color: var(--ok);
+    display: grid;
+    place-items: center;
+    font-size: 28px;
+    animation: pop 0.35s cubic-bezier(0.3, 1.5, 0.6, 1);
+  }
+  @keyframes pop { from { transform: scale(0.5); opacity: 0; } }
+  .done-title { font-size: 19px; font-weight: 600; }
+  .done-text { color: var(--muted); margin-top: 4px; font-size: 14px; }
+  .dlg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
+  .dlg-actions[hidden] { display: none; }
+  #closeBtn { margin-left: auto; }
+  .link-btn { background: none; color: var(--muted); padding: 0; font-weight: 400; font-size: 13px; }
+  .link-btn:hover { color: var(--text); }
   .footer {
     margin-top: 32px;
     padding-top: 20px;
     border-top: 1px solid var(--line);
+    display: grid;
+    gap: 14px;
+  }
+  .footer a { color: var(--text); text-underline-offset: 3px; }
+  .footer-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -117,66 +165,62 @@
 </head>
 <body>
 <main>
-  <h1>Cardputer Pet Installer</h1>
+  <h1>Cardputer Installer</h1>
   <p class="sub">Plug in the Cardputer over USB-C, then click Install. Use Chrome or Edge.</p>
 
   <div class="notice" id="notice"></div>
 
+  <h2 class="section">Pets</h2>
   <div class="pets" id="pets"></div>
 
-  <div class="status" id="status">
-    <div class="status-text" id="statusText"></div>
-    <div class="bar"><div id="barFill"></div></div>
-    <details>
-      <summary>Details</summary>
-      <pre id="log"></pre>
-    </details>
-  </div>
+  <h2 class="section">Tools</h2>
+  <p class="section-sub">Not pets. Use the attack features only on networks and devices you own or have permission to test.</p>
+  <div class="pets" id="tools"></div>
 
   <div class="footer">
-    <span>Restore the firmware the Cardputer came with (8 MB, takes a few minutes).</span>
-    <button class="ghost" id="restoreBtn">Restore original</button>
+    <div class="footer-row">
+      <span>Restore the firmware the Cardputer came with (8 MB, takes a few minutes).</span>
+      <button class="ghost" id="restoreBtn">Restore original</button>
+    </div>
   </div>
 </main>
+
+<dialog id="dialog">
+  <div id="progressView">
+    <div class="dlg-head">
+      <div class="emoji" id="dlgEmoji"></div>
+      <div>
+        <div class="dlg-title" id="dlgTitle"></div>
+        <div class="status-text" id="statusText"></div>
+      </div>
+      <div class="pct" id="pct"></div>
+    </div>
+    <div class="bar" id="bar"><div id="barFill"></div></div>
+  </div>
+  <div class="done" id="doneView" hidden>
+    <div class="check">✓</div>
+    <div class="done-title" id="doneTitle"></div>
+    <div class="done-text" id="doneText">Your Cardputer is restarting. Have fun!</div>
+  </div>
+  <pre class="terminal" id="log"></pre>
+  <div class="dlg-actions" id="actions" hidden>
+    <button class="link-btn" id="logsBtn">Show logs</button>
+    <button class="ghost" id="copyBtn">Copy for AI</button>
+    <button id="closeBtn">Done</button>
+  </div>
+</dialog>
 
 <input type="file" id="filePicker" accept=".bin" hidden>
 
 <script type="module">
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.js";
 
-const RAISING_HELL = "raising-hell-m5burner-v3.0.0.bin";
-
-// Purplx's partitions_8mb_launcher.csv: [name, type, subtype, offset, size]
-const PURPLX_PARTITIONS = [
-  ["nvs", 1, 0x02, 0x9000, 0x5000],
-  ["otadata", 1, 0x00, 0xe000, 0x2000],
-  ["factory", 0, 0x00, 0x10000, 0x180000],
-  ["ota_0", 0, 0x10, 0x190000, 0x570000],
-  ["storage", 1, 0x81, 0x700000, 0x100000],
-];
-
-// Raising Hell's bootloader plus a custom partition table. NVS and otadata are
-// left blank so the bootloader starts the factory app.
-async function bootWithPartitions(partitions) {
-  const buf = new Uint8Array(0x10000).fill(0xff);
-  buf.set((await loadFile(RAISING_HELL)).slice(0, 0x8000));
-  const view = new DataView(buf.buffer);
-  partitions.forEach(([name, type, subtype, offset, size], i) => {
-    const at = 0x8000 + i * 32;
-    buf.set([0xaa, 0x50, type, subtype], at);
-    view.setUint32(at + 4, offset, true);
-    view.setUint32(at + 8, size, true);
-    buf.fill(0, at + 12, at + 32);
-    buf.set(new TextEncoder().encode(name), at + 12);
-  });
-  return buf;
-}
-
 const PETS = [
   {
     id: "demonym",
     emoji: "👹",
     name: "Demonym",
+    repo: "https://github.com/eyeofbri/Demonym",
     desc: "Made for the ADV. Saves to internal memory.",
     tag: ["ok", "No SD card"],
     parts: [{ file: "Demonym-M5Burner-v0.9.23.2-alpha-dev.bin", address: 0x0 }],
@@ -185,45 +229,34 @@ const PETS = [
     id: "viperpet",
     emoji: "🐍",
     name: "ViperPet",
+    repo: "https://github.com/viper0013/ViperPet",
     desc: "Small pet made for the ADV. Saves to internal memory.",
     tag: ["ok", "No SD card"],
     parts: [{ file: "viperpet-v0.3.bin", address: 0x0 }],
   },
   {
-    id: "purplx",
-    emoji: "💜",
-    name: "Purplx",
-    desc: "A whole cyberdeck OS. The pet is in the “My Pet” app.",
-    tag: ["ok", "No SD card"],
-    parts: [
-      { address: 0x0, build: () => bootWithPartitions(PURPLX_PARTITIONS) },
-      { file: "purplx-v1.0.1.bin", address: 0x10000 },
-    ],
-  },
-  {
     id: "raising-hell",
     emoji: "😈",
     name: "Raising Hell",
+    repo: "https://github.com/acpayers-alt/raising-hell-cardputer",
     desc: "The most popular one. Downloads its graphics to the SD card over Wi-Fi.",
     tag: ["warn", "SD card"],
-    parts: [{ file: RAISING_HELL, address: 0x0 }],
+    parts: [{ file: "raising-hell-m5burner-v3.0.0.bin", address: 0x0 }],
   },
   {
     id: "tamaputer",
     emoji: "🥚",
     name: "Tamaputer",
-    desc: "Real Tamagotchi P1 emulator. Needs your own ROM at /tamaputer/tama.b on the SD card.",
-    tag: ["warn", "SD card + ROM"],
-    // App-only image, so it borrows Raising Hell's bootloader and partition table.
-    parts: [
-      { file: RAISING_HELL, address: 0x0, slice: [0, 0x10000] },
-      { file: "tamaputer-v1.1.0.bin", address: 0x10000 },
-    ],
+    repo: "https://github.com/mindovermiles262/tamaputer",
+    desc: "The original 1996 Tamagotchi, emulated. Local build with the ROM built in. Press Z to save.",
+    tag: ["ok", "No SD card"],
+    parts: [{ file: "tamaputer-rom.bin", address: 0x0 }],
   },
   {
     id: "game-station",
     emoji: "🎮",
     name: "Game Station",
+    repo: "https://github.com/geo-tp/Cardputer-Game-Station-Emulators",
     desc: "Game Boy and other consoles. Play the 1997 Tamagotchi .gb game from the SD card.",
     tag: ["warn", "SD card + game"],
     parts: [{ file: "game-station-v1.2.bin", address: 0x0 }],
@@ -232,9 +265,40 @@ const PETS = [
     id: "gameboy-enhanced",
     emoji: "🕹️",
     name: "Gameboy Enhanced",
+    repo: "https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
     desc: "Game Boy emulator with save states. Play the Tamagotchi .gb game from the SD card.",
     tag: ["warn", "SD card + game"],
     parts: [{ file: "gameboy-enhanced-v0.79.66.bin", address: 0x0 }],
+  },
+];
+
+const TOOLS = [
+  {
+    id: "launcher",
+    emoji: "🚀",
+    name: "Launcher",
+    repo: "https://github.com/bmorcelli/Launcher",
+    desc: "Switch apps from the SD card or over Wi-Fi, without a computer.",
+    tag: ["ok", "SD card optional"],
+    parts: [{ file: "launcher-v2.9.1.bin", address: 0x0 }],
+  },
+  {
+    id: "bruce",
+    emoji: "🦈",
+    name: "Bruce",
+    repo: "https://github.com/BruceDevices/firmware",
+    desc: "Security-research toolkit: Wi-Fi, Bluetooth, IR, RF and BadUSB.",
+    tag: ["warn", "Use responsibly"],
+    parts: [{ file: "bruce-v1.16.1.bin", address: 0x0 }],
+  },
+  {
+    id: "evil",
+    emoji: "👿",
+    name: "Evil-Cardputer",
+    repo: "https://github.com/7h30th3r0n3/Evil-M5Project",
+    desc: "Wi-Fi auditing: portals, scanning, deauth and more. SD card recommended.",
+    tag: ["warn", "Use responsibly"],
+    parts: [{ file: "evil-cardputer-v1-5-6.bin", address: 0x0 }],
   },
 ];
 
@@ -257,29 +321,35 @@ function showNotice(html) {
   $("notice").style.display = "block";
 }
 
-function render() {
-  const current = localStorage.getItem("installed");
-  $("pets").innerHTML = "";
-  buttons.length = 0;
-  for (const pet of PETS) {
+function renderCards(containerId, items, current) {
+  const container = $(containerId);
+  container.innerHTML = "";
+  for (const item of items) {
     const el = document.createElement("div");
     el.className = "pet";
     el.innerHTML = `
-      <div class="emoji">${pet.emoji}</div>
+      <div class="emoji">${item.emoji}</div>
       <div class="info">
-        <div class="name">${pet.name}
-          <span class="tag ${pet.tag[0]}">${pet.tag[1]}</span>
-          ${current === pet.id ? '<span class="tag current">Installed</span>' : ""}
+        <div class="name"><a href="${item.repo}" target="_blank" rel="noopener"><span class="label">${item.name}</span> <span class="arrow">↗</span></a>
+          <span class="tag ${item.tag[0]}">${item.tag[1]}</span>
+          ${current === item.id ? '<span class="tag current">Installed</span>' : ""}
         </div>
-        <div class="desc">${pet.desc}</div>
+        <div class="desc">${item.desc}</div>
       </div>`;
     const btn = document.createElement("button");
     btn.textContent = "Install";
-    btn.onclick = () => install(pet);
+    btn.onclick = () => install(item);
     el.appendChild(btn);
     buttons.push(btn);
-    $("pets").appendChild(el);
+    container.appendChild(el);
   }
+}
+
+function render() {
+  const current = localStorage.getItem("installed");
+  buttons.length = 0;
+  renderCards("pets", PETS, current);
+  renderCards("tools", TOOLS, current);
   buttons.push($("restoreBtn"));
   setBusy(busy);
 }
@@ -290,25 +360,106 @@ function setBusy(value) {
 }
 
 function setStatus(text, kind = "") {
-  $("status").style.display = "block";
   $("statusText").textContent = text;
   $("statusText").className = "status-text " + kind;
 }
 
 function setProgress(fraction) {
-  $("barFill").style.width = `${Math.round(fraction * 100)}%`;
+  const pct = `${Math.round(fraction * 100)}%`;
+  $("barFill").style.width = pct;
+  $("pct").textContent = pct;
 }
 
-function log(line) {
-  $("log").textContent += line + "\n";
-  $("log").scrollTop = $("log").scrollHeight;
+function write(text, kind = "") {
+  const el = $("log");
+  const stick = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+  const span = document.createElement("span");
+  if (kind) span.className = kind;
+  span.textContent = text;
+  el.appendChild(span);
+  if (stick) el.scrollTop = el.scrollHeight;
 }
+
+const log = (line, kind) => write(line + "\n", kind);
+const step = (line) => log(`› ${line}`, "step");
+const hex = (n) => "0x" + n.toString(16).padStart(5, "0");
 
 const terminal = {
   clean() {},
-  writeLine: log,
-  write: (s) => { $("log").textContent += s; },
+  writeLine: (s) => log(s),
+  write: (s) => write(s),
 };
+
+function openDialog({ emoji, title, doneTitle, doneText }) {
+  $("dlgEmoji").textContent = emoji || "↺";
+  $("dlgTitle").textContent = title;
+  $("doneTitle").textContent = doneTitle;
+  $("doneText").textContent = doneText;
+  $("log").textContent = "";
+  $("log").classList.remove("collapsed");
+  $("progressView").hidden = false;
+  $("doneView").hidden = true;
+  $("actions").hidden = true;
+  $("bar").className = "bar";
+  setProgress(0);
+  $("dialog").showModal();
+}
+
+function finishDialog(ok) {
+  $("bar").classList.add(ok ? "ok" : "bad");
+  $("progressView").hidden = ok;
+  $("doneView").hidden = !ok;
+  $("log").classList.toggle("collapsed", ok);
+  $("logsBtn").hidden = !ok;
+  $("logsBtn").textContent = "Show logs";
+  $("copyBtn").hidden = ok;
+  $("copyBtn").textContent = "Copy for AI";
+  $("closeBtn").textContent = ok ? "Done" : "Close";
+  $("actions").hidden = false;
+  $("closeBtn").focus();
+}
+
+$("logsBtn").onclick = () => {
+  const collapsed = $("log").classList.toggle("collapsed");
+  $("logsBtn").textContent = collapsed ? "Show logs" : "Hide logs";
+};
+$("closeBtn").onclick = () => $("dialog").close();
+
+let failure = null;
+
+function aiPrompt({ target, message }) {
+  const files = target.parts.map((p) => `${p.file} at ${hex(p.address)}`).join(", ");
+  return [
+    "I'm flashing firmware onto an M5Stack Cardputer ADV (ESP32-S3, 8 MB flash, native USB-Serial/JTAG) " +
+      "from a local web page that uses esptool-js 0.7.0 over Web Serial, and the install failed. " +
+      "Explain what went wrong and give me the steps to fix it.",
+    "",
+    `Firmware: ${target.name} (${files})`,
+    `Browser: ${navigator.userAgent}`,
+    `Error: ${message}`,
+    "",
+    "Full log:",
+    "```",
+    $("log").textContent.trim(),
+    "```",
+  ].join("\n");
+}
+
+$("copyBtn").onclick = async () => {
+  const text = aiPrompt(failure);
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const area = Object.assign(document.createElement("textarea"), { value: text });
+    $("dialog").appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+  }
+  $("copyBtn").textContent = "Copied ✓";
+  setTimeout(() => { $("copyBtn").textContent = "Copy for AI"; }, 2000);
+};
+$("dialog").addEventListener("cancel", (e) => { if (busy) e.preventDefault(); });
 
 // file:// pages can't fetch neighbouring files, so fall back to asking for the file.
 function pickFile(name) {
@@ -346,31 +497,41 @@ async function install(target) {
   if (target === RESTORE && !confirm("Replace the current pet with the original firmware?")) return;
 
   setBusy(true);
-  $("log").textContent = "";
-  setProgress(0);
+  openDialog({
+    emoji: target.emoji,
+    title: `Installing ${target.name}`,
+    doneTitle: `${target.name} is installed`,
+    doneText: "Your Cardputer is restarting. Have fun!",
+  });
   let transport;
 
   try {
     setStatus("Pick the Cardputer in the popup…");
+    step("Waiting for a USB device");
     const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] });
+    const { usbVendorId, usbProductId } = port.getInfo();
+    log(`Selected USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
 
     setStatus("Loading firmware…");
+    step("Loading firmware files");
     const fileArray = [];
     for (const part of target.parts) {
-      let data = part.build ? await part.build() : await loadFile(part.file);
-      if (part.slice) data = data.slice(...part.slice);
+      const data = await loadFile(part.file);
       fileArray.push({ data, address: part.address });
+      log(`${part.file}: ${data.length.toLocaleString()} bytes at ${hex(part.address)}`);
     }
     const total = fileArray.reduce((n, f) => n + f.data.length, 0);
     const before = fileArray.map((_, i) => fileArray.slice(0, i).reduce((n, f) => n + f.data.length, 0));
 
     setStatus("Connecting…");
+    step("Connecting to the Cardputer");
     transport = new Transport(port, false);
     const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
     const chip = await loader.main();
-    log(`Connected to ${chip}`);
+    log(`Connected to ${chip}`, "ok");
 
-    setStatus(`Installing ${target.name}…`);
+    setStatus(`Writing ${(total / 1024 / 1024).toFixed(1)} MB to flash…`);
+    step("Writing firmware");
     await loader.writeFlash({
       fileArray,
       flashMode: "keep",
@@ -381,22 +542,27 @@ async function install(target) {
       reportProgress: (i, written, size) => {
         const done = before[i] + (written / size) * fileArray[i].data.length;
         setProgress(done / total);
-        setStatus(`Installing ${target.name}… ${Math.round((done / total) * 100)}%`);
       },
     });
 
     setStatus("Restarting the Cardputer…");
+    step("Restarting");
     await loader.after("hard_reset");
     setProgress(1);
+    log(`Done. ${target.name} is installed.`, "ok");
     localStorage.setItem("installed", target.id);
-    setStatus(`${target.name} is installed. Have fun!`, "ok");
+    finishDialog(true);
   } catch (err) {
-    log(String(err?.stack || err));
-    const msg = err?.name === "NotFoundError" ? "No device picked." : String(err?.message || err);
-    setStatus(`Install failed: ${msg}`, "bad");
+    if (!$("log").textContent.endsWith("\n")) write("\n");
+    log(String(err?.stack || err), "bad");
+    $("dlgTitle").textContent = `Couldn't install ${target.name}`;
+    let msg = err?.name === "NotFoundError" ? "No device picked." : String(err?.message || err);
     if (/busy|open/i.test(msg)) {
-      showNotice("The USB port is busy. Close other tabs or apps using the Cardputer (like M5Burner or a terminal running esptool) and try again.");
+      msg = "The USB port is busy. Close other tabs or apps using the Cardputer (like M5Burner or a terminal running esptool) and try again.";
     }
+    setStatus(`Install failed: ${msg}`, "bad");
+    failure = { target, message: `${err?.name || "Error"}: ${err?.message || err}` };
+    finishDialog(false);
   } finally {
     try { await transport?.disconnect(); } catch {}
     setBusy(false);
