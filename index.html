@@ -256,14 +256,20 @@
   .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
   .bar.ok > div { background: var(--ok); }
   .bar.bad > div { background: var(--bad); }
-  .terminal {
+  .log-wrap {
+    position: relative;
     margin: 14px 0 0;
+  }
+  .log-wrap.collapsed { display: none; }
+  .terminal {
+    margin: 0;
     height: 240px;
     overflow: auto;
     background: #0b0a0f;
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 12px;
+    padding-right: 40px;
     font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
     color: #c9c4d8;
     white-space: pre-wrap;
@@ -272,7 +278,41 @@
   .terminal .step { color: var(--accent); }
   .terminal .ok { color: var(--ok); }
   .terminal .bad { color: var(--bad); }
-  .terminal.collapsed { display: none; }
+  .copy-log-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--card) 85%, transparent);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .log-wrap:hover .copy-log-btn,
+  .copy-log-btn.copied,
+  .copy-log-btn:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .copy-log-btn:hover {
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--text) 25%, var(--line));
+  }
+  .copy-log-btn.copied {
+    color: var(--ok);
+    border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+  }
+  .copy-log-btn svg { width: 14px; height: 14px; display: block; grid-area: 1 / 1; }
+  .copy-log-btn .copy-log-check { display: none; }
+  .copy-log-btn.copied .copy-log-icon { display: none; }
+  .copy-log-btn.copied .copy-log-check { display: block; }
   .done { text-align: center; padding: 18px 0 4px; }
   .done[hidden] { display: none; }
   .check {
@@ -432,7 +472,18 @@
     <div class="done-title" id="doneTitle"></div>
     <div class="done-text" id="doneText">Your Cardputer is restarting. Have fun!</div>
   </div>
-  <pre class="terminal" id="log"></pre>
+  <div class="log-wrap" id="logWrap">
+    <pre class="terminal" id="log"></pre>
+    <button type="button" class="copy-log-btn" id="copyLogBtn" title="Copy logs" aria-label="Copy logs">
+      <svg class="copy-log-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      <svg class="copy-log-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </button>
+  </div>
   <div class="dlg-actions" id="actions" hidden>
     <button class="ghost" id="logsBtn">Show logs</button>
     <button class="ghost" id="copyBtn">Copy for AI</button>
@@ -1177,7 +1228,7 @@ function openDialog({ emoji, title, doneTitle, doneText, pickFile = false }) {
   $("doneTitle").textContent = doneTitle;
   $("doneText").textContent = doneText;
   $("log").textContent = "";
-  $("log").classList.toggle("collapsed", pickFile);
+  $("logWrap").classList.toggle("collapsed", pickFile);
   $("progressView").hidden = pickFile;
   $("filePickView").hidden = !pickFile;
   $("doneView").hidden = true;
@@ -1192,7 +1243,7 @@ function openDialog({ emoji, title, doneTitle, doneText, pickFile = false }) {
 function showProgressView() {
   $("filePickView").hidden = true;
   $("progressView").hidden = false;
-  $("log").classList.remove("collapsed");
+  $("logWrap").classList.remove("collapsed");
 }
 
 function finishDialog(ok, { sdPath, sdLabel } = {}) {
@@ -1200,7 +1251,7 @@ function finishDialog(ok, { sdPath, sdLabel } = {}) {
   $("progressView").hidden = ok;
   $("filePickView").hidden = true;
   $("doneView").hidden = !ok;
-  $("log").classList.toggle("collapsed", ok);
+  $("logWrap").classList.toggle("collapsed", ok);
   $("logsBtn").hidden = !ok;
   $("logsBtn").textContent = "Show logs";
   $("copyBtn").hidden = ok;
@@ -1215,7 +1266,7 @@ function finishDialog(ok, { sdPath, sdLabel } = {}) {
 }
 
 $("logsBtn").onclick = () => {
-  const collapsed = $("log").classList.toggle("collapsed");
+  const collapsed = $("logWrap").classList.toggle("collapsed");
   $("logsBtn").textContent = collapsed ? "Show logs" : "Hide logs";
 };
 $("closeBtn").onclick = () => {
@@ -1294,7 +1345,7 @@ function promptForExtraFile(target) {
     $("progressView").hidden = true;
     $("doneView").hidden = true;
     $("filePickView").hidden = false;
-    $("log").classList.add("collapsed");
+    $("logWrap").classList.add("collapsed");
     $("actions").hidden = false;
     $("logsBtn").hidden = true;
     $("copyBtn").hidden = true;
@@ -1471,8 +1522,7 @@ function aiPrompt({ target, message }) {
   ].join("\n");
 }
 
-$("copyBtn").onclick = async () => {
-  const text = aiPrompt(failure);
+async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -1482,6 +1532,22 @@ $("copyBtn").onclick = async () => {
     document.execCommand("copy");
     area.remove();
   }
+}
+
+let copyLogTimer = 0;
+$("copyLogBtn").onclick = async () => {
+  const text = $("log").textContent.trim();
+  if (!text) return;
+  await copyText(text);
+  const btn = $("copyLogBtn");
+  btn.classList.add("copied");
+  clearTimeout(copyLogTimer);
+  copyLogTimer = setTimeout(() => btn.classList.remove("copied"), 1600);
+};
+
+$("copyBtn").onclick = async () => {
+  const text = aiPrompt(failure);
+  await copyText(text);
   $("copyBtn").textContent = "Copied ✓";
   setTimeout(() => { $("copyBtn").textContent = "Copy for AI"; }, 2000);
 };
