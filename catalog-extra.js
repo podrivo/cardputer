@@ -6,7 +6,7 @@ export const EXTRA = {
   ],
   pets: [
     { id: "haropet", emoji: "🐣", name: "HaroPet", desc: "Haro from mobile suit gundam.", parts: [{ file: "bins/haropet-0.1.bin", address: 0x0 }] },
-    { id: "pomodoro-card", emoji: "🐣", name: "Pomodoro Card", repo: "https://github.com/mohith-das/pomodoro-card", desc: "Pomodoro timer with a keyboard-driven UI, seven animated desk pets that react to work/break cycles, shake-to-dismiss alarms, and editable presets — all offline on the Cardputer.", parts: [{ file: "bins/pomodoro-card-1.0.0.bin", address: 0x0 }] },
+    { id: "pomodoro-card", emoji: "🐣", name: "Pomodoro Card", repo: "https://github.com/mohith-das/pomodoro-card", desc: "Pomodoro timer with a keyboard-driven UI, seven animated desk pets that react to work/break cycles, shake-to-dismiss alarms, and editable presets, all offline on the Cardputer.", parts: [{ file: "bins/pomodoro-card-1.0.0.bin", address: 0x0 }] },
   ],
   games: [
     { id: "sun-rider", emoji: "🎮", name: "Sun Rider", repo: "https://github.com/Treblewolf/M5Cardputer-Sun-Rider", desc: "A 2D physics-based side-scrolling driving game with procedurally generated terrain.", parts: [{ file: "bins/sun-rider-v1.0-m5burner-ed.bin", address: 0x0 }] },
