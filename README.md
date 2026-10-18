@@ -131,7 +131,7 @@ Released under the [MIT license](LICENSE).
 
 ## Colophon
 
-Started in October 2026 as a one-page browser installer for the M5Stack Cardputer ADV — flash pets, games, tools, and the rest over USB-C without M5Burner or a local Python toolchain. It grew into a catalog with per-app keymaps, an in-device SD writer helper, and Netlify hosting for the bins.
+A one-page browser installer for the M5Stack Cardputer ADV. Flash pets, games, tools, and more over USB-C without M5Burner or a local Python toolchain. Catalog with per-app keymaps, an in-device SD writer helper, and Netlify hosting for the bins.
 
 **Stack**
 
@@ -146,8 +146,8 @@ Started in October 2026 as a one-page browser installer for the M5Stack Cardpute
 
 **Tools**
 
-- [Cursor](https://cursor.com) — vibe coded
-- [esptool-js](https://github.com/espressif/esptool-js) — browser flashing
-- [Vite](https://vite.dev/) — local serve / reload
-- [PlatformIO](https://platformio.org/) — SD writer helper builds
-- [M5Stack Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv) — the device
+- [Cursor](https://cursor.com): vibe coded
+- [esptool-js](https://github.com/espressif/esptool-js): browser flashing
+- [Vite](https://vite.dev/): local serve / reload
+- [PlatformIO](https://platformio.org/): SD writer helper builds
+- [M5Stack Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv): the device
