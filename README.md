@@ -1,6 +1,10 @@
 # Cardputer ADV Installers
 
-A one-page browser installer for the [M5Stack Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv) (ESP32-S3, 8 MB flash). Open `index.html` in Chrome or Edge, plug the Cardputer in over USB-C, and click **Install**.
+Installers for the Cardputer ADV, directly from the browser. Tamagotchis, Games, Tools, Music, mesh, and more. No M5Burner required.
+
+Live at [cardputer-installers.netlify.app](https://cardputer-installers.netlify.app/).
+
+A one-page browser installer for the [M5Stack Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv) (ESP32-S3, 8 MB flash). Open the site (or `index.html` locally) in Chrome or Edge, plug the Cardputer in over USB-C, and click **Install**.
 
 Firmware images live in [`bins/`](bins/). The page uses [esptool-js](https://github.com/espressif/esptool-js) over Web Serial — no Python or M5Burner required.
 
