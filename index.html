@@ -394,7 +394,7 @@ const PETS = [
     name: "Raising Hell",
     repo: "https://github.com/acpayers-alt/raising-hell-cardputer",
     desc: "Popular pet — installer can copy graphics to the SD card so you can skip the slow Wi-Fi download",
-    tag: ["warn", "Needs SD"],
+    tag: ["warn", "Requires SD"],
     sdAssets: {
       file: "assets/rh_assetpack_1.1.13.zip",
       sdRoot: "raising_hell",
@@ -410,7 +410,7 @@ const PETS = [
     name: "Tamaputer",
     repo: "https://github.com/mindovermiles262/tamaputer",
     desc: "Real Tamagotchi P1 emulator — put tama.b at /tamaputer/tama.b on the SD card",
-    tag: ["warn", "Needs ROM"],
+    tag: ["warn", "Requires ROM"],
     needsFile: {
       title: "Add your Tamagotchi ROM",
       status: "Tamaputer needs a P1 ROM dump on the SD card as /tamaputer/tama.b",
@@ -505,7 +505,7 @@ const GAMES = [
     name: "Game Station",
     repo: "https://github.com/geo-tp/Cardputer-Game-Station-Emulators",
     desc: "Game Boy and other consoles with the 1997 Tamagotchi .gb game from the SD card",
-    tag: ["warn", "Needs game"],
+    tag: ["warn", "Requires game"],
     needsFile: {
       title: "Add a game ROM",
       status: "Game Station plays uncompressed ROMs from the SD card",
@@ -524,7 +524,7 @@ const GAMES = [
     name: "Gameboy Enhanced",
     repo: "https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
     desc: "Game Boy emulator with save states for the Tamagotchi .gb game on SD",
-    tag: ["warn", "Needs game"],
+    tag: ["warn", "Requires game"],
     needsFile: {
       title: "Add a Game Boy ROM",
       status: "Gameboy Enhanced lists .gb / .gbc files from the SD card",
@@ -586,7 +586,7 @@ const MORE = [
         name: "MicroGroove",
         repo: "https://github.com/matoslav/MicroGroove",
         desc: "Four-track acid groovebox with three 303 voices and 808/909 drums, samples from the SD card",
-        tag: ["warn", "Needs samples"],
+        tag: ["warn", "Requires samples"],
         parts: [{ file: bin("microgroove-v1.0.bin"), address: 0x0 }],
       },
       {
@@ -595,7 +595,7 @@ const MORE = [
         name: "WebRadio",
         repo: "https://github.com/cyberwisk/M5Cardputer_WebRadio",
         desc: "Internet radio over Wi-Fi that reads its station list from the SD card",
-        tag: ["warn", "Needs stations"],
+        tag: ["warn", "Requires stations"],
         needsFile: {
           title: "Add your station list",
           status: "WebRadio reads station_list.txt from the root of the SD card",
@@ -632,7 +632,7 @@ const MORE = [
         name: "Meshtastic ADV",
         repo: "https://github.com/anton-vinogradov/meshtastic-adv",
         desc: "Keyboard-first Meshtastic client using its own Cap LoRa-1262 or any BLE node's radio",
-        tag: ["warn", "LoRa / BLE node"],
+        tag: ["warn", "Requires LoRa / BLE"],
         parts: [{ file: bin("meshtastic-adv-v1.1.2.bin"), address: 0x0 }],
       },
       {
@@ -641,7 +641,7 @@ const MORE = [
         name: "Plai",
         repo: "https://github.com/d4rkmen/plai",
         desc: "Standalone Meshtastic node with no phone, needs the LoRa cap and an SD card for history",
-        tag: ["warn", "LoRa cap"],
+        tag: ["warn", "Requires LoRa + SD"],
         parts: [{ file: bin("plai-v2.1.bin"), address: 0x0 }],
       },
       {
@@ -650,7 +650,7 @@ const MORE = [
         name: "MeshCore (TFT UI)",
         repo: "https://github.com/Stachugit/MeshCore-Cardputer-ADV",
         desc: "MeshCore client with an enhanced TFT interface, needs the Cap LoRa-1262",
-        tag: ["warn", "LoRa cap"],
+        tag: ["warn", "Requires LoRa cap"],
         parts: [{ file: bin("meshcore-tft-v1.10.bin"), address: 0x0 }],
       },
       {
@@ -659,7 +659,7 @@ const MORE = [
         name: "MeshCore",
         repo: "https://github.com/sosprz/meshcore-cardputer-adv",
         desc: "MeshCore companion radio client for the ADV, needs a LoRa cap",
-        tag: ["warn", "LoRa cap"],
+        tag: ["warn", "Requires LoRa cap"],
         parts: [{ file: bin("meshcore-adv-v1.15.81.bin"), address: 0x0 }],
       },
       {
@@ -668,7 +668,7 @@ const MORE = [
         name: "rsCardputer",
         repo: "https://github.com/ratspeak/rsCardputer",
         desc: "Reticulum / LXMF messenger and RNode in one, needs a LoRa cap",
-        tag: ["warn", "LoRa cap"],
+        tag: ["warn", "Requires LoRa cap"],
         parts: [{ file: bin("rscardputer-v2.0.3.bin"), address: 0x0 }],
       },
       {
@@ -756,7 +756,7 @@ const MORE = [
         name: "CSI Human Detector",
         repo: "https://github.com/skizzophrenic/Cardputer-CSI-Human-Detector",
         desc: "Detects people through Wi-Fi signal changes, radar scope wants an external TFT",
-        tag: ["warn", "Extra screen"],
+        tag: ["warn", "Requires extra screen"],
         parts: [{ file: bin("csi-human-detector-v1.2.0.bin"), address: 0x0 }],
       },
       {
@@ -794,7 +794,7 @@ const MORE = [
         name: "NucleoOS",
         repo: "https://github.com/indecenti/NucleoOs",
         desc: "Web-native OS with a browser shell, offline AI and OTA, needs a FAT32 SD card",
-        tag: ["warn", "Needs SD"],
+        tag: ["warn", "Requires SD"],
         parts: [{ file: bin("nucleoos-v0.7.2.bin"), address: 0x0 }],
       },
       {
@@ -803,7 +803,7 @@ const MORE = [
         name: "Wikipedia Offline",
         repo: "https://github.com/Zeloksa/Wikipedia-Offline-ADV",
         desc: "6.4M offline Wikipedia articles needing a 32 GB SD card and the 18 GB database",
-        tag: ["warn", "Needs DB"],
+        tag: ["warn", "Requires DB"],
         parts: [{ file: bin("wikipedia-offline-v1.2.bin"), address: 0x0 }],
       },
     ],
@@ -819,6 +819,7 @@ const DEVICE = [
     desc: "M5Stack's official User Demo v0.3 — the firmware the Cardputer came with",
     button: "Restore",
     buttonClass: "warn",
+    danger: true,
     parts: [{ file: bin("cardputer-adv-user-demo-v0.3.bin"), address: 0x0 }],
   },
   {
@@ -828,6 +829,7 @@ const DEVICE = [
     desc: "Wipe the entire flash. The Cardputer stays blank until you install something",
     button: "Erase",
     buttonClass: "danger",
+    danger: true,
     action: "erase",
   },
 ];
@@ -854,17 +856,21 @@ const SECTION_EXTRA = {
   Systems: EXTRA.systems,
 };
 
+function moreItems(...titles) {
+  return titles.flatMap((t) => {
+    const g = MORE.find((x) => x.title === t);
+    return g ? [...g.items, ...(SECTION_EXTRA[t] || [])] : SECTION_EXTRA[t] || [];
+  });
+}
+
 const BLOCKS = [
-  { title: "Official", items: EXTRA.official },
   { title: "Pets", items: [...PETS, ...EXTRA.pets] },
   { title: "Games", items: [...GAMES, ...EXTRA.games] },
-  { title: "Tools", items: [...TOOLS, ...EXTRA.tools, ...EXTRA.remotes] },
-  ...MORE.map((g) => ({
-    title: g.title,
-    items: [...g.items, ...(SECTION_EXTRA[g.title] || [])],
-  })),
-  { title: "More", items: EXTRA.misc },
-  { title: "Device", items: DEVICE, danger: true },
+  { title: "Tools", items: [...TOOLS, ...EXTRA.tools, ...EXTRA.remotes, ...moreItems("AI", "Sensing")] },
+  { title: "Music", items: moreItems("Music") },
+  { title: "Network", items: moreItems("Mesh", "Security") },
+  { title: "Systems", items: [...moreItems("Systems"), ...EXTRA.misc] },
+  { title: "Official", items: [...EXTRA.official, ...DEVICE] },
 ];
 
 let query = "";
@@ -945,7 +951,7 @@ function render() {
     section.appendChild(h);
     const grid = document.createElement("div");
     grid.className = "pets";
-    for (const item of block.items) grid.appendChild(cardEl(item, current, block.danger));
+    for (const item of block.items) grid.appendChild(cardEl(item, current, block.danger || item.danger));
     section.appendChild(grid);
     catalog.appendChild(section);
   }
