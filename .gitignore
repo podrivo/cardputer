@@ -5,3 +5,4 @@
 bins/backup-original-firmware.bin
 bins/tamaputer-rom.bin
 bins/purplx-*.bin
+helper-sd-writer/.pio/

@@ -488,8 +488,8 @@
     <button class="ghost" id="logsBtn">Show logs</button>
     <button class="ghost" id="copyBtn">Copy for AI</button>
     <button class="ghost" id="sdBtn" hidden>Save to SD…</button>
-    <button id="continueBtn" hidden>Install firmware</button>
     <button id="closeBtn">Done</button>
+    <button id="continueBtn" hidden>Install firmware</button>
   </div>
 </dialog>
 
@@ -547,7 +547,7 @@ const PETS = [
       sdRoot: "raising_hell",
       stripPrefix: "rh_assetpack_1.1.13/",
       buttonText: "Save assets to SD…",
-      doneText: "Firmware is on the Cardputer. Save the graphics pack to your SD card next — much faster than Wi-Fi.",
+      doneText: "Assets are on the SD card and Raising Hell is installed.",
     },
     parts: [{ file: bin("raising-hell-m5burner-v3.0.0.bin"), address: 0x0 }],
   },
@@ -556,18 +556,18 @@ const PETS = [
     emoji: "🐣",
     name: "Tamaputer",
     repo: "https://github.com/mindovermiles262/tamaputer",
-    desc: "Real Tamagotchi P1 emulator. Put tama.b at /tamaputer/tama.b on the SD card",
+    desc: "Real Tamagotchi P1 emulator. The installer copies your ROM to the SD over USB, then flashes stock firmware",
     tag: ["warn", "Requires ROM"],
     needsFile: {
       title: "Add your Tamagotchi ROM",
-      status: "Tamaputer needs a P1 ROM dump on the SD card as /tamaputer/tama.b",
-      dropTitle: "Drop tama.b here",
-      dropHint: "or click to choose — tama.bin is fine",
+      status: "We'll copy your 12,288-byte P1 ROM to /tamaputer/tama.b on the SD, then flash Tamaputer",
+      dropTitle: "Drop tama.bin or a folder",
+      dropHint: "or click to choose a file/folder — we'll pick the 12,288-byte ROM",
       accept: ".b,.bin,application/octet-stream",
       bytes: 12288,
       sdPath: "tamaputer/tama.b",
       buttonText: "Save ROM to SD…",
-      doneText: "Firmware is on the Cardputer. Save the ROM to your SD card next.",
+      doneText: "ROM is on the SD card and Tamaputer is installed.",
     },
     parts: [{ file: bin("tamaputer-m5burner-v1.1.0.bin"), address: 0x0 }],
   },
@@ -655,13 +655,13 @@ const GAMES = [
     tag: ["warn", "Requires game"],
     needsFile: {
       title: "Add a game ROM",
-      status: "Game Station plays uncompressed ROMs from the SD card",
+      status: "We'll copy the ROM to /roms on the SD over USB, then flash Game Station",
       dropTitle: "Drop a ROM here",
       dropHint: "or click to choose — .gb, .nes, .sms, .md, and more",
       accept: ".gb,.gbc,.nes,.sms,.gg,.sg,.md,.ngc,.ngp,.col,.pce,.mx1,.rom,.a26,.a78,.lnx,.cpr,.ws,.wsc,.sfc,application/octet-stream",
       sdDir: "roms",
       buttonText: "Save ROM to SD…",
-      doneText: "Firmware is on the Cardputer. Save the ROM to your SD card next.",
+      doneText: "ROM is on the SD card and Game Station is installed.",
     },
     parts: [{ file: bin("game-station-v1.2.bin"), address: 0x0 }],
   },
@@ -674,13 +674,13 @@ const GAMES = [
     tag: ["warn", "Requires game"],
     needsFile: {
       title: "Add a Game Boy ROM",
-      status: "Gameboy Enhanced lists .gb / .gbc files from the SD card",
+      status: "We'll copy the game to /roms on the SD over USB, then flash Gameboy Enhanced",
       dropTitle: "Drop a .gb or .gbc here",
       dropHint: "or click to choose",
       accept: ".gb,.gbc,application/octet-stream",
       sdDir: "roms",
       buttonText: "Save game to SD…",
-      doneText: "Firmware is on the Cardputer. Save the game to your SD card next.",
+      doneText: "Game is on the SD card and Gameboy Enhanced is installed.",
     },
     parts: [{ file: bin("gameboy-enhanced-v0.79.66.bin"), address: 0x0 }],
   },
@@ -745,13 +745,13 @@ const MORE = [
         tag: ["warn", "Requires stations"],
         needsFile: {
           title: "Add your station list",
-          status: "WebRadio reads station_list.txt from the root of the SD card",
+          status: "We'll copy station_list.txt to the SD over USB, then flash WebRadio",
           dropTitle: "Drop station_list.txt here",
           dropHint: "or click to choose a text file",
           accept: ".txt,text/plain",
           sdPath: "station_list.txt",
           buttonText: "Save stations to SD…",
-          doneText: "Firmware is on the Cardputer. Save station_list.txt to your SD card next.",
+          doneText: "station_list.txt is on the SD card and WebRadio is installed.",
         },
         parts: [{ file: bin("webradio.bin"), address: 0x0 }],
       },
@@ -1291,8 +1291,8 @@ $("sdBtn").onclick = async () => {
       const sdPath = resolveSdPath(needs, name);
       const how = await saveExtraFile(needs, data, name);
       $("doneText").textContent = how === "sd"
-        ? `File written to /${sdPath}. Put the SD back in the Cardputer and launch ${appName || "the app"}.`
-        : `Downloaded ${sdPath.split("/").pop()}. Put it at /${sdPath} on your SD card.`;
+        ? `Wrote /${sdPath}. If that folder was Launcher USB storage, eject it, then launch ${appName || "the app"}.`
+        : `Downloaded ${sdPath.split("/").pop()}. Copy it to /${sdPath} on the SD (card reader, or Launcher → USB / WUI).`;
     }
     $("sdBtn").hidden = true;
     $("closeBtn").textContent = "Done";
@@ -1332,6 +1332,106 @@ function validateExtraFile(file, needs) {
   return "";
 }
 
+function wantedExtraName(needs) {
+  return (needs.sdPath || needs.filename || "").split("/").pop()?.toLowerCase() || "";
+}
+
+function scoreExtraCandidate(file, needs) {
+  const name = file.name.toLowerCase();
+  const want = wantedExtraName(needs);
+  const stem = want.replace(/\.[^.]+$/, "");
+  const exts = acceptExtensions(needs.accept);
+  let score = 0;
+  if (want && name === want) score += 100;
+  if (stem && (name === `${stem}.bin` || name === `${stem}.b` || name.startsWith(`${stem}.`))) score += 50;
+  if (needs.bytes != null && file.size === needs.bytes) score += 20;
+  if (exts.some((ext) => name.endsWith(ext))) score += 10;
+  return score;
+}
+
+function pickBestExtraFile(files, needs) {
+  const list = [...files].filter((f) => f && f.size > 0);
+  if (!list.length) return { error: "No files found." };
+  if (list.length === 1) {
+    const err = validateExtraFile(list[0], needs);
+    return err ? { error: err } : { file: list[0] };
+  }
+
+  const exts = acceptExtensions(needs.accept);
+  let candidates = list;
+  if (exts.length) {
+    candidates = candidates.filter((f) => exts.some((ext) => f.name.toLowerCase().endsWith(ext)));
+  }
+  if (needs.bytes != null) {
+    const sized = candidates.filter((f) => f.size === needs.bytes);
+    if (sized.length) candidates = sized;
+  }
+  if (!candidates.length) {
+    if (needs.bytes != null) {
+      return { error: `No ${needs.bytes.toLocaleString()}-byte match in that folder.` };
+    }
+    return { error: exts.length ? `Need a ${exts.join(" / ")} file.` : "No matching files in that folder." };
+  }
+
+  candidates.sort((a, b) => {
+    const diff = scoreExtraCandidate(b, needs) - scoreExtraCandidate(a, needs);
+    if (diff) return diff;
+    return a.name.localeCompare(b.name);
+  });
+
+  if (needs.bytes == null && candidates.length > 1) {
+    const top = scoreExtraCandidate(candidates[0], needs);
+    const tied = candidates.filter((f) => scoreExtraCandidate(f, needs) === top);
+    if (tied.length > 1) {
+      return { error: `Found ${tied.length} matching files — drop or choose one file.` };
+    }
+  }
+
+  const file = candidates[0];
+  const err = validateExtraFile(file, needs);
+  if (err) return { error: err };
+  return { file, fromFolder: list.length > 1 };
+}
+
+function readAllDirectoryEntries(reader) {
+  return new Promise((resolve, reject) => {
+    const all = [];
+    const pump = () => {
+      reader.readEntries((batch) => {
+        if (!batch.length) return resolve(all);
+        all.push(...batch);
+        pump();
+      }, reject);
+    };
+    pump();
+  });
+}
+
+async function filesFromEntry(entry) {
+  if (!entry) return [];
+  if (entry.isFile) {
+    const file = await new Promise((resolve, reject) => entry.file(resolve, reject));
+    return [file];
+  }
+  if (!entry.isDirectory) return [];
+  const children = await readAllDirectoryEntries(entry.createReader());
+  const nested = await Promise.all(children.map(filesFromEntry));
+  return nested.flat();
+}
+
+async function filesFromDataTransfer(dt) {
+  const items = [...(dt?.items || [])];
+  if (items.length && items[0].webkitGetAsEntry) {
+    const entries = items.map((item) => item.webkitGetAsEntry()).filter(Boolean);
+    if (entries.length) {
+      const nested = await Promise.all(entries.map(filesFromEntry));
+      const files = nested.flat();
+      if (files.length) return files;
+    }
+  }
+  return [...(dt?.files || [])];
+}
+
 function promptForExtraFile(target) {
   const needs = target.needsFile;
   return new Promise((resolve, reject) => {
@@ -1362,6 +1462,14 @@ function promptForExtraFile(target) {
     const picker = $("extraPicker");
     picker.accept = needs.accept || "*/*";
     picker.value = "";
+    // Folder pick when we can auto-match by size; otherwise keep a normal file picker.
+    if (needs.bytes != null) {
+      picker.setAttribute("webkitdirectory", "");
+      picker.multiple = true;
+    } else {
+      picker.removeAttribute("webkitdirectory");
+      picker.multiple = false;
+    }
 
     let settled = false;
     let picked = null;
@@ -1376,23 +1484,28 @@ function promptForExtraFile(target) {
       picker.onchange = null;
       continueBtn.onclick = null;
       continueBtn.hidden = true;
+      picker.removeAttribute("webkitdirectory");
+      picker.multiple = false;
       $("closeBtn").onclick = () => {
         pendingExtra = null;
         $("dialog").close();
       };
     };
 
-    const take = async (file) => {
-      const err = validateExtraFile(file, needs);
-      if (err) {
-        $("dropError").textContent = err;
+    const takeFiles = async (files) => {
+      const result = pickBestExtraFile(files, needs);
+      if (result.error) {
+        $("dropError").textContent = result.error;
         $("dropFile").textContent = "";
         picked = null;
         continueBtn.disabled = true;
         return;
       }
+      const { file } = result;
       $("dropError").textContent = "";
-      $("dropFile").textContent = `${file.name} · ${file.size.toLocaleString()} bytes`;
+      $("dropFile").textContent = result.fromFolder
+        ? `Using ${file.name} · ${file.size.toLocaleString()} bytes`
+        : `${file.name} · ${file.size.toLocaleString()} bytes`;
       picked = { data: new Uint8Array(await file.arrayBuffer()), name: file.name };
       continueBtn.disabled = false;
       continueBtn.focus();
@@ -1405,15 +1518,19 @@ function promptForExtraFile(target) {
     };
     drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
     drop.ondragleave = () => drop.classList.remove("over");
-    drop.ondrop = (e) => {
+    drop.ondrop = async (e) => {
       e.preventDefault();
       drop.classList.remove("over");
-      const file = e.dataTransfer?.files?.[0];
-      if (file) take(file);
+      try {
+        const files = await filesFromDataTransfer(e.dataTransfer);
+        if (files.length) await takeFiles(files);
+      } catch (err) {
+        $("dropError").textContent = err.message || String(err);
+      }
     };
     picker.onchange = () => {
-      const file = picker.files[0];
-      if (file) take(file);
+      const files = [...picker.files];
+      if (files.length) takeFiles(files);
     };
 
     continueBtn.onclick = () => {
@@ -1432,12 +1549,263 @@ function promptForExtraFile(target) {
   });
 }
 
+const SD_HELPER_BIN = bin("sd-writer-helper.bin");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Flash a single merged image at 0x0, hard-reset, then release the port. */
+async function flashMergedAtZero(port, data, label) {
+  const transport = new Transport(port, false);
+  try {
+    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+    const chip = await loader.main();
+    log(`Connected to ${chip}`, "ok");
+    setStatus(`Writing ${label}…`);
+    await loader.writeFlash({
+      fileArray: [{ data, address: 0x0 }],
+      flashMode: "keep",
+      flashFreq: "keep",
+      flashSize: "keep",
+      eraseAll: false,
+      compress: true,
+      reportProgress: (_i, written, size) => setProgress(written / size),
+    });
+    await loader.after("hard_reset");
+    setProgress(1);
+  } finally {
+    try { await transport.disconnect(); } catch {}
+  }
+}
+
+/** Release DTR/RTS so the ESP32 is not held in reset after Web Serial open. */
+async function releaseSerialResetLines(port) {
+  try {
+    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+  } catch {}
+}
+
+/** Close and reopen the port for app-mode serial (after esptool). */
+async function reopenSerialPort(port, { bootWaitMs = 2000 } = {}) {
+  try {
+    if (port.readable || port.writable) await port.close();
+  } catch {}
+  await sleep(400);
+  await port.open({ baudRate: 115200, bufferSize: 1024 * 1024 });
+  await releaseSerialResetLines(port);
+  // Brief RTS pulse then release — same idea as a clean board reset.
+  try {
+    await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+    await sleep(50);
+    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+  } catch {}
+  await sleep(bootWaitMs);
+}
+
+/**
+ * Talk to the SD writer helper over raw Web Serial.
+ * files: [{ path, data: Uint8Array }]
+ */
+async function writeFilesViaSdHelper(port, files) {
+  await sleep(1000);
+
+  let reader = null;
+  let writer = null;
+  let pendingRead = null;
+  const dec = new TextDecoder();
+  let buf = "";
+
+  const unlock = () => {
+    pendingRead = null;
+    try { reader?.releaseLock(); } catch {}
+    try { writer?.releaseLock(); } catch {}
+    reader = null;
+    writer = null;
+  };
+
+  const lock = () => {
+    unlock();
+    reader = port.readable.getReader();
+    writer = port.writable.getWriter();
+  };
+
+  const reopen = async (reason) => {
+    log(`Reopening serial (${reason})…`);
+    unlock();
+    buf = "";
+    await reopenSerialPort(port, { bootWaitMs: 2500 });
+    lock();
+  };
+
+  // Timeout without reader.cancel() — cancel tears down Web Serial and forces a reset.
+  const readChunk = async (timeoutMs) => {
+    if (!reader) throw Object.assign(new Error("closed"), { closed: true });
+    if (!pendingRead) {
+      pendingRead = reader.read().then(
+        (r) => { pendingRead = null; return r; },
+        (err) => { pendingRead = null; throw err; },
+      );
+    }
+    let timer;
+    try {
+      const result = await Promise.race([
+        pendingRead,
+        new Promise((_, reject) => {
+          timer = setTimeout(
+            () => reject(Object.assign(new Error("timeout"), { timeout: true })),
+            timeoutMs,
+          );
+        }),
+      ]);
+      if (result.done) throw Object.assign(new Error("closed"), { closed: true });
+      buf += dec.decode(result.value, { stream: true });
+    } catch (err) {
+      if (err?.timeout) throw err;
+      if (err?.closed || err?.message === "closed") {
+        throw Object.assign(new Error("closed"), { closed: true });
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  const waitFor = async (pred, timeoutMs, errMsg, { allowReopen = false } = {}) => {
+    const deadline = Date.now() + timeoutMs;
+    let lastLog = 0;
+    let reopenCount = 0;
+    while (!pred(buf)) {
+      const remain = deadline - Date.now();
+      if (remain <= 0) throw new Error(errMsg);
+      if (Date.now() - lastLog > 2000) {
+        log("Waiting for SD helper…");
+        lastLog = Date.now();
+      }
+      try {
+        await readChunk(Math.min(1500, remain));
+      } catch (err) {
+        if (err?.timeout) continue;
+        if (err?.closed && allowReopen && reopenCount < 4 && Date.now() < deadline) {
+          reopenCount += 1;
+          await reopen("stream closed");
+          continue;
+        }
+        throw err?.closed ? new Error("Serial closed while talking to SD helper") : err;
+      }
+    }
+  };
+
+  const takeLineMatching = async (re, timeoutMs, errMsg, opts) => {
+    await waitFor((b) => re.test(b), timeoutMs, errMsg, opts);
+    const m = buf.match(re);
+    const idx = buf.indexOf(m[0]);
+    buf = buf.slice(idx + m[0].length);
+    return m;
+  };
+
+  try {
+    await reopen("after helper flash");
+    setStatus("Waiting for SD helper…");
+    await waitFor(
+      (b) => b.includes("SDWRITE ready"),
+      40000,
+      "SD helper did not become ready (insert a FAT32 SD card and try again)",
+      { allowReopen: true },
+    );
+    const bi = buf.lastIndexOf("SDWRITE ready");
+    buf = buf.slice(bi);
+    const nl = buf.search(/\r?\n/);
+    buf = nl >= 0 ? buf.slice(nl + (buf[nl] === "\r" ? 2 : 1)) : "";
+    log("SD helper ready", "ok");
+
+    const enc = new TextEncoder();
+    for (let i = 0; i < files.length; i++) {
+      const { path, data } = files[i];
+      const rel = path.replace(/^\/+/, "");
+      setStatus(`Writing /${rel} (${i + 1}/${files.length})…`);
+      step(`SD write ${i + 1}/${files.length}: /${rel}`);
+
+      await writer.write(enc.encode("PING\n"));
+      await takeLineMatching(/PONG\s*\r?\n/, 10000, "SD helper PING failed");
+
+      if (data.length > 512 * 1024) {
+        throw new Error(`File too large for SD helper (${data.length} bytes; max 512 KiB)`);
+      }
+
+      // WRITE → GO → DATA → paced binary chunks (ACK each) → OK
+      await writer.write(enc.encode(`WRITE ${rel} ${data.length}\n`));
+      const pre = await takeLineMatching(
+        /^(GO|ERR)(?: ([^\r\n]*))?\r?\n/m,
+        20000,
+        `SD helper did not accept WRITE for /${rel}`,
+      );
+      if (pre[1] === "ERR") throw new Error(`SD write failed for /${rel}: ${pre[2] || "error"}`);
+
+      await sleep(30);
+      await writer.write(enc.encode("DATA\n"));
+      await writer.ready;
+
+      const CHUNK = 512;
+      for (let off = 0; off < data.length; ) {
+        const end = Math.min(off + CHUNK, data.length);
+        // Copy — some browsers mishandle Uint8Array subarray views on serial.
+        await writer.write(data.slice(off, end));
+        await writer.ready;
+        const ack = await takeLineMatching(
+          /^(ACK|ERR)(?: ([^\r\n]*))?\r?\n/m,
+          15000,
+          `SD helper stalled at ${off}/${data.length} for /${rel}`,
+        );
+        if (ack[1] === "ERR") throw new Error(`SD write failed for /${rel}: ${ack[2] || "error"}`);
+        const next = Number(ack[2]);
+        if (!Number.isFinite(next) || next <= off) {
+          throw new Error(`SD helper bad ACK at ${off} for /${rel}`);
+        }
+        off = next;
+        setProgress((i + off / data.length) / files.length);
+      }
+
+      const resp = await takeLineMatching(/^(OK|ERR) ([^\r\n]*)\r?\n/m, 60000, `No reply after writing /${rel}`);
+      if (resp[1] === "ERR") throw new Error(`SD write failed for /${rel}: ${resp[2]}`);
+      log(`Wrote /${rel} (${data.length.toLocaleString()} bytes)`, "ok");
+      setProgress((i + 1) / files.length);
+    }
+  } finally {
+    unlock();
+    try { await port.close(); } catch {}
+  }
+}
+
+/** Expand an sdAssets zip into [{ path, data }] for the SD helper. */
+async function filesFromAssetPack(needs, zipData) {
+  const zip = await JSZip.loadAsync(zipData);
+  const prefix = needs.stripPrefix || "";
+  const root = (needs.sdRoot || "").replace(/^\/+|\/+$/g, "");
+  const out = [];
+  const names = Object.keys(zip.files).sort();
+  for (const name of names) {
+    const entry = zip.files[name];
+    if (entry.dir) continue;
+    if (prefix && !name.startsWith(prefix)) continue;
+    const rel = prefix ? name.slice(prefix.length) : name;
+    if (!rel || rel.endsWith("/")) continue;
+    const path = root ? `${root}/${rel}` : rel;
+    out.push({ path, data: new Uint8Array(await entry.async("uint8array")) });
+  }
+  if (!out.length) throw new Error("Asset pack had no files to write");
+  return out;
+}
+
 async function saveExtraFile(needs, data, sourceName) {
   const sdPath = resolveSdPath(needs, sourceName);
   const parts = sdPath.split("/");
   const filename = parts.at(-1);
+
+  // Chrome/Edge only: user must pick the mounted SD card (or any folder).
+  // Browsers cannot discover or write removable media without that picker.
   if (typeof showDirectoryPicker === "function") {
-    const root = await showDirectoryPicker({ mode: "readwrite" });
+    const root = await showDirectoryPicker({
+      id: "cardputer-sd",
+      mode: "readwrite",
+    });
     let dir = root;
     for (const name of parts.slice(0, -1)) {
       if (!name) continue;
@@ -1449,6 +1817,8 @@ async function saveExtraFile(needs, data, sourceName) {
     await writable.close();
     return "sd";
   }
+
+  // Safari / Firefox: no FS Access API — download and copy in Finder.
   const url = URL.createObjectURL(new Blob([data]));
   const a = Object.assign(document.createElement("a"), { href: url, download: filename });
   a.click();
@@ -1598,7 +1968,6 @@ async function install(target) {
 
   setBusy(true);
   pendingExtra = null;
-  let transport;
 
   try {
     openDialog({
@@ -1611,6 +1980,10 @@ async function install(target) {
       pickFile: Boolean(target.needsFile),
     });
 
+    /** @type {{ path: string, data: Uint8Array }[]} */
+    let sdFiles = [];
+    let pickedExtra = null;
+
     if (target.needsFile) {
       let picked;
       try {
@@ -1620,16 +1993,31 @@ async function install(target) {
         render();
         return;
       }
+      showProgressView();
+      $("actions").hidden = true;
       const sdPath = resolveSdPath(target.needsFile, picked.name);
-      pendingExtra = {
+      pickedExtra = {
         needs: target.needsFile,
         data: picked.data,
         name: picked.name,
         appName: target.name,
       };
+      sdFiles.push({ path: sdPath, data: picked.data });
+      log(`File ready: ${sdPath} (${picked.data.length.toLocaleString()} bytes)`, "ok");
+    }
+
+    if (target.sdAssets) {
       showProgressView();
       $("actions").hidden = true;
-      log(`File ready: ${sdPath} (${picked.data.length.toLocaleString()} bytes)`, "ok");
+      setStatus("Loading asset pack…");
+      step("Loading asset pack");
+      const pack = await loadFile(target.sdAssets.file);
+      const assets = await filesFromAssetPack(target.sdAssets, pack);
+      sdFiles = sdFiles.concat(assets);
+      log(`Asset pack ready: ${assets.length} files from ${target.sdAssets.file}`, "ok");
+      if (!pickedExtra) {
+        pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack", appName: target.name };
+      }
     }
 
     setStatus("Looking for the Cardputer…");
@@ -1638,6 +2026,34 @@ async function install(target) {
     const { usbVendorId, usbProductId } = port.getInfo();
     setStatus(reused ? "Using the saved USB device…" : "USB device selected…");
     log(`${reused ? "Reusing" : "Selected"} USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
+
+    let wroteViaHelper = false;
+    if (sdFiles.length) {
+      setStatus("Loading SD helper…");
+      step("Flashing SD writer helper");
+      const helper = await loadFile(SD_HELPER_BIN);
+      log(`${SD_HELPER_BIN}: ${helper.length.toLocaleString()} bytes at ${hex(0)}`);
+      await flashMergedAtZero(port, helper, "SD helper");
+      log("SD helper flashed", "ok");
+
+      try {
+        setStatus("Writing files to SD…");
+        step("Writing files to SD via helper");
+        setProgress(0);
+        await writeFilesViaSdHelper(port, sdFiles);
+        wroteViaHelper = true;
+        pendingExtra = null;
+        log(`All ${sdFiles.length} file(s) written to SD`, "ok");
+      } catch (err) {
+        log(`SD helper write failed: ${err?.message || err}`, "bad");
+        if (pickedExtra) pendingExtra = pickedExtra;
+        else if (target.sdAssets && !pendingExtra) {
+          const pack = await loadFile(target.sdAssets.file);
+          pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack", appName: target.name };
+        }
+        log("Falling back to manual SD save after app install");
+      }
+    }
 
     setStatus("Loading firmware…");
     step("Loading firmware files");
@@ -1656,49 +2072,55 @@ async function install(target) {
 
     setStatus("Connecting…");
     step("Connecting to the Cardputer");
-    transport = new Transport(port, false);
-    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
-    const chip = await loader.main();
-    log(`Connected to ${chip}`, "ok");
+    setProgress(0);
+    const transport = new Transport(port, false);
+    try {
+      const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+      const chip = await loader.main();
+      log(`Connected to ${chip}`, "ok");
 
-    setStatus(`Writing ${(total / 1024 / 1024).toFixed(1)} MB to flash…`);
-    step("Writing firmware");
-    await loader.writeFlash({
-      fileArray,
-      flashMode: "keep",
-      flashFreq: "keep",
-      flashSize: "keep",
-      eraseAll: false,
-      compress: true,
-      reportProgress: (i, written, size) => {
-        const done = before[i] + (written / size) * fileArray[i].data.length;
-        setProgress(done / total);
-      },
-    });
+      setStatus(`Writing ${(total / 1024 / 1024).toFixed(1)} MB to flash…`);
+      step("Writing firmware");
+      await loader.writeFlash({
+        fileArray,
+        flashMode: "keep",
+        flashFreq: "keep",
+        flashSize: "keep",
+        eraseAll: false,
+        compress: true,
+        reportProgress: (i, written, size) => {
+          const done = before[i] + (written / size) * fileArray[i].data.length;
+          setProgress(done / total);
+        },
+      });
 
-    setStatus("Restarting the Cardputer…");
-    step("Restarting");
-    await loader.after("hard_reset");
-    setProgress(1);
-    log(`Done. ${target.name} is installed.`, "ok");
-    localStorage.setItem("installed", target.id);
+      setStatus("Restarting the Cardputer…");
+      step("Restarting");
+      await loader.after("hard_reset");
+      setProgress(1);
+      log(`Done. ${target.name} is installed.`, "ok");
+      localStorage.setItem("installed", target.id);
+    } finally {
+      try { await transport.disconnect(); } catch {}
+    }
 
-    if (target.sdAssets && !pendingExtra) {
-      setStatus("Loading asset pack…");
-      step("Loading Raising Hell asset pack");
-      const pack = await loadFile(target.sdAssets.file);
-      pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack" };
-      log(`Asset pack ready: ${target.sdAssets.file} (${pack.length.toLocaleString()} bytes)`, "ok");
-      $("doneText").textContent = target.sdAssets.doneText;
+    if (wroteViaHelper) {
+      $("doneText").textContent = target.needsFile?.doneText
+        || target.sdAssets?.doneText
+        || "Files are on the SD card. Your Cardputer is restarting.";
     } else if (pendingExtra && target.needsFile) {
       $("doneText").textContent = target.needsFile.doneText;
+    } else if (pendingExtra && target.sdAssets) {
+      $("doneText").textContent = target.sdAssets.doneText;
     }
 
     finishDialog(true, {
-      sdPath: pendingExtra && target.needsFile
+      sdPath: pendingExtra && target.needsFile && pendingExtra.kind !== "pack"
         ? resolveSdPath(target.needsFile, pendingExtra.name)
         : undefined,
-      sdLabel: target.sdAssets?.buttonText || target.needsFile?.buttonText,
+      sdLabel: (pendingExtra?.kind === "pack" ? target.sdAssets?.buttonText : null)
+        || target.needsFile?.buttonText
+        || target.sdAssets?.buttonText,
     });
   } catch (err) {
     if (isPortPickCancelled(err)) {
@@ -1718,7 +2140,6 @@ async function install(target) {
     pendingExtra = null;
     finishDialog(false);
   } finally {
-    try { await transport?.disconnect(); } catch {}
     setBusy(false);
     render();
   }

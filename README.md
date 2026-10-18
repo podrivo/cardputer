@@ -42,13 +42,26 @@ Serve the folder over HTTP if you want `bins/` to load automatically (e.g. Netli
 
 **Restore original** flashes M5Stack's [Cardputer-Adv User Demo v0.3](https://github.com/m5stack/M5Cardputer-UserDemo/releases/tag/ADV-V0.3) (`cardputer-adv-user-demo-v0.3.bin`) after erasing the flash. It's a merged image (bootloader, partition table, app at `0x10000`), byte-identical on [M5Burner](https://m5burner-cdn.m5stack.com/firmware/4ed4ab3a388a74e805971f37d6adcc9f.bin) and the GitHub release.
 
-## About Tamaputer and the ROM
+## SD writer helper (files on the in-device card)
 
-- [tamalib](https://github.com/jcrona/tamalib) is only the emulator engine. Tamaputer already includes it as a git submodule.
-- The ROM is Bandai's original 1996 Tamagotchi P1 program. It's copyrighted, so neither repo includes it — you have to dump your own.
-- The code expects `tama.b` to be exactly **12,288 bytes** at `/tamaputer/tama.b` on the SD card. The README says 40,960, but the size check in `src/tamalib_cardputer_hal.cpp` uses `ROM_SIZE 12288`.
-- `Tamagotchi (USA, Europe) (SGB Enhanced).gb` is the **Game Boy** game, not the P1 ROM. Use Game Station or Gameboy Enhanced for that.
-- Without an SD card, Tamaputer could be modified to bake the ROM into firmware and save to NVS. That build stays out of git and off the installer.
+The Cardputer’s microSD is not visible to the Mac over the flash USB link. Apps that need a user file (ROM, stations, asset packs) use a shared temporary firmware:
+
+1. Flash [`bins/sd-writer-helper.bin`](bins/sd-writer-helper.bin)
+2. Send `WRITE` commands over Web Serial (see [`helper-sd-writer/README.md`](helper-sd-writer/README.md))
+3. Flash the real stock app (overwrites the helper)
+
+Catalog apps opt in with `needsFile.sdPath` / `sdDir` or `sdAssets` (zip expanded to many `WRITE`s). If the helper step fails, the installer falls back to download / folder picker.
+
+Rebuild the helper after editing `helper-sd-writer/`:
+
+```bash
+cd helper-sd-writer && pio run && python3 merge_and_copy.py
+```
+
+### Tamaputer
+
+- Stock `tamaputer-m5burner` plus a **12,288-byte** P1 ROM at `/tamaputer/tama.b` (copyrighted — not shipped).
+- `Tamagotchi (USA, Europe) (SGB Enhanced).gb` is the Game Boy game, not the P1 ROM.
 
 ## Flashing with esptool (CLI)
 
@@ -89,7 +102,7 @@ The serial port is typically `/dev/cu.usbmodem*` on macOS. Adjust as needed.
 - **"Port is busy":** Chrome can hold the serial port if a Web Serial page (this installer or M5Burner) already connected. Close that tab and check with `lsof /dev/cu.usbmodem101`.
 - **Black screen after Install:** some M5Burner bins are app-only (no bootloader). The installer flashes those at `0x10000`. If an older build already overwrote `0x0`, use **Restore original** to recover.
 - **M5Burner's catalog** can be searched as JSON at `https://m5burner-api.m5stack.com/api/firmware`. Firmware files download from `https://m5burner-cdn.m5stack.com/firmware/<file>`.
-- **USB-C only provides power and flashing.** Apps that load files from "the SD card" need a real SD card (or a build that embeds those files).
+- **USB-C flashes firmware; the SD helper copies files onto the in-device card.** Insert a FAT32 microSD before installing apps that need ROMs or assets.
 - **Security / audit firmwares** (Bruce, Evil-Cardputer, GhostESP, etc.): only use attack features on networks and devices you own or have permission to test.
 
 ## More Cardputer firmware (not in the installer)
