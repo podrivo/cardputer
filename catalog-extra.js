@@ -5,7 +5,6 @@ export const EXTRA = {
     { id: "mesh-kit-meshtastic", emoji: "📦", name: "Cardputer Mesh Kit Meshtastic Firmware", repo: "https://docs.m5stack.com/en/guide/cardputer_mesh_kit/meshtastic", desc: "Meshtastic Firmware for Cardputer-Adv + Cap LoRa-1262.", tag: ["warn", "Requires LoRa cap"], parts: [{ file: "bins/mesh-kit-meshtastic-official.bin", address: 0x0 }] },
   ],
   pets: [
-    { id: "haropet", emoji: "🐣", name: "HaroPet", desc: "Haro from mobile suit gundam.", parts: [{ file: "bins/haropet-0.1.bin", address: 0x10000 }] },
     { id: "pomodoro-card", emoji: "🐣", name: "Pomodoro Card", repo: "https://github.com/mohith-das/pomodoro-card", desc: "Pomodoro timer with a keyboard-driven UI, seven animated desk pets that react to work/break cycles, shake-to-dismiss alarms, and editable presets, all offline on the Cardputer.", parts: [{ file: "bins/pomodoro-card-1.0.0.bin", address: 0x0 }] },
   ],
   games: [

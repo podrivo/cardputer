@@ -113,7 +113,7 @@ A wider sweep of the ecosystem. Unlike the catalog above, these aren't verified 
 
 **Games & emulators:** [m5cardputer_doom](https://github.com/romalik/m5cardputer_doom) · [Cardputer-Doom-REBORN](https://github.com/skizzophrenic/Cardputer-Doom-REBORN) · [cardputer-game-os](https://github.com/dkyazzentwatwa/cardputer-game-os) · [gb_cardputer](https://github.com/matteofo/gb_cardputer)
 
-**Pets & toys:** [ClawPuter](https://github.com/bryant24hao/ClawPuter) · [Purplx](https://github.com/purplxhazee/Purplx-) (doesn't work on a stock ADV — see [issue #2](https://github.com/purplxhazee/Purplx-/issues/2))
+**Pets & toys:** [ClawPuter](https://github.com/bryant24hao/ClawPuter) · [Purplx](https://github.com/purplxhazee/Purplx-) (doesn't work on a stock ADV — see [issue #2](https://github.com/purplxhazee/Purplx-/issues/2)) · HaroPet (M5Burner 0.1 — boots on ADV but keys dead; original Cardputer keyboard only)
 
 **Music:** [GLIDE-Synth](https://github.com/CHARL3X/GLIDE-Synth-Cardputer-ADV) · [Winamp-style MP3 player](https://github.com/AndyAiCardputer/mp3-player-winamp-cardputer-adv)
 
