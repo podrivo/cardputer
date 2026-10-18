@@ -320,7 +320,7 @@
       </div>
     </div>
     <div class="drop" id="dropZone" tabindex="0" role="button">
-      <div class="drop-title" id="dropTitle">Drop ROM here</div>
+      <div class="drop-title" id="dropTitle">Drop file here</div>
       <div class="drop-hint" id="dropHint">or click to choose a file</div>
       <div class="drop-file" id="dropFile"></div>
       <div class="drop-error" id="dropError"></div>
@@ -335,7 +335,7 @@
   <div class="dlg-actions" id="actions" hidden>
     <button class="link-btn" id="logsBtn">Show logs</button>
     <button class="ghost" id="copyBtn">Copy for AI</button>
-    <button class="ghost" id="sdBtn" hidden>Save ROM to SD…</button>
+    <button class="ghost" id="sdBtn" hidden>Save to SD…</button>
     <button id="continueBtn" hidden>Install firmware</button>
     <button id="closeBtn">Done</button>
   </div>
@@ -346,7 +346,6 @@
 
 <script type="module">
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.js";
-import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 
 const bin = (name) => `bins/${name}`;
 
@@ -372,15 +371,8 @@ const PETS = [
     emoji: "😈",
     name: "Raising Hell",
     repo: "https://github.com/acpayers-alt/raising-hell-cardputer",
-    desc: "Popular pet — installer can copy graphics to the SD card so you can skip the slow Wi-Fi download",
-    tag: ["warn", "Needs SD"],
-    sdAssets: {
-      file: "assets/rh_assetpack_1.1.13.zip",
-      sdRoot: "raising_hell",
-      stripPrefix: "rh_assetpack_1.1.13/",
-      buttonText: "Save assets to SD…",
-      doneText: "Firmware is on the Cardputer. Save the graphics pack to your SD card next — much faster than Wi-Fi.",
-    },
+    desc: "Popular pet that downloads its graphics to the SD card over Wi-Fi",
+    tag: ["warn", "Heavy game"],
     parts: [{ file: bin("raising-hell-m5burner-v3.0.0.bin"), address: 0x0 }],
   },
   {
@@ -398,6 +390,7 @@ const PETS = [
       accept: ".b,.bin,application/octet-stream",
       bytes: 40960,
       sdPath: "tamaputer/tama.b",
+      buttonText: "Save ROM to SD…",
       doneText: "Firmware is on the Cardputer. Save the ROM to your SD card next.",
     },
     parts: [{ file: bin("tamaputer-m5burner-v1.1.0.bin"), address: 0x0 }],
@@ -428,6 +421,16 @@ const GAMES = [
     repo: "https://github.com/geo-tp/Cardputer-Game-Station-Emulators",
     desc: "Game Boy and other consoles with the 1997 Tamagotchi .gb game from the SD card",
     tag: ["warn", "Needs game"],
+    needsFile: {
+      title: "Add a game ROM",
+      status: "Game Station plays uncompressed ROMs from the SD card",
+      dropTitle: "Drop a ROM here",
+      dropHint: "or click to choose — .gb, .nes, .sms, .md, and more",
+      accept: ".gb,.gbc,.nes,.sms,.gg,.sg,.md,.ngc,.ngp,.col,.pce,.mx1,.rom,.a26,.a78,.lnx,.cpr,.ws,.wsc,.sfc,application/octet-stream",
+      sdDir: "roms",
+      buttonText: "Save ROM to SD…",
+      doneText: "Firmware is on the Cardputer. Save the ROM to your SD card next.",
+    },
     parts: [{ file: bin("game-station-v1.2.bin"), address: 0x0 }],
   },
   {
@@ -437,6 +440,16 @@ const GAMES = [
     repo: "https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
     desc: "Game Boy emulator with save states for the Tamagotchi .gb game on SD",
     tag: ["warn", "Needs game"],
+    needsFile: {
+      title: "Add a Game Boy ROM",
+      status: "Gameboy Enhanced lists .gb / .gbc files from the SD card",
+      dropTitle: "Drop a .gb or .gbc here",
+      dropHint: "or click to choose",
+      accept: ".gb,.gbc,application/octet-stream",
+      sdDir: "roms",
+      buttonText: "Save game to SD…",
+      doneText: "Firmware is on the Cardputer. Save the game to your SD card next.",
+    },
     parts: [{ file: bin("gameboy-enhanced-v0.79.66.bin"), address: 0x0 }],
   },
 ];
@@ -498,6 +511,16 @@ const MORE = [
         repo: "https://github.com/cyberwisk/M5Cardputer_WebRadio",
         desc: "Internet radio over Wi-Fi that reads its station list from the SD card",
         tag: ["warn", "Needs stations"],
+        needsFile: {
+          title: "Add your station list",
+          status: "WebRadio reads station_list.txt from the root of the SD card",
+          dropTitle: "Drop station_list.txt here",
+          dropHint: "or click to choose a text file",
+          accept: ".txt,text/plain",
+          sdPath: "station_list.txt",
+          buttonText: "Save stations to SD…",
+          doneText: "Firmware is on the Cardputer. Save station_list.txt to your SD card next.",
+        },
         parts: [{ file: bin("webradio.bin"), address: 0x0 }],
       },
     ],
@@ -913,7 +936,7 @@ function finishDialog(ok, { sdPath, sdLabel } = {}) {
   $("copyBtn").textContent = "Copy for AI";
   $("sdBtn").hidden = !(ok && pendingExtra);
   $("sdBtn").textContent = sdLabel
-    || (sdPath ? `Save to SD as ${sdPath}` : "Save ROM to SD…");
+    || (sdPath ? `Save to SD as ${sdPath}` : "Save to SD…");
   $("continueBtn").hidden = true;
   $("closeBtn").textContent = ok ? (pendingExtra ? "Skip for now" : "Done") : "Close";
   $("actions").hidden = false;
@@ -931,24 +954,14 @@ $("closeBtn").onclick = () => {
 
 $("sdBtn").onclick = async () => {
   if (!pendingExtra) return;
-  const { needs, data, kind } = pendingExtra;
+  const { needs, data, name, appName } = pendingExtra;
   $("sdBtn").disabled = true;
   try {
-    if (kind === "pack") {
-      setStatus("Writing assets to the SD card…");
-      $("doneText").textContent = "Writing asset pack to the SD card…";
-      const how = await saveAssetPack(needs, data, (n, total) => {
-        $("doneText").textContent = `Writing assets… ${n} / ${total}`;
-      });
-      $("doneText").textContent = how === "sd"
-        ? `Assets written under /${needs.sdRoot}/. Put the SD back in the Cardputer and launch Raising Hell.`
-        : `Downloaded the asset zip. Extract it so /${needs.sdRoot}/assets/ and /${needs.sdRoot}/graphics/ are on the SD card.`;
-    } else {
-      const how = await saveExtraFile(needs, data);
-      $("doneText").textContent = how === "sd"
-        ? `File written to /${needs.sdPath}. Put the SD back in the Cardputer and launch the app.`
-        : `Downloaded ${needs.sdPath.split("/").pop()}. Put it at /${needs.sdPath} on your SD card.`;
-    }
+    const sdPath = resolveSdPath(needs, name);
+    const how = await saveExtraFile(needs, data, name);
+    $("doneText").textContent = how === "sd"
+      ? `File written to /${sdPath}. Put the SD back in the Cardputer and launch ${appName || "the app"}.`
+      : `Downloaded ${sdPath.split("/").pop()}. Put it at /${sdPath} on your SD card.`;
     $("sdBtn").hidden = true;
     $("closeBtn").textContent = "Done";
     pendingExtra = null;
@@ -961,9 +974,28 @@ $("sdBtn").onclick = async () => {
   }
 };
 
+function resolveSdPath(needs, sourceName = "file.bin") {
+  if (needs.sdPath) return needs.sdPath;
+  const name = needs.filename || sourceName;
+  const dir = needs.sdDir || "";
+  return dir ? `${dir.replace(/\/$/, "")}/${name}` : name;
+}
+
+function acceptExtensions(accept) {
+  if (!accept) return [];
+  return accept.split(",").map((s) => s.trim().toLowerCase()).filter((s) => s.startsWith("."));
+}
+
 function validateExtraFile(file, needs) {
   if (needs.bytes != null && file.size !== needs.bytes) {
     return `That file is ${file.size.toLocaleString()} bytes — need exactly ${needs.bytes.toLocaleString()}.`;
+  }
+  const exts = acceptExtensions(needs.accept);
+  if (exts.length) {
+    const lower = file.name.toLowerCase();
+    if (!exts.some((ext) => lower.endsWith(ext))) {
+      return `Need a ${exts.join(" / ")} file.`;
+    }
   }
   return "";
 }
@@ -1000,7 +1032,7 @@ function promptForExtraFile(target) {
     picker.value = "";
 
     let settled = false;
-    let data = null;
+    let picked = null;
     const drop = $("dropZone");
 
     const cleanup = () => {
@@ -1023,13 +1055,13 @@ function promptForExtraFile(target) {
       if (err) {
         $("dropError").textContent = err;
         $("dropFile").textContent = "";
-        data = null;
+        picked = null;
         continueBtn.disabled = true;
         return;
       }
       $("dropError").textContent = "";
       $("dropFile").textContent = `${file.name} · ${file.size.toLocaleString()} bytes`;
-      data = new Uint8Array(await file.arrayBuffer());
+      picked = { data: new Uint8Array(await file.arrayBuffer()), name: file.name };
       continueBtn.disabled = false;
       continueBtn.focus();
     };
@@ -1053,10 +1085,10 @@ function promptForExtraFile(target) {
     };
 
     continueBtn.onclick = () => {
-      if (!data || settled) return;
+      if (!picked || settled) return;
       settled = true;
       cleanup();
-      resolve(data);
+      resolve(picked);
     };
 
     $("closeBtn").onclick = () => {
@@ -1068,13 +1100,15 @@ function promptForExtraFile(target) {
   });
 }
 
-async function saveExtraFile(needs, data) {
-  const parts = needs.sdPath.split("/");
+async function saveExtraFile(needs, data, sourceName) {
+  const sdPath = resolveSdPath(needs, sourceName);
+  const parts = sdPath.split("/");
   const filename = parts.at(-1);
   if (typeof showDirectoryPicker === "function") {
     const root = await showDirectoryPicker({ mode: "readwrite" });
     let dir = root;
     for (const name of parts.slice(0, -1)) {
+      if (!name) continue;
       dir = await dir.getDirectoryHandle(name, { create: true });
     }
     const handle = await dir.getFileHandle(filename, { create: true });
@@ -1163,7 +1197,6 @@ async function install(target) {
 
   setBusy(true);
   pendingExtra = null;
-  let extraData = null;
   let transport;
 
   try {
@@ -1176,17 +1209,24 @@ async function install(target) {
     });
 
     if (target.needsFile) {
+      let picked;
       try {
-        extraData = await promptForExtraFile(target);
+        picked = await promptForExtraFile(target);
       } catch {
         setBusy(false);
         render();
         return;
       }
-      pendingExtra = { needs: target.needsFile, data: extraData };
+      const sdPath = resolveSdPath(target.needsFile, picked.name);
+      pendingExtra = {
+        needs: target.needsFile,
+        data: picked.data,
+        name: picked.name,
+        appName: target.name,
+      };
       showProgressView();
       $("actions").hidden = true;
-      log(`ROM ready: ${target.needsFile.sdPath} (${extraData.length.toLocaleString()} bytes)`, "ok");
+      log(`File ready: ${sdPath} (${picked.data.length.toLocaleString()} bytes)`, "ok");
     }
 
     setStatus("Pick the Cardputer in the popup…");
@@ -1237,7 +1277,10 @@ async function install(target) {
     if (pendingExtra) {
       $("doneText").textContent = target.needsFile.doneText;
     }
-    finishDialog(true, { sdPath: target.needsFile?.sdPath });
+    finishDialog(true, {
+      sdPath: pendingExtra ? resolveSdPath(target.needsFile, pendingExtra.name) : undefined,
+      sdLabel: target.needsFile?.buttonText,
+    });
   } catch (err) {
     if (!$("log").textContent.endsWith("\n")) write("\n");
     log(String(err?.stack || err), "bad");
