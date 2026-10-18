@@ -85,6 +85,8 @@
     background: transparent;
     box-shadow: none;
     overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
   }
   #heroLightbox[open] {
     display: block;
@@ -1544,9 +1546,17 @@ async function openHeroLightbox() {
   heroBusy = false;
 }
 
+function clearHeroSelection() {
+  const sel = window.getSelection?.();
+  if (sel?.rangeCount) sel.removeAllRanges();
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body) active.blur();
+}
+
 async function closeHeroLightbox() {
   if (heroBusy || !$("heroLightbox").open) return;
   heroBusy = true;
+  clearHeroSelection();
   const lb = $("heroLightbox");
   const img = $("heroLightboxShot");
   const scroll = $("heroLightboxScroll");
@@ -1566,6 +1576,7 @@ async function closeHeroLightbox() {
   img.style.transition = "";
   img.style.transform = "";
   thumb.classList.remove("is-expanded");
+  clearHeroSelection();
   heroBusy = false;
 }
 
@@ -1573,6 +1584,7 @@ $("heroZoom").onclick = () => openHeroLightbox();
 $("heroLightboxClose").onclick = () => closeHeroLightbox();
 $("heroLightbox").addEventListener("cancel", (e) => {
   e.preventDefault();
+  clearHeroSelection();
   closeHeroLightbox();
 });
 
