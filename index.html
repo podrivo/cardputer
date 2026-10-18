@@ -57,6 +57,7 @@
   }
   .notice code { color: var(--text); }
   #catalog { display: grid; gap: 28px; }
+  #catalog > section { scroll-margin-top: 72px; }
   .section { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
   .nav {
     position: sticky;
@@ -464,6 +465,28 @@
   }
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--text); }
+  .to-top {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .to-top.show { opacity: 1; pointer-events: auto; }
+  .to-top svg { width: 18px; height: 18px; }
+  .to-top[data-tip]::after {
+    left: auto;
+    right: 0;
+    transform: translateY(2px);
+  }
+  .to-top[data-tip]:hover::after { transform: translateY(0); }
 </style>
 </head>
 <body>
@@ -497,6 +520,10 @@
     <a href="https://lucasrafaldini.github.io/cardputer-bins/" target="_blank" rel="noopener">Cardputer bins ↗</a>
   </footer>
 </main>
+
+<button type="button" class="icon-btn to-top" id="toTop" data-tip="Top" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+</button>
 
 <dialog id="dialog">
   <div id="progressView">
@@ -1096,7 +1123,8 @@ const BLOCKS = [
 ];
 
 let query = "";
-let activeCat = "all";
+let activeCat = "";
+let sectionSpy = null;
 
 function resolveKeys(item) {
   if (item.keys) return item.keys;
@@ -1188,18 +1216,47 @@ function cardEl(item, current, danger) {
   return el;
 }
 
+function setActiveChip(cat) {
+  if (activeCat === cat) return;
+  activeCat = cat;
+  for (const c of $("chips").children) {
+    c.classList.toggle("active", c.textContent === cat);
+  }
+}
+
 function renderChips() {
   const chips = $("chips");
   chips.innerHTML = "";
-  const cats = ["all", ...BLOCKS.filter((b) => b.items).map((b) => b.title)];
+  const cats = BLOCKS.filter((b) => b.items).map((b) => b.title);
+  if (!activeCat || !cats.includes(activeCat)) activeCat = cats[0] || "";
   for (const cat of cats) {
-    const block = BLOCKS.find((b) => b.title === cat);
     const c = document.createElement("button");
     c.className = "chip" + (cat === activeCat ? " active" : "");
-    c.textContent = cat === "all" ? "All" : cat;
-    c.onclick = () => { activeCat = cat; renderChips(); applyFilters(); };
+    c.textContent = cat;
+    c.onclick = () => {
+      const section = [...$("catalog").children].find((s) => s.dataset.title === cat);
+      if (!section || section.classList.contains("hidden")) return;
+      setActiveChip(cat);
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
     chips.appendChild(c);
   }
+}
+
+function observeSections() {
+  if (sectionSpy) sectionSpy.disconnect();
+  const sections = [...$("catalog").children].filter((s) => s.querySelector(".pets"));
+  if (!sections.length) return;
+  sectionSpy = new IntersectionObserver(
+    (entries) => {
+      const hit = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (hit) setActiveChip(hit.target.dataset.title);
+    },
+    { rootMargin: "-72px 0px -55% 0px", threshold: 0 }
+  );
+  for (const section of sections) sectionSpy.observe(section);
 }
 
 function applyFilters() {
@@ -1209,10 +1266,9 @@ function applyFilters() {
   for (const section of sections) {
     const grid = section.querySelector(".pets");
     if (!grid) continue;
-    const title = section.dataset.title;
     let shown = 0;
     for (const card of grid.children) {
-      const vis = (activeCat === "all" || activeCat === title) && (!q || card.dataset.search.includes(q));
+      const vis = !q || card.dataset.search.includes(q);
       card.classList.toggle("hidden", !vis);
       if (vis) shown++;
     }
@@ -1243,6 +1299,7 @@ function render() {
   }
   renderChips();
   applyFilters();
+  observeSections();
   setBusy(busy);
 }
 
@@ -1293,6 +1350,14 @@ new IntersectionObserver(
   ([entry]) => $("nav").classList.toggle("stuck", !entry.isIntersecting),
   { threshold: 0 }
 ).observe($("navSentinel"));
+
+{
+  const toTop = $("toTop");
+  const syncToTop = () => toTop.classList.toggle("show", window.scrollY > 320);
+  toTop.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  window.addEventListener("scroll", syncToTop, { passive: true });
+  syncToTop();
+}
 
 function setBusy(value) {
   busy = value;
