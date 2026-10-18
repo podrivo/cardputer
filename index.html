@@ -161,7 +161,6 @@
     text-decoration: none;
   }
   .icon-btn:hover { color: var(--text); background: color-mix(in srgb, var(--line) 55%, transparent); }
-  .icon-btn:active { transform: scale(0.96); }
   .icon-btn + .icon-btn { margin-left: -4px; }
   .icon-btn svg { width: 15px; height: 15px; display: block; }
   .icon-btn[data-tip]::after,
@@ -186,9 +185,7 @@
     z-index: 6;
   }
   .icon-btn[data-tip]:hover::after,
-  .icon-btn[data-tip]:focus-visible::after,
   .copy-log-btn[data-tip]:hover::after,
-  .copy-log-btn[data-tip]:focus-visible::after,
   .copy-log-btn.copied[data-tip]::after {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -1098,8 +1095,8 @@ function cardEl(item, current, danger) {
     origin.href = item.repo;
     origin.target = "_blank";
     origin.rel = "noopener";
-    origin.dataset.tip = "Origin";
-    origin.setAttribute("aria-label", "Origin");
+    origin.dataset.tip = "Source";
+    origin.setAttribute("aria-label", "Source");
     origin.innerHTML = ICON_EXTERNAL;
     nameRow.appendChild(origin);
   }
