@@ -39,11 +39,8 @@
     display: none;
   }
   .notice code { color: var(--text); }
-  .section { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 28px 0 12px; }
-  .section:first-of-type { margin-top: 0; }
-  .section-sub { color: var(--muted); font-size: 13px; margin: -6px 0 12px; }
-  .sub-section { font-size: 12px; color: var(--text); margin: 24px 0 10px; opacity: 0.75; }
-  .sub-section:first-child { margin-top: 4px; }
+  #catalog { display: grid; gap: 28px; }
+  .section { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
   .filters {
     position: sticky;
     top: 0;
@@ -396,7 +393,6 @@ const MORE = [
   },
   {
     title: "Mesh, radio & comms",
-    sub: "Most of these need a LoRa cap or a nearby radio to actually send messages.",
     items: [
       {
         id: "meshtastic-adv",
@@ -465,7 +461,6 @@ const MORE = [
   },
   {
     title: "Security, RF & Wi-Fi",
-    sub: "Only use the attack features on networks and devices you own or have permission to test.",
     items: [
       {
         id: "ghostesp",
@@ -609,10 +604,9 @@ function showNotice(html) {
 }
 
 const BLOCKS = [
-  { level: 2, title: "Pets", items: PETS },
-  { level: 2, title: "Tools", sub: "Not pets. Use the attack features only on networks and devices you own or have permission to test.", items: TOOLS },
-  { level: 2, title: "More to explore", sub: "A wider sweep of the Cardputer ecosystem. These favour the ADV and flash the same way, but I haven't run each one — check the repo and your hardware before flashing. Only use attack features on networks and devices you own or have permission to test." },
-  ...MORE.map((g) => ({ level: 3, title: g.title, sub: g.sub, items: g.items, parent: "More to explore" })),
+  { title: "Pets", items: PETS },
+  { title: "Tools", items: TOOLS },
+  ...MORE.map((g) => ({ title: g.title, items: g.items })),
 ];
 
 let query = "";
@@ -669,12 +663,6 @@ function applyFilters() {
     section.classList.toggle("hidden", shown === 0);
     if (shown) anyVisible = true;
   }
-  // Header-only sections (e.g. "More to explore") follow their children.
-  for (const section of sections) {
-    if (section.querySelector(".pets")) continue;
-    const hasChild = sections.some((s) => s.dataset.parent === section.dataset.title && !s.classList.contains("hidden"));
-    section.classList.toggle("hidden", !hasChild);
-  }
   $("empty").hidden = anyVisible;
 }
 
@@ -686,23 +674,14 @@ function render() {
   for (const block of BLOCKS) {
     const section = document.createElement("section");
     section.dataset.title = block.title;
-    if (block.parent) section.dataset.parent = block.parent;
-    const h = document.createElement(block.level === 2 ? "h2" : "h3");
-    h.className = block.level === 2 ? "section" : "section sub-section";
+    const h = document.createElement("h2");
+    h.className = "section";
     h.textContent = block.title;
     section.appendChild(h);
-    if (block.sub) {
-      const p = document.createElement("p");
-      p.className = "section-sub";
-      p.textContent = block.sub;
-      section.appendChild(p);
-    }
-    if (block.items) {
-      const grid = document.createElement("div");
-      grid.className = "pets";
-      for (const item of block.items) grid.appendChild(cardEl(item, current));
-      section.appendChild(grid);
-    }
+    const grid = document.createElement("div");
+    grid.className = "pets";
+    for (const item of block.items) grid.appendChild(cardEl(item, current));
+    section.appendChild(grid);
     catalog.appendChild(section);
   }
   buttons.push($("restoreBtn"));
