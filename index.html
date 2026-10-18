@@ -313,6 +313,9 @@
     <a href="https://docs.m5stack.com/en/core/Cardputer-Adv" target="_blank" rel="noopener">Docs ↗</a>
     <a href="https://shop.m5stack.com/products/m5stack-cardputer-adv-version-esp32-s3" target="_blank" rel="noopener">Shop ↗</a>
     <a href="https://burner.m5stack.com/" target="_blank" rel="noopener">M5Burner ↗</a>
+    <a href="https://bmorcelli.github.io/Launcher/catalog.html" target="_blank" rel="noopener">Launcher catalog ↗</a>
+    <a href="https://github.com/terremoth/awesome-m5stack-cardputer" target="_blank" rel="noopener">Awesome list ↗</a>
+    <a href="https://lucasrafaldini.github.io/cardputer-bins/" target="_blank" rel="noopener">Cardputer bins ↗</a>
   </footer>
 </main>
 
@@ -364,6 +367,7 @@
 <script type="module">
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.js";
 import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
+import { EXTRA } from "./catalog-extra.js";
 
 const bin = (name) => `bins/${name}`;
 
@@ -841,11 +845,25 @@ function showNotice(html) {
   $("notice").style.display = "block";
 }
 
+const SECTION_EXTRA = {
+  Music: EXTRA.music,
+  AI: EXTRA.ai,
+  Mesh: EXTRA.mesh,
+  Security: EXTRA.security,
+  Sensing: EXTRA.sensing,
+  Systems: EXTRA.systems,
+};
+
 const BLOCKS = [
-  { title: "Pets", items: PETS },
-  { title: "Games", items: GAMES },
-  { title: "Tools", items: TOOLS },
-  ...MORE.map((g) => ({ title: g.title, items: g.items })),
+  { title: "Official", items: EXTRA.official },
+  { title: "Pets", items: [...PETS, ...EXTRA.pets] },
+  { title: "Games", items: [...GAMES, ...EXTRA.games] },
+  { title: "Tools", items: [...TOOLS, ...EXTRA.tools, ...EXTRA.remotes] },
+  ...MORE.map((g) => ({
+    title: g.title,
+    items: [...g.items, ...(SECTION_EXTRA[g.title] || [])],
+  })),
+  { title: "More", items: EXTRA.misc },
   { title: "Device", items: DEVICE, danger: true },
 ];
 
