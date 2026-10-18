@@ -836,9 +836,26 @@ const DEVICE = [
 const $ = (id) => document.getElementById(id);
 const buttons = [];
 let busy = false;
+const ESP_USB_VENDOR_ID = 0x303a;
 
 if (!("serial" in navigator)) {
   showNotice("This browser can't talk to USB devices. Open this page in Chrome or Edge on a computer.");
+}
+
+/** Prefer a previously granted port so Chrome's picker only shows when needed. */
+async function resolveSerialPort() {
+  const filters = [{ usbVendorId: ESP_USB_VENDOR_ID }];
+  // `connected` is false for remembered-but-unplugged ports (Chrome 130+); older builds omit it.
+  const granted = (await navigator.serial.getPorts()).filter((p) => p.connected !== false);
+  const espPorts = granted.filter((p) => p.getInfo().usbVendorId === ESP_USB_VENDOR_ID);
+  if (espPorts.length === 1) return { port: espPorts[0], reused: true };
+  if (granted.length === 1) return { port: granted[0], reused: true };
+  const port = await navigator.serial.requestPort({ filters });
+  return { port, reused: false };
+}
+
+function isPortPickCancelled(err) {
+  return err?.name === "NotFoundError";
 }
 
 function showNotice(html) {
@@ -1399,11 +1416,12 @@ async function install(target) {
       log(`File ready: ${sdPath} (${picked.data.length.toLocaleString()} bytes)`, "ok");
     }
 
-    setStatus("Pick the Cardputer in the popup…");
+    setStatus("Looking for the Cardputer…");
     step("Waiting for a USB device");
-    const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] });
+    const { port, reused } = await resolveSerialPort();
     const { usbVendorId, usbProductId } = port.getInfo();
-    log(`Selected USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
+    setStatus(reused ? "Using the saved USB device…" : "USB device selected…");
+    log(`${reused ? "Reusing" : "Selected"} USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
 
     setStatus("Loading firmware…");
     step("Loading firmware files");
@@ -1467,10 +1485,15 @@ async function install(target) {
       sdLabel: target.sdAssets?.buttonText || target.needsFile?.buttonText,
     });
   } catch (err) {
+    if (isPortPickCancelled(err)) {
+      pendingExtra = null;
+      $("dlg").close();
+      return;
+    }
     if (!$("log").textContent.endsWith("\n")) write("\n");
     log(String(err?.stack || err), "bad");
     $("dlgTitle").textContent = `Couldn't install ${target.name}`;
-    let msg = err?.name === "NotFoundError" ? "No device picked." : String(err?.message || err);
+    let msg = String(err?.message || err);
     if (/busy|open/i.test(msg)) {
       msg = "The USB port is busy. Close other tabs or apps using the Cardputer (like M5Burner or a terminal running esptool) and try again.";
     }
@@ -1499,11 +1522,12 @@ async function eraseDevice() {
   let transport;
 
   try {
-    setStatus("Pick the Cardputer in the popup…");
+    setStatus("Looking for the Cardputer…");
     step("Waiting for a USB device");
-    const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] });
+    const { port, reused } = await resolveSerialPort();
     const { usbVendorId, usbProductId } = port.getInfo();
-    log(`Selected USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
+    setStatus(reused ? "Using the saved USB device…" : "USB device selected…");
+    log(`${reused ? "Reusing" : "Selected"} USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
 
     setStatus("Connecting…");
     step("Connecting to the Cardputer");
@@ -1524,10 +1548,14 @@ async function eraseDevice() {
     localStorage.removeItem("installed");
     finishDialog(true);
   } catch (err) {
+    if (isPortPickCancelled(err)) {
+      $("dlg").close();
+      return;
+    }
     if (!$("log").textContent.endsWith("\n")) write("\n");
     log(String(err?.stack || err), "bad");
     $("dlgTitle").textContent = "Couldn't erase the Cardputer";
-    let msg = err?.name === "NotFoundError" ? "No device picked." : String(err?.message || err);
+    let msg = String(err?.message || err);
     if (/busy|open/i.test(msg)) {
       msg = "The USB port is busy. Close other tabs or apps using the Cardputer (like M5Burner or a terminal running esptool) and try again.";
     }
