@@ -229,6 +229,33 @@
   #closeBtn { margin-left: auto; }
   .link-btn { background: none; color: var(--muted); padding: 0; font-weight: 400; font-size: 12px; }
   .link-btn:hover { color: var(--text); }
+  .file-pick { padding: 4px 0 2px; }
+  .file-pick[hidden] { display: none; }
+  .drop {
+    margin-top: 16px;
+    border: 1.5px dashed var(--line);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .drop:hover, .drop.over {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--text);
+  }
+  .drop-title { font-weight: 600; font-size: 14px; color: var(--text); }
+  .drop-hint { font-size: 13px; margin-top: 6px; }
+  .drop-error { color: var(--bad); font-size: 13px; margin-top: 10px; }
+  .drop-error:empty { display: none; }
+  .drop-file {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--ok);
+    font-variant-numeric: tabular-nums;
+  }
   footer {
     margin-top: 48px;
     padding-top: 20px;
@@ -284,6 +311,21 @@
     </div>
     <div class="bar" id="bar"><div id="barFill"></div></div>
   </div>
+  <div class="file-pick" id="filePickView" hidden>
+    <div class="dlg-head">
+      <div class="emoji" id="filePickEmoji"></div>
+      <div>
+        <div class="dlg-title" id="filePickTitle"></div>
+        <div class="status-text" id="filePickStatus"></div>
+      </div>
+    </div>
+    <div class="drop" id="dropZone" tabindex="0" role="button">
+      <div class="drop-title" id="dropTitle">Drop file here</div>
+      <div class="drop-hint" id="dropHint">or click to choose a file</div>
+      <div class="drop-file" id="dropFile"></div>
+      <div class="drop-error" id="dropError"></div>
+    </div>
+  </div>
   <div class="done" id="doneView" hidden>
     <div class="check">✓</div>
     <div class="done-title" id="doneTitle"></div>
@@ -293,11 +335,14 @@
   <div class="dlg-actions" id="actions" hidden>
     <button class="link-btn" id="logsBtn">Show logs</button>
     <button class="ghost" id="copyBtn">Copy for AI</button>
+    <button class="ghost" id="sdBtn" hidden>Save to SD…</button>
+    <button id="continueBtn" hidden>Install firmware</button>
     <button id="closeBtn">Done</button>
   </div>
 </dialog>
 
 <input type="file" id="filePicker" accept=".bin" hidden>
+<input type="file" id="extraPicker" hidden>
 
 <script type="module">
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.js";
@@ -337,6 +382,17 @@ const PETS = [
     repo: "https://github.com/mindovermiles262/tamaputer",
     desc: "Real Tamagotchi P1 emulator — put tama.b at /tamaputer/tama.b on the SD card",
     tag: ["warn", "Needs ROM"],
+    needsFile: {
+      title: "Add your Tamagotchi ROM",
+      status: "Tamaputer needs a P1 ROM dump on the SD card as /tamaputer/tama.b",
+      dropTitle: "Drop tama.b here",
+      dropHint: "or click to choose — exactly 40,960 bytes",
+      accept: ".b,.bin,application/octet-stream",
+      bytes: 40960,
+      sdPath: "tamaputer/tama.b",
+      buttonText: "Save ROM to SD…",
+      doneText: "Firmware is on the Cardputer. Save the ROM to your SD card next.",
+    },
     parts: [{ file: bin("tamaputer-m5burner-v1.1.0.bin"), address: 0x0 }],
   },
 ];
@@ -365,6 +421,16 @@ const GAMES = [
     repo: "https://github.com/geo-tp/Cardputer-Game-Station-Emulators",
     desc: "Game Boy and other consoles with the 1997 Tamagotchi .gb game from the SD card",
     tag: ["warn", "Needs game"],
+    needsFile: {
+      title: "Add a game ROM",
+      status: "Game Station plays uncompressed ROMs from the SD card",
+      dropTitle: "Drop a ROM here",
+      dropHint: "or click to choose — .gb, .nes, .sms, .md, and more",
+      accept: ".gb,.gbc,.nes,.sms,.gg,.sg,.md,.ngc,.ngp,.col,.pce,.mx1,.rom,.a26,.a78,.lnx,.cpr,.ws,.wsc,.sfc,application/octet-stream",
+      sdDir: "roms",
+      buttonText: "Save ROM to SD…",
+      doneText: "Firmware is on the Cardputer. Save the ROM to your SD card next.",
+    },
     parts: [{ file: bin("game-station-v1.2.bin"), address: 0x0 }],
   },
   {
@@ -374,6 +440,16 @@ const GAMES = [
     repo: "https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
     desc: "Game Boy emulator with save states for the Tamagotchi .gb game on SD",
     tag: ["warn", "Needs game"],
+    needsFile: {
+      title: "Add a Game Boy ROM",
+      status: "Gameboy Enhanced lists .gb / .gbc files from the SD card",
+      dropTitle: "Drop a .gb or .gbc here",
+      dropHint: "or click to choose",
+      accept: ".gb,.gbc,application/octet-stream",
+      sdDir: "roms",
+      buttonText: "Save game to SD…",
+      doneText: "Firmware is on the Cardputer. Save the game to your SD card next.",
+    },
     parts: [{ file: bin("gameboy-enhanced-v0.79.66.bin"), address: 0x0 }],
   },
 ];
@@ -435,6 +511,16 @@ const MORE = [
         repo: "https://github.com/cyberwisk/M5Cardputer_WebRadio",
         desc: "Internet radio over Wi-Fi that reads its station list from the SD card",
         tag: ["warn", "Needs stations"],
+        needsFile: {
+          title: "Add your station list",
+          status: "WebRadio reads station_list.txt from the root of the SD card",
+          dropTitle: "Drop station_list.txt here",
+          dropHint: "or click to choose a text file",
+          accept: ".txt,text/plain",
+          sdPath: "station_list.txt",
+          buttonText: "Save stations to SD…",
+          doneText: "Firmware is on the Cardputer. Save station_list.txt to your SD card next.",
+        },
         parts: [{ file: bin("webradio.bin"), address: 0x0 }],
       },
     ],
@@ -812,40 +898,231 @@ const terminal = {
   write: (s) => write(s),
 };
 
-function openDialog({ emoji, title, doneTitle, doneText }) {
+let pendingExtra = null;
+
+function openDialog({ emoji, title, doneTitle, doneText, pickFile = false }) {
   $("dlgEmoji").textContent = emoji || "↺";
   $("dlgTitle").textContent = title;
   $("doneTitle").textContent = doneTitle;
   $("doneText").textContent = doneText;
   $("log").textContent = "";
-  $("log").classList.remove("collapsed");
-  $("progressView").hidden = false;
+  $("log").classList.toggle("collapsed", pickFile);
+  $("progressView").hidden = pickFile;
+  $("filePickView").hidden = !pickFile;
   $("doneView").hidden = true;
   $("actions").hidden = true;
+  $("sdBtn").hidden = true;
+  $("continueBtn").hidden = true;
   $("bar").className = "bar";
   setProgress(0);
   $("dialog").showModal();
 }
 
-function finishDialog(ok) {
+function showProgressView() {
+  $("filePickView").hidden = true;
+  $("progressView").hidden = false;
+  $("log").classList.remove("collapsed");
+}
+
+function finishDialog(ok, { sdPath, sdLabel } = {}) {
   $("bar").classList.add(ok ? "ok" : "bad");
   $("progressView").hidden = ok;
+  $("filePickView").hidden = true;
   $("doneView").hidden = !ok;
   $("log").classList.toggle("collapsed", ok);
   $("logsBtn").hidden = !ok;
   $("logsBtn").textContent = "Show logs";
   $("copyBtn").hidden = ok;
   $("copyBtn").textContent = "Copy for AI";
-  $("closeBtn").textContent = ok ? "Done" : "Close";
+  $("sdBtn").hidden = !(ok && pendingExtra);
+  $("sdBtn").textContent = sdLabel
+    || (sdPath ? `Save to SD as ${sdPath}` : "Save to SD…");
+  $("continueBtn").hidden = true;
+  $("closeBtn").textContent = ok ? (pendingExtra ? "Skip for now" : "Done") : "Close";
   $("actions").hidden = false;
-  $("closeBtn").focus();
+  ($("sdBtn").hidden ? $("closeBtn") : $("sdBtn")).focus();
 }
 
 $("logsBtn").onclick = () => {
   const collapsed = $("log").classList.toggle("collapsed");
   $("logsBtn").textContent = collapsed ? "Show logs" : "Hide logs";
 };
-$("closeBtn").onclick = () => $("dialog").close();
+$("closeBtn").onclick = () => {
+  pendingExtra = null;
+  $("dialog").close();
+};
+
+$("sdBtn").onclick = async () => {
+  if (!pendingExtra) return;
+  const { needs, data, name, appName } = pendingExtra;
+  $("sdBtn").disabled = true;
+  try {
+    const sdPath = resolveSdPath(needs, name);
+    const how = await saveExtraFile(needs, data, name);
+    $("doneText").textContent = how === "sd"
+      ? `File written to /${sdPath}. Put the SD back in the Cardputer and launch ${appName || "the app"}.`
+      : `Downloaded ${sdPath.split("/").pop()}. Put it at /${sdPath} on your SD card.`;
+    $("sdBtn").hidden = true;
+    $("closeBtn").textContent = "Done";
+    pendingExtra = null;
+  } catch (err) {
+    if (err?.name !== "AbortError") {
+      $("doneText").textContent = `Couldn't save to SD: ${err?.message || err}`;
+    }
+  } finally {
+    $("sdBtn").disabled = false;
+  }
+};
+
+function resolveSdPath(needs, sourceName = "file.bin") {
+  if (needs.sdPath) return needs.sdPath;
+  const name = needs.filename || sourceName;
+  const dir = needs.sdDir || "";
+  return dir ? `${dir.replace(/\/$/, "")}/${name}` : name;
+}
+
+function acceptExtensions(accept) {
+  if (!accept) return [];
+  return accept.split(",").map((s) => s.trim().toLowerCase()).filter((s) => s.startsWith("."));
+}
+
+function validateExtraFile(file, needs) {
+  if (needs.bytes != null && file.size !== needs.bytes) {
+    return `That file is ${file.size.toLocaleString()} bytes — need exactly ${needs.bytes.toLocaleString()}.`;
+  }
+  const exts = acceptExtensions(needs.accept);
+  if (exts.length) {
+    const lower = file.name.toLowerCase();
+    if (!exts.some((ext) => lower.endsWith(ext))) {
+      return `Need a ${exts.join(" / ")} file.`;
+    }
+  }
+  return "";
+}
+
+function promptForExtraFile(target) {
+  const needs = target.needsFile;
+  return new Promise((resolve, reject) => {
+    $("filePickEmoji").textContent = target.emoji || "💾";
+    $("filePickTitle").textContent = needs.title;
+    $("filePickStatus").textContent = needs.status;
+    $("dropTitle").textContent = needs.dropTitle;
+    $("dropHint").textContent = needs.dropHint;
+    $("dropFile").textContent = "";
+    $("dropError").textContent = "";
+    $("progressView").hidden = true;
+    $("doneView").hidden = true;
+    $("filePickView").hidden = false;
+    $("log").classList.add("collapsed");
+    $("actions").hidden = false;
+    $("logsBtn").hidden = true;
+    $("copyBtn").hidden = true;
+    $("sdBtn").hidden = true;
+    $("closeBtn").textContent = "Cancel";
+
+    const continueBtn = $("continueBtn");
+    continueBtn.hidden = false;
+    continueBtn.disabled = true;
+    continueBtn.textContent = "Install firmware";
+
+    if (!$("dialog").open) $("dialog").showModal();
+
+    const picker = $("extraPicker");
+    picker.accept = needs.accept || "*/*";
+    picker.value = "";
+
+    let settled = false;
+    let picked = null;
+    const drop = $("dropZone");
+
+    const cleanup = () => {
+      drop.onclick = null;
+      drop.ondragover = null;
+      drop.ondragleave = null;
+      drop.ondrop = null;
+      drop.onkeydown = null;
+      picker.onchange = null;
+      continueBtn.onclick = null;
+      continueBtn.hidden = true;
+      $("closeBtn").onclick = () => {
+        pendingExtra = null;
+        $("dialog").close();
+      };
+    };
+
+    const take = async (file) => {
+      const err = validateExtraFile(file, needs);
+      if (err) {
+        $("dropError").textContent = err;
+        $("dropFile").textContent = "";
+        picked = null;
+        continueBtn.disabled = true;
+        return;
+      }
+      $("dropError").textContent = "";
+      $("dropFile").textContent = `${file.name} · ${file.size.toLocaleString()} bytes`;
+      picked = { data: new Uint8Array(await file.arrayBuffer()), name: file.name };
+      continueBtn.disabled = false;
+      continueBtn.focus();
+    };
+
+    drop.classList.remove("over");
+    drop.onclick = () => picker.click();
+    drop.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); picker.click(); }
+    };
+    drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+    drop.ondragleave = () => drop.classList.remove("over");
+    drop.ondrop = (e) => {
+      e.preventDefault();
+      drop.classList.remove("over");
+      const file = e.dataTransfer?.files?.[0];
+      if (file) take(file);
+    };
+    picker.onchange = () => {
+      const file = picker.files[0];
+      if (file) take(file);
+    };
+
+    continueBtn.onclick = () => {
+      if (!picked || settled) return;
+      settled = true;
+      cleanup();
+      resolve(picked);
+    };
+
+    $("closeBtn").onclick = () => {
+      if (settled) return;
+      cleanup();
+      $("dialog").close();
+      reject(new Error("Cancelled"));
+    };
+  });
+}
+
+async function saveExtraFile(needs, data, sourceName) {
+  const sdPath = resolveSdPath(needs, sourceName);
+  const parts = sdPath.split("/");
+  const filename = parts.at(-1);
+  if (typeof showDirectoryPicker === "function") {
+    const root = await showDirectoryPicker({ mode: "readwrite" });
+    let dir = root;
+    for (const name of parts.slice(0, -1)) {
+      if (!name) continue;
+      dir = await dir.getDirectoryHandle(name, { create: true });
+    }
+    const handle = await dir.getFileHandle(filename, { create: true });
+    const writable = await handle.createWritable();
+    await writable.write(data);
+    await writable.close();
+    return "sd";
+  }
+  const url = URL.createObjectURL(new Blob([data]));
+  const a = Object.assign(document.createElement("a"), { href: url, download: filename });
+  a.click();
+  URL.revokeObjectURL(url);
+  return "download";
+}
 
 let failure = null;
 
@@ -919,15 +1196,39 @@ async function install(target) {
   if (target.id === "original" && !confirm("Replace the current firmware with the original User Demo?")) return;
 
   setBusy(true);
-  openDialog({
-    emoji: target.emoji,
-    title: `Installing ${target.name}`,
-    doneTitle: `${target.name} is installed`,
-    doneText: "Your Cardputer is restarting. Have fun!",
-  });
+  pendingExtra = null;
   let transport;
 
   try {
+    openDialog({
+      emoji: target.emoji,
+      title: `Installing ${target.name}`,
+      doneTitle: `${target.name} is installed`,
+      doneText: target.needsFile?.doneText || "Your Cardputer is restarting. Have fun!",
+      pickFile: Boolean(target.needsFile),
+    });
+
+    if (target.needsFile) {
+      let picked;
+      try {
+        picked = await promptForExtraFile(target);
+      } catch {
+        setBusy(false);
+        render();
+        return;
+      }
+      const sdPath = resolveSdPath(target.needsFile, picked.name);
+      pendingExtra = {
+        needs: target.needsFile,
+        data: picked.data,
+        name: picked.name,
+        appName: target.name,
+      };
+      showProgressView();
+      $("actions").hidden = true;
+      log(`File ready: ${sdPath} (${picked.data.length.toLocaleString()} bytes)`, "ok");
+    }
+
     setStatus("Pick the Cardputer in the popup…");
     step("Waiting for a USB device");
     const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] });
@@ -973,7 +1274,13 @@ async function install(target) {
     setProgress(1);
     log(`Done. ${target.name} is installed.`, "ok");
     localStorage.setItem("installed", target.id);
-    finishDialog(true);
+    if (pendingExtra) {
+      $("doneText").textContent = target.needsFile.doneText;
+    }
+    finishDialog(true, {
+      sdPath: pendingExtra ? resolveSdPath(target.needsFile, pendingExtra.name) : undefined,
+      sdLabel: target.needsFile?.buttonText,
+    });
   } catch (err) {
     if (!$("log").textContent.endsWith("\n")) write("\n");
     log(String(err?.stack || err), "bad");
@@ -984,6 +1291,7 @@ async function install(target) {
     }
     setStatus(`Install failed: ${msg}`, "bad");
     failure = { target, message: `${err?.name || "Error"}: ${err?.message || err}` };
+    pendingExtra = null;
     finishDialog(false);
   } finally {
     try { await transport?.disconnect(); } catch {}
