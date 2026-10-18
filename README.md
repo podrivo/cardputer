@@ -21,6 +21,16 @@ Firmware images live in [`bins/`](bins/). The page uses [esptool-js](https://git
 
 Some apps need an SD card (assets, ROMs, samples, databases). Those are tagged in the UI.
 
+## Controls (Keys)
+
+Apps with a documented keymap show a **Keys** link in the catalog. Bindings are scraped from each project's GitHub README (`# Keys` / `# Controls` sections) into [`catalog-keys.js`](catalog-keys.js):
+
+```bash
+node scripts/fetch-catalog-keys.mjs
+```
+
+Re-run after adding catalog entries, or when upstream READMEs change. Manual overrides can still be set per item with a `keys: { rows: [["Key", "Action"], ...] }` field.
+
 ## Using the installer
 
 1. Turn the Cardputer **off**, then plug it in over USB-C.

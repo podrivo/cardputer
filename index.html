@@ -136,11 +136,59 @@
   }
   .emoji { font-size: 32px; width: 44px; text-align: center; flex-shrink: 0; }
   .info { flex: 1; min-width: 0; }
-  .name { font-weight: 600; font-size: 16px; }
-  .name a { color: inherit; text-decoration: none; }
-  .name a:hover .label { text-decoration: underline; text-underline-offset: 3px; }
-  .name .arrow { color: var(--muted); font-size: 12px; font-weight: 400; }
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    min-width: 0;
+  }
+  .name .label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .desc { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .icon-btn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    border: 0;
+    text-decoration: none;
+  }
+  .icon-btn:hover { color: var(--text); background: color-mix(in srgb, var(--line) 55%, transparent); }
+  .icon-btn:active { transform: scale(0.96); }
+  .icon-btn + .icon-btn { margin-left: -4px; }
+  .icon-btn svg { width: 15px; height: 15px; display: block; }
+  .icon-btn[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    transform: translateX(-50%) translateY(2px);
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #0b0a0f;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 6;
+  }
+  .icon-btn[data-tip]:hover::after,
+  .icon-btn[data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
   .actions {
     display: flex;
     align-items: center;
@@ -244,7 +292,41 @@
   .done-text { color: var(--muted); margin-top: 4px; font-size: 14px; }
   .dlg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
   .dlg-actions[hidden] { display: none; }
-  #closeBtn { margin-left: auto; }
+  #closeBtn, #keysCloseBtn { margin-left: auto; }
+  #keysDialog {
+    width: min(380px, calc(100vw - 32px));
+    padding: 22px;
+  }
+  #keysDialog .dlg-head { margin-bottom: 20px; }
+  #keysDialog .dlg-actions { margin-top: 20px; }
+  .keys-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .keys-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    font-size: 13px;
+  }
+  .keys-list kbd {
+    font: 600 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--text);
+    background: color-mix(in srgb, var(--line) 70%, transparent);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .keys-list span {
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+  }
   .file-pick { padding: 4px 0 2px; }
   .file-pick[hidden] { display: none; }
   .drop {
@@ -360,6 +442,20 @@
   </div>
 </dialog>
 
+<dialog id="keysDialog">
+  <div class="dlg-head">
+    <div class="emoji" id="keysEmoji"></div>
+    <div>
+      <div class="dlg-title" id="keysTitle"></div>
+      <div class="status-text">Controls</div>
+    </div>
+  </div>
+  <ul class="keys-list" id="keysList"></ul>
+  <div class="dlg-actions">
+    <button id="keysCloseBtn">Close</button>
+  </div>
+</dialog>
+
 <input type="file" id="filePicker" accept=".bin" hidden>
 <input type="file" id="extraPicker" hidden>
 
@@ -367,6 +463,7 @@
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.js";
 import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 import { EXTRA } from "./catalog-extra.js";
+import { KEYS } from "./catalog-keys.js";
 
 const bin = (name) => `bins/${name}`;
 
@@ -892,16 +989,42 @@ const BLOCKS = [
 let query = "";
 let activeCat = "all";
 
+function resolveKeys(item) {
+  if (item.keys) return item.keys;
+  if (item.id && KEYS[item.id]) return KEYS[item.id];
+  return null;
+}
+
+function openKeysDialog(item, keys) {
+  $("keysEmoji").textContent = item.emoji || "⌨️";
+  $("keysTitle").textContent = item.name;
+  const list = $("keysList");
+  list.innerHTML = "";
+  for (const [key, action] of keys.rows) {
+    const li = document.createElement("li");
+    li.innerHTML = `<kbd></kbd><span></span>`;
+    li.querySelector("kbd").textContent = key;
+    li.querySelector("span").textContent = action;
+    list.appendChild(li);
+  }
+  $("keysDialog").showModal();
+}
+
+$("keysCloseBtn").onclick = () => $("keysDialog").close();
+$("keysDialog").addEventListener("click", (e) => {
+  if (e.target === $("keysDialog")) $("keysDialog").close();
+});
+
+const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`;
+const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>`;
+
 function cardEl(item, current, danger) {
   const el = document.createElement("div");
   el.className = "pet" + (danger ? " danger" : "");
-  const name = item.repo
-    ? `<a href="${item.repo}" target="_blank" rel="noopener"><span class="label">${item.name}</span> <span class="arrow">↗</span></a>`
-    : `<span class="label">${item.name}</span>`;
   el.innerHTML = `
     <div class="emoji">${item.emoji}</div>
     <div class="info">
-      <div class="name">${name}</div>
+      <div class="name"></div>
       <div class="desc">${item.desc}</div>
     </div>
     <div class="actions">
@@ -909,6 +1032,33 @@ function cardEl(item, current, danger) {
       ${current === item.id ? '<span class="tag current">Installed</span>' : ""}
     </div>`;
   el.dataset.search = `${item.name} ${item.desc} ${item.tag?.[1] || ""}`.toLowerCase();
+  const nameRow = el.querySelector(".name");
+  const label = document.createElement("span");
+  label.className = "label";
+  label.textContent = item.name;
+  nameRow.appendChild(label);
+  if (item.repo) {
+    const origin = document.createElement("a");
+    origin.className = "icon-btn";
+    origin.href = item.repo;
+    origin.target = "_blank";
+    origin.rel = "noopener";
+    origin.dataset.tip = "Origin";
+    origin.setAttribute("aria-label", "Origin");
+    origin.innerHTML = ICON_EXTERNAL;
+    nameRow.appendChild(origin);
+  }
+  const keys = resolveKeys(item);
+  if (keys) {
+    const keysBtn = document.createElement("button");
+    keysBtn.type = "button";
+    keysBtn.className = "icon-btn";
+    keysBtn.dataset.tip = "Shortcuts";
+    keysBtn.setAttribute("aria-label", "Shortcuts");
+    keysBtn.innerHTML = ICON_KEYBOARD;
+    keysBtn.onclick = () => openKeysDialog(item, keys);
+    nameRow.appendChild(keysBtn);
+  }
   const btn = document.createElement("button");
   btn.textContent = item.button || "Install";
   if (item.buttonClass) btn.className = item.buttonClass;
