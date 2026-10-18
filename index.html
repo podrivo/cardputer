@@ -244,8 +244,6 @@
   .dlg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
   .dlg-actions[hidden] { display: none; }
   #closeBtn { margin-left: auto; }
-  .link-btn { background: none; color: var(--muted); padding: 0; font-weight: 400; font-size: 12px; }
-  .link-btn:hover { color: var(--text); }
   .file-pick { padding: 4px 0 2px; }
   .file-pick[hidden] { display: none; }
   .drop {
@@ -353,7 +351,7 @@
   </div>
   <pre class="terminal" id="log"></pre>
   <div class="dlg-actions" id="actions" hidden>
-    <button class="link-btn" id="logsBtn">Show logs</button>
+    <button class="ghost" id="logsBtn">Show logs</button>
     <button class="ghost" id="copyBtn">Copy for AI</button>
     <button class="ghost" id="sdBtn" hidden>Save to SD…</button>
     <button id="continueBtn" hidden>Install firmware</button>
