@@ -268,12 +268,12 @@
     transition: transform 0.1s ease, opacity 0.15s ease, filter 0.15s ease, background 0.15s ease;
     flex-shrink: 0;
   }
-  .actions > button {
+  .actions > button:not(.icon-btn) {
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
-  .actions > button svg {
+  .actions > button:not(.icon-btn) svg {
     width: 14px;
     height: 14px;
     display: block;
