@@ -124,3 +124,9 @@ A wider sweep of the ecosystem. Unlike the catalog above, these aren't verified 
 **Systems:** [M5MonsterC5-CardputerADV](https://github.com/C5Lab/M5MonsterC5-CardputerADV) · [PyDOS](https://github.com/RetiredWizard/PyDOS)
 
 **Oddities:** [cardputer-claude-os](https://github.com/dakshaymehta/cardputer-claude-os) · [bitmap16dx](https://github.com/bradmcnally/bitmap16dx)
+
+## License
+
+This project is released under the [MIT License](LICENSE).
+
+It was vibe coded with [Cursor](https://cursor.com).
