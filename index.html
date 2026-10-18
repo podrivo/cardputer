@@ -22,41 +22,47 @@
     min-height: 100vh;
     background: var(--bg);
     color: var(--text);
-    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
     display: flex;
     justify-content: center;
     padding: 48px 20px;
   }
-  main { width: 100%; max-width: 880px; }
-  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  main { width: 100%; max-width: 1040px; }
+  h1 { font-size: 32px; margin: 0 0 4px; letter-spacing: -0.01em; }
   .sub { color: var(--muted); margin: 0 0 28px; }
   .notice {
     border: 1px solid var(--warn);
     color: var(--warn);
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 20px;
     display: none;
   }
   .notice code { color: var(--text); }
   #catalog { display: grid; gap: 28px; }
-  .section { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
-  .filters {
+  .section { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+  .nav {
     position: sticky;
     top: 0;
     z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     background: var(--bg);
     padding: 14px 0 16px;
     margin: 0 0 8px;
     border-bottom: 1px solid transparent;
   }
-  .filters.stuck { border-bottom-color: var(--line); }
+  .nav.stuck { border-bottom-color: var(--line); }
+  .chips { display: flex; flex-wrap: nowrap; gap: 6px; flex: 1; min-width: 0; }
   .search {
     position: relative;
+    flex: 0 0 240px;
+    width: 240px;
   }
   .search svg {
     position: absolute;
-    left: 14px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
     width: 16px;
@@ -66,27 +72,30 @@
   }
   #search {
     width: 100%;
-    padding: 11px 14px 11px 40px;
+    height: 32px;
+    padding: 0 12px 0 34px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 8px;
     color: var(--text);
     font: inherit;
+    font-size: 14px;
+    font-weight: 600;
   }
-  #search::placeholder { color: var(--muted); }
+  #search::placeholder { color: var(--muted); font-weight: 600; }
   #search:focus { outline: none; border-color: var(--accent); }
   .search:focus-within svg { color: var(--text); }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  @media (max-width: 720px) {
+    .nav { flex-wrap: wrap; }
+    .search { flex: 1 1 100%; width: 100%; order: -1; }
+  }
   .chip {
-    font: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 99px;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 14px;
     border: 1px solid var(--line);
     background: transparent;
     color: var(--muted);
-    cursor: pointer;
     transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
   }
   .chip:hover { color: var(--text); }
@@ -97,19 +106,19 @@
   .pet {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 12px;
     padding: 18px;
     display: flex;
     align-items: center;
     gap: 16px;
   }
-  .emoji { font-size: 34px; width: 44px; text-align: center; flex-shrink: 0; }
+  .emoji { font-size: 32px; width: 44px; text-align: center; flex-shrink: 0; }
   .info { flex: 1; min-width: 0; }
-  .name { font-weight: 600; font-size: 17px; }
+  .name { font-weight: 600; font-size: 16px; }
   .name a { color: inherit; text-decoration: none; }
   .name a:hover .label { text-decoration: underline; text-underline-offset: 3px; }
-  .name .arrow { color: var(--muted); font-size: 13px; font-weight: 400; }
-  .desc { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+  .name .arrow { color: var(--muted); font-size: 12px; font-weight: 400; }
+  .desc { color: var(--muted); font-size: 14px; margin-top: 2px; }
   .actions {
     display: flex;
     align-items: center;
@@ -117,22 +126,24 @@
     flex-shrink: 0;
   }
   .tag {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
-    border-radius: 99px;
+    border-radius: 100px;
     border: 1px solid currentColor;
+    color: var(--muted);
     white-space: nowrap;
   }
   .tag.ok { color: var(--ok); }
-  .tag.warn { color: var(--warn); }
   .tag.current { color: var(--accent); }
   button {
     font: inherit;
+    font-size: 14px;
     font-weight: 600;
+    height: 32px;
     border: 0;
-    border-radius: 10px;
-    padding: 10px 18px;
+    border-radius: 8px;
+    padding: 0 14px;
     cursor: pointer;
     background: var(--accent);
     color: #1a0f17;
@@ -155,12 +166,12 @@
   dialog::backdrop { background: rgba(8, 6, 12, 0.7); backdrop-filter: blur(3px); }
   @keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
   .dlg-head { display: flex; align-items: center; gap: 14px; }
-  .dlg-head .emoji { font-size: 30px; width: 38px; }
-  .dlg-title { font-weight: 600; font-size: 17px; }
-  .status-text { color: var(--muted); font-size: 13.5px; }
+  .dlg-head .emoji { font-size: 32px; width: 38px; }
+  .dlg-title { font-weight: 600; font-size: 16px; }
+  .status-text { color: var(--muted); font-size: 14px; }
   .status-text.bad { color: var(--bad); }
-  .pct { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
-  .bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 16px; }
+  .pct { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .bar { height: 6px; background: var(--line); border-radius: 100px; overflow: hidden; margin-top: 16px; }
   .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
   .bar.ok > div { background: var(--ok); }
   .bar.bad > div { background: var(--bad); }
@@ -170,7 +181,7 @@
     overflow: auto;
     background: #0b0a0f;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 12px;
     font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
     color: #c9c4d8;
@@ -187,21 +198,21 @@
     width: 56px;
     height: 56px;
     margin: 0 auto 14px;
-    border-radius: 50%;
+    border-radius: 100px;
     background: color-mix(in srgb, var(--ok) 16%, transparent);
     color: var(--ok);
     display: grid;
     place-items: center;
-    font-size: 28px;
+    font-size: 32px;
     animation: pop 0.35s cubic-bezier(0.3, 1.5, 0.6, 1);
   }
   @keyframes pop { from { transform: scale(0.5); opacity: 0; } }
-  .done-title { font-size: 19px; font-weight: 600; }
+  .done-title { font-size: 16px; font-weight: 600; }
   .done-text { color: var(--muted); margin-top: 4px; font-size: 14px; }
   .dlg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
   .dlg-actions[hidden] { display: none; }
   #closeBtn { margin-left: auto; }
-  .link-btn { background: none; color: var(--muted); padding: 0; font-weight: 400; font-size: 13px; }
+  .link-btn { background: none; color: var(--muted); padding: 0; font-weight: 400; font-size: 12px; }
   .link-btn:hover { color: var(--text); }
   .footer {
     margin-top: 32px;
@@ -217,7 +228,7 @@
     justify-content: space-between;
     gap: 16px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
   }
 </style>
 </head>
@@ -228,15 +239,15 @@
 
   <div class="notice" id="notice"></div>
 
-  <div class="filters-sentinel" id="filtersSentinel" aria-hidden="true"></div>
-  <div class="filters" id="filters">
+  <div class="nav-sentinel" id="navSentinel" aria-hidden="true"></div>
+  <div class="nav" id="nav">
+    <div class="chips" id="chips"></div>
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
       </svg>
-      <input type="search" id="search" placeholder="Search installers…" autocomplete="off">
+      <input type="search" id="search" placeholder="Search" autocomplete="off">
     </div>
-    <div class="chips" id="chips"></div>
   </div>
 
   <div id="catalog"></div>
@@ -244,8 +255,12 @@
 
   <div class="footer">
     <div class="footer-row">
-      <span>Restore the firmware the Cardputer came with (M5Stack's official User Demo v0.3). Erases the whole device first</span>
+      <span>Restore the firmware the Cardputer came with (M5Stack's official User Demo v0.3)</span>
       <button class="ghost" id="restoreBtn">Restore original</button>
+    </div>
+    <div class="footer-row">
+      <span>Wipe the entire flash. The Cardputer stays blank until you install something</span>
+      <button class="ghost" id="eraseBtn">Erase device</button>
     </div>
   </div>
 </main>
@@ -286,7 +301,7 @@ const PETS = [
     emoji: "👹",
     name: "Demonym",
     repo: "https://github.com/eyeofbri/Demonym",
-    desc: "Made for the ADV. Saves to internal memory",
+    desc: "Digital pet made for the ADV",
     parts: [{ file: "Demonym-M5Burner-v0.9.23.2-alpha-dev.bin", address: 0x0 }],
   },
   {
@@ -294,7 +309,7 @@ const PETS = [
     emoji: "🐍",
     name: "ViperPet",
     repo: "https://github.com/viper0013/ViperPet",
-    desc: "Small pet made for the ADV. Saves to internal memory",
+    desc: "Small digital pet made for the ADV",
     parts: [{ file: "viperpet-v0.3.bin", address: 0x0 }],
   },
   {
@@ -302,7 +317,7 @@ const PETS = [
     emoji: "😈",
     name: "Raising Hell",
     repo: "https://github.com/acpayers-alt/raising-hell-cardputer",
-    desc: "The most popular one. Downloads its graphics to the SD card over Wi-Fi",
+    desc: "Popular pet that downloads its graphics to the SD card over Wi-Fi",
     parts: [{ file: "raising-hell-m5burner-v3.0.0.bin", address: 0x0 }],
   },
   {
@@ -310,7 +325,7 @@ const PETS = [
     emoji: "🎮",
     name: "Game Station",
     repo: "https://github.com/geo-tp/Cardputer-Game-Station-Emulators",
-    desc: "Game Boy and other consoles. Play the 1997 Tamagotchi .gb game from the SD card",
+    desc: "Game Boy and other consoles with the 1997 Tamagotchi .gb game from the SD card",
     tag: ["warn", "Needs game"],
     parts: [{ file: "game-station-v1.2.bin", address: 0x0 }],
   },
@@ -319,7 +334,7 @@ const PETS = [
     emoji: "🕹️",
     name: "Gameboy Enhanced",
     repo: "https://github.com/Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
-    desc: "Game Boy emulator with save states. Play the Tamagotchi .gb game from the SD card",
+    desc: "Game Boy emulator with save states for the Tamagotchi .gb game on SD",
     tag: ["warn", "Needs game"],
     parts: [{ file: "gameboy-enhanced-v0.79.66.bin", address: 0x0 }],
   },
@@ -348,7 +363,7 @@ const TOOLS = [
     emoji: "👿",
     name: "Evil-Cardputer",
     repo: "https://github.com/7h30th3r0n3/Evil-M5Project",
-    desc: "Wi-Fi auditing: portals, scanning, deauth and more. SD card recommended",
+    desc: "Wi-Fi auditing with portals, scanning, deauth and more, SD card recommended",
     tag: ["warn", "Use responsibly"],
     parts: [{ file: "evil-cardputer-v1-5-6.bin", address: 0x0 }],
   },
@@ -363,7 +378,7 @@ const MORE = [
         emoji: "🌍",
         name: "Sound Terrarium",
         repo: "https://github.com/kariagepompadour/SOUND-TERRARIUM",
-        desc: "A tiny living world shaped by sound, tilt, time and weather. Uses the ADV's IMU",
+        desc: "A tiny living world shaped by sound, tilt, time and weather using the ADV's IMU",
         parts: [{ file: "sound-terrarium-v108cs.bin", address: 0x0 }],
       },
     ],
@@ -384,7 +399,7 @@ const MORE = [
         emoji: "🎚️",
         name: "MicroGroove",
         repo: "https://github.com/matoslav/MicroGroove",
-        desc: "Four-track acid groovebox with three 303 voices and 808/909 drums. Samples load from the SD card",
+        desc: "Four-track acid groovebox with three 303 voices and 808/909 drums, samples from the SD card",
         parts: [{ file: "microgroove-v1.0.bin", address: 0x0 }],
       },
       {
@@ -392,7 +407,7 @@ const MORE = [
         emoji: "📻",
         name: "WebRadio",
         repo: "https://github.com/cyberwisk/M5Cardputer_WebRadio",
-        desc: "Internet radio over Wi-Fi. Reads its station list from the SD card",
+        desc: "Internet radio over Wi-Fi that reads its station list from the SD card",
         parts: [{ file: "webradio.bin", address: 0x0 }],
       },
     ],
@@ -405,7 +420,7 @@ const MORE = [
         emoji: "🤖",
         name: "Cardputer AI",
         repo: "https://github.com/therezor/cardputer-ai",
-        desc: "A fully offline tiny LLM baked into the firmware. No account, no network",
+        desc: "A fully offline tiny LLM baked into the firmware with no account or network",
         parts: [{ file: "cardputer-ai-v2.2.bin", address: 0x0 }],
       },
     ],
@@ -418,7 +433,7 @@ const MORE = [
         emoji: "💬",
         name: "Meshtastic ADV",
         repo: "https://github.com/anton-vinogradov/meshtastic-adv",
-        desc: "Keyboard-first Meshtastic client. Use its own Cap LoRa-1262 or any BLE node's radio",
+        desc: "Keyboard-first Meshtastic client using its own Cap LoRa-1262 or any BLE node's radio",
         tag: ["warn", "LoRa / BLE node"],
         parts: [{ file: "meshtastic-adv-v1.1.2.bin", address: 0x0 }],
       },
@@ -427,7 +442,7 @@ const MORE = [
         emoji: "📡",
         name: "Plai",
         repo: "https://github.com/d4rkmen/plai",
-        desc: "Standalone Meshtastic node — no phone. Needs the LoRa cap and an SD card for history",
+        desc: "Standalone Meshtastic node with no phone, needs the LoRa cap and an SD card for history",
         tag: ["warn", "LoRa cap"],
         parts: [{ file: "plai-v2.1.bin", address: 0x0 }],
       },
@@ -436,7 +451,7 @@ const MORE = [
         emoji: "🌐",
         name: "MeshCore (TFT UI)",
         repo: "https://github.com/Stachugit/MeshCore-Cardputer-ADV",
-        desc: "MeshCore client with an enhanced TFT interface. Needs the Cap LoRa-1262",
+        desc: "MeshCore client with an enhanced TFT interface, needs the Cap LoRa-1262",
         tag: ["warn", "LoRa cap"],
         parts: [{ file: "meshcore-tft-v1.10.bin", address: 0x0 }],
       },
@@ -445,7 +460,7 @@ const MORE = [
         emoji: "🕸️",
         name: "MeshCore",
         repo: "https://github.com/sosprz/meshcore-cardputer-adv",
-        desc: "MeshCore companion radio client for the ADV. Needs a LoRa cap",
+        desc: "MeshCore companion radio client for the ADV, needs a LoRa cap",
         tag: ["warn", "LoRa cap"],
         parts: [{ file: "meshcore-adv-v1.15.81.bin", address: 0x0 }],
       },
@@ -454,7 +469,7 @@ const MORE = [
         emoji: "🐀",
         name: "rsCardputer",
         repo: "https://github.com/ratspeak/rsCardputer",
-        desc: "Reticulum / LXMF messenger and RNode, all in one. Needs a LoRa cap",
+        desc: "Reticulum / LXMF messenger and RNode in one, needs a LoRa cap",
         tag: ["warn", "LoRa cap"],
         parts: [{ file: "rscardputer-v2.0.3.bin", address: 0x0 }],
       },
@@ -471,7 +486,7 @@ const MORE = [
         emoji: "📺",
         name: "Ultimate Remote",
         repo: "https://github.com/geo-tp/Ultimate-Remote",
-        desc: "Universal IR remote with 3498 profiles. Load more from an SD card",
+        desc: "Universal IR remote with 3498 profiles, load more from an SD card",
         parts: [{ file: "ultimate-remote-v1.2.bin", address: 0x0 }],
       },
     ],
@@ -484,7 +499,7 @@ const MORE = [
         emoji: "👻",
         name: "GhostESP",
         repo: "https://github.com/GhostESP-Revival/GhostESP",
-        desc: "Open-source wireless research platform. SD card for captures",
+        desc: "Open-source wireless research platform with SD card for captures",
         tag: ["warn", "Use responsibly"],
         parts: [{ file: "ghostesp-v2.2.2.bin", address: 0x0 }],
       },
@@ -502,7 +517,7 @@ const MORE = [
         emoji: "💳",
         name: "BadCard",
         repo: "https://github.com/VoidNoi/BadCard",
-        desc: "BadUSB with Ducky Script support. Payloads live in /BadCard on the SD card",
+        desc: "BadUSB with Ducky Script support, payloads live in /BadCard on the SD card",
         tag: ["warn", "Use responsibly"],
         parts: [{ file: "badcard-v1.7.2.bin", address: 0x0 }],
       },
@@ -511,7 +526,7 @@ const MORE = [
         emoji: "📶",
         name: "Wi-Fi & BLE Radar",
         repo: "https://github.com/Zeloksa/Cardputer-ADV-WiFi-BLE-Radar",
-        desc: "Spectrum analyzer and tracking radar with a retro CRT UI. ADV only",
+        desc: "Spectrum analyzer and tracking radar with a retro CRT UI for the ADV only",
         tag: ["warn", "Use responsibly"],
         parts: [{ file: "wifi-ble-radar-v3.1.bin", address: 0x0 }],
       },
@@ -520,7 +535,7 @@ const MORE = [
         emoji: "👁️",
         name: "GhostBLE",
         repo: "https://github.com/SmonSE/GhostBLE",
-        desc: "BLE privacy scanner with a mascot. SD card needed on the Cardputer for logging",
+        desc: "BLE privacy scanner with a mascot, SD card needed on the Cardputer for logging",
         tag: ["warn", "Use responsibly"],
         parts: [{ file: "ghostble-v1.4.9.bin", address: 0x0 }],
       },
@@ -542,7 +557,7 @@ const MORE = [
         emoji: "🚶",
         name: "CSI Human Detector",
         repo: "https://github.com/skizzophrenic/Cardputer-CSI-Human-Detector",
-        desc: "Detects people through Wi-Fi signal changes. The radar scope wants an external TFT",
+        desc: "Detects people through Wi-Fi signal changes, radar scope wants an external TFT",
         tag: ["warn", "Extra screen"],
         parts: [{ file: "csi-human-detector-v1.2.0.bin", address: 0x0 }],
       },
@@ -564,7 +579,7 @@ const MORE = [
         emoji: "💧",
         name: "MicroHydra",
         repo: "https://github.com/echo-lalia/MicroHydra",
-        desc: "MicroPython app switcher. Drop apps in /apps on flash or SD. ADV build is a preview",
+        desc: "MicroPython app switcher for apps in /apps on flash or SD, ADV build is a preview",
         parts: [{ file: "microhydra-v2.6-preview.bin", address: 0x0 }],
       },
       {
@@ -572,7 +587,7 @@ const MORE = [
         emoji: "📄",
         name: "PaperOS",
         repo: "https://github.com/Artem76228/PaperOS",
-        desc: "A whole little OS: files, paint, browser, offline AI, emulator and Lua. Keep an SD card in",
+        desc: "A whole little OS with files, paint, browser, offline AI, emulator and Lua, keep an SD card in",
         parts: [{ file: "paperos-v1.3.bin", address: 0x0 }],
       },
       {
@@ -580,7 +595,7 @@ const MORE = [
         emoji: "⚛️",
         name: "NucleoOS",
         repo: "https://github.com/indecenti/NucleoOs",
-        desc: "Web-native OS with a browser shell, offline AI and OTA. Needs a FAT32 SD card",
+        desc: "Web-native OS with a browser shell, offline AI and OTA, needs a FAT32 SD card",
         parts: [{ file: "nucleoos-v0.7.2.bin", address: 0x0 }],
       },
       {
@@ -588,7 +603,7 @@ const MORE = [
         emoji: "📚",
         name: "Wikipedia Offline",
         repo: "https://github.com/Zeloksa/Wikipedia-Offline-ADV",
-        desc: "6.4M offline Wikipedia articles. Needs a 32 GB SD card and the 18 GB database",
+        desc: "6.4M offline Wikipedia articles needing a 32 GB SD card and the 18 GB database",
         tag: ["warn", "Needs DB"],
         parts: [{ file: "wikipedia-offline-v1.2.bin", address: 0x0 }],
       },
@@ -599,7 +614,6 @@ const MORE = [
 const RESTORE = {
   id: "original",
   name: "Original firmware",
-  eraseAll: true,
   parts: [{ file: "cardputer-adv-user-demo-v0.3.bin", address: 0x0 }],
 };
 
@@ -698,7 +712,7 @@ function render() {
     section.appendChild(grid);
     catalog.appendChild(section);
   }
-  buttons.push($("restoreBtn"));
+  buttons.push($("restoreBtn"), $("eraseBtn"));
   renderChips();
   applyFilters();
   setBusy(busy);
@@ -707,9 +721,9 @@ function render() {
 $("search").addEventListener("input", (e) => { query = e.target.value; applyFilters(); });
 
 new IntersectionObserver(
-  ([entry]) => $("filters").classList.toggle("stuck", !entry.isIntersecting),
+  ([entry]) => $("nav").classList.toggle("stuck", !entry.isIntersecting),
   { threshold: 0 }
-).observe($("filtersSentinel"));
+).observe($("navSentinel"));
 
 function setBusy(value) {
   busy = value;
