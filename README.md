@@ -5,8 +5,8 @@ Notes from getting a virtual pet running on my Cardputer ADV (ESP32-S3, 8 MB fla
 ## Current state
 
 - **Installed:** [Demonym](https://github.com/eyeofbri/Demonym) `v0.9.23.2-alpha-dev`, flashed on 2026-10-17. It works without an SD card and saves to internal memory (NVS).
-- **Backup of the original firmware:** `backup-original-firmware.bin`, kept locally and not in git. Despite being 8 MB, it only holds the factory app image (no bootloader or partition table), so it probably won't boot if written at `0x0`.
-- **Official factory firmware:** `cardputer-adv-user-demo-v0.3.bin`, M5Stack's "Cardputer-Adv User Demo" v0.3 from M5Burner. It's a merged image and is what the installer's "Restore original" button flashes.
+- **Backup of the original firmware:** `backup-original-firmware.bin`, kept locally and not in git. It isn't the factory firmware: it holds only the app-only Tamaputer build written at `0x0`, with no bootloader or partition table and the rest of the flash blank, so the device was already unbootable when it was taken. Don't restore it.
+- **Official factory firmware:** `cardputer-adv-user-demo-v0.3.bin`, M5Stack's "Cardputer-Adv User Demo" v0.3. It's byte-identical on [M5Burner](https://m5burner-cdn.m5stack.com/firmware/4ed4ab3a388a74e805971f37d6adcc9f.bin) and the [GitHub release](https://github.com/m5stack/M5Cardputer-UserDemo/releases/tag/ADV-V0.3) (`K132-Adv-Cardputer-Adv-UserDemo-V0.3_0x0.bin`, SHA-256 `7bb15324…83b74`). The [Cardputer-Adv docs](https://docs.m5stack.com/en/core/Cardputer-Adv) link its source, the `CardputerADV` branch, as the factory firmware. It's a merged image (bootloader, partition table, `factory` app at `0x10000`) and is what the installer's "Restore original" button flashes, after erasing the whole flash.
 
 ### Demonym controls
 
@@ -159,7 +159,7 @@ xxd -s 0x8000 -l 4 firmware.bin   # "aa50" at 0x8000 means a partition table is 
 
 # Restore the original firmware
 .venv/bin/esptool.py --chip esp32s3 --port /dev/cu.usbmodem101 --baud 921600 \
-  write_flash 0x0 cardputer-adv-user-demo-v0.3.bin
+  write_flash --erase-all 0x0 cardputer-adv-user-demo-v0.3.bin
 ```
 
 ## Gotchas

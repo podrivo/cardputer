@@ -216,7 +216,7 @@
 
   <div class="footer">
     <div class="footer-row">
-      <span>Restore the firmware the Cardputer came with (M5Stack's official User Demo v0.3).</span>
+      <span>Restore the firmware the Cardputer came with (M5Stack's official User Demo v0.3). Erases the whole device first.</span>
       <button class="ghost" id="restoreBtn">Restore original</button>
     </div>
   </div>
@@ -587,6 +587,7 @@ const MORE = [
 const RESTORE = {
   id: "original",
   name: "Original firmware",
+  eraseAll: true,
   parts: [{ file: "cardputer-adv-user-demo-v0.3.bin", address: 0x0 }],
 };
 
@@ -832,7 +833,7 @@ async function loadFile(name) {
 
 async function install(target) {
   if (busy) return;
-  if (target === RESTORE && !confirm("Replace the current pet with the original firmware?")) return;
+  if (target === RESTORE && !confirm("Erase the Cardputer and restore the original firmware? Saved pets and settings will be lost.")) return;
 
   setBusy(true);
   openDialog({
@@ -875,7 +876,7 @@ async function install(target) {
       flashMode: "keep",
       flashFreq: "keep",
       flashSize: "keep",
-      eraseAll: false,
+      eraseAll: !!target.eraseAll,
       compress: true,
       reportProgress: (i, written, size) => {
         const done = before[i] + (written / size) * fileArray[i].data.length;
