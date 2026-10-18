@@ -285,7 +285,15 @@
   .icon-btn:active,
   .copy-log-btn:active { transform: none; }
   button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  button.ghost {
+    background: color-mix(in srgb, var(--line) 55%, transparent);
+    color: var(--muted);
+    border: 0;
+  }
+  button.ghost:hover:not(:disabled) {
+    color: var(--text);
+    background: color-mix(in srgb, var(--line) 85%, transparent);
+  }
   button.warn {
     background: transparent;
     color: var(--warn);
@@ -397,13 +405,49 @@
   .done-text { color: var(--muted); margin-top: 4px; font-size: 14px; }
   .dlg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
   .dlg-actions[hidden] { display: none; }
-  #closeBtn, #keysCloseBtn { margin-left: auto; }
-  #keysDialog {
+  #closeBtn, #keysCloseBtn, #confirmCancelBtn { margin-left: auto; }
+  #keysDialog, #confirmDialog {
     width: min(380px, calc(100vw - 32px));
     padding: 22px;
   }
-  #keysDialog .dlg-head { margin-bottom: 20px; }
-  #keysDialog .dlg-actions { margin-top: 20px; }
+  #keysDialog .dlg-head,
+  #confirmDialog .dlg-head { margin-bottom: 20px; }
+  #keysDialog .dlg-actions,
+  #confirmDialog .dlg-actions { margin-top: 20px; }
+  #confirmDialog .confirm-text {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.45;
+    margin: 0;
+  }
+  #confirmDialog.danger .confirm-text { color: color-mix(in srgb, var(--bad) 70%, var(--muted)); }
+  #confirmMeta {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  #confirmMeta[hidden] { display: none; }
+  #confirmMeta li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 13px;
+    min-width: 0;
+  }
+  #confirmMeta .meta-label {
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  #confirmMeta .meta-value {
+    color: var(--text);
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  #confirmMeta .meta-value.warn { color: var(--warn); }
   .keys-list {
     list-style: none;
     margin: 0;
@@ -599,6 +643,22 @@
   <ul class="keys-list" id="keysList"></ul>
   <div class="dlg-actions">
     <button id="keysCloseBtn">Close</button>
+  </div>
+</dialog>
+
+<dialog id="confirmDialog">
+  <div class="dlg-head">
+    <div class="emoji" id="confirmEmoji"></div>
+    <div>
+      <div class="dlg-title" id="confirmTitle"></div>
+      <div class="status-text" id="confirmSubtitle">Confirm</div>
+    </div>
+  </div>
+  <p class="confirm-text" id="confirmText"></p>
+  <ul class="confirm-meta" id="confirmMeta" hidden></ul>
+  <div class="dlg-actions">
+    <button type="button" class="ghost" id="confirmCancelBtn">Cancel</button>
+    <button type="button" id="confirmOkBtn">Confirm and install</button>
   </div>
 </dialog>
 
@@ -1176,6 +1236,138 @@ function openKeysDialog(item, keys) {
 $("keysCloseBtn").onclick = () => $("keysDialog").close();
 $("keysDialog").addEventListener("click", (e) => {
   if (e.target === $("keysDialog")) $("keysDialog").close();
+});
+
+/** @type {{ resolve: (ok: boolean) => void } | null} */
+let confirmPending = null;
+
+function settleConfirm(ok) {
+  const pending = confirmPending;
+  confirmPending = null;
+  $("confirmDialog").close();
+  pending?.resolve(ok);
+}
+
+function askConfirm({
+  emoji,
+  title,
+  subtitle = "Confirm",
+  text,
+  meta = [],
+  okLabel = "Confirm and install",
+  danger = false,
+}) {
+  settleConfirm(false);
+  $("confirmEmoji").textContent = emoji || "↺";
+  $("confirmTitle").textContent = title;
+  $("confirmSubtitle").textContent = subtitle;
+  $("confirmText").textContent = text;
+  const metaEl = $("confirmMeta");
+  metaEl.innerHTML = "";
+  metaEl.hidden = !meta.length;
+  for (const row of meta) {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.className = "meta-label";
+    label.textContent = row.label;
+    const value = document.createElement("span");
+    value.className = "meta-value" + (row.warn ? " warn" : "");
+    value.textContent = row.value;
+    li.append(label, value);
+    metaEl.appendChild(li);
+  }
+  $("confirmOkBtn").textContent = okLabel;
+  $("confirmOkBtn").className = danger ? "danger" : "";
+  $("confirmDialog").classList.toggle("danger", danger);
+  return new Promise((resolve) => {
+    confirmPending = { resolve };
+    $("confirmDialog").showModal();
+    $("confirmOkBtn").focus();
+  });
+}
+
+const sizeCache = new Map();
+
+function formatBytes(n) {
+  if (n == null || !Number.isFinite(n) || n < 0) return null;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) {
+    const kb = n / 1024;
+    return `${kb < 10 ? kb.toFixed(1) : Math.round(kb)} KB`;
+  }
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function probeFileSize(url) {
+  if (sizeCache.has(url)) return sizeCache.get(url);
+  let size = null;
+  try {
+    const head = await fetch(url, { method: "HEAD" });
+    const len = head.headers.get("content-length");
+    if (head.ok && len) size = Number(len);
+  } catch {}
+  if (size == null) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) size = (await res.arrayBuffer()).byteLength;
+    } catch {}
+  }
+  sizeCache.set(url, size);
+  return size;
+}
+
+async function confirmMetaFor(target) {
+  /** @type {{ label: string, value: string, warn?: boolean }[]} */
+  const meta = [];
+  if (target.parts?.length) {
+    const sizes = await Promise.all(target.parts.map((p) => probeFileSize(p.file)));
+    const total = sizes.every((n) => n != null) ? sizes.reduce((a, b) => a + b, 0) : null;
+    const formatted = formatBytes(total);
+    if (formatted) {
+      meta.push({
+        label: target.parts.length > 1 ? "Firmware" : "Size",
+        value: target.parts.length > 1 ? `${formatted} · ${target.parts.length} parts` : formatted,
+      });
+    }
+  }
+  if (target.sdAssets?.file) {
+    const packSize = formatBytes(await probeFileSize(target.sdAssets.file));
+    meta.push({
+      label: "SD assets",
+      value: packSize
+        ? `${packSize} → /${target.sdAssets.sdRoot}/`
+        : `Writes to /${target.sdAssets.sdRoot}/`,
+    });
+  }
+  if (target.needsFile) {
+    meta.push({
+      label: "Also needs",
+      value: target.needsFile.sdPath
+        ? `Your file → /${target.needsFile.sdPath}`
+        : "A file copied to the SD card",
+      warn: true,
+    });
+  }
+  if (target.tag?.[1]) {
+    const note = target.tag[1];
+    const redundant =
+      (target.sdAssets && /^Requires SD$/i.test(note))
+      || (target.needsFile && /Requires (ROM|game|stations)/i.test(note));
+    if (!redundant) {
+      meta.push({ label: "Note", value: note, warn: target.tag[0] === "warn" });
+    }
+  }
+  return meta;
+}
+
+$("confirmOkBtn").onclick = () => settleConfirm(true);
+$("confirmCancelBtn").onclick = () => settleConfirm(false);
+$("confirmDialog").addEventListener("click", (e) => {
+  if (e.target === $("confirmDialog")) settleConfirm(false);
+});
+$("confirmDialog").addEventListener("cancel", (e) => {
+  e.preventDefault();
+  settleConfirm(false);
 });
 
 const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`;
@@ -2177,7 +2369,19 @@ function resolveFlashAddress(data, address) {
 
 async function install(target) {
   if (busy) return;
-  if (target.id === "original" && !confirm("Replace the current firmware with the original User Demo?")) return;
+
+  const meta = await confirmMetaFor(target);
+  const ok = await askConfirm({
+    emoji: target.emoji,
+    title: target.name,
+    subtitle: "Install firmware",
+    text: target.id === "original"
+      ? "This replaces whatever is on the Cardputer with the original User Demo."
+      : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
+    meta,
+    okLabel: "Confirm and install",
+  });
+  if (!ok) return;
 
   setBusy(true);
   pendingExtra = null;
@@ -2360,7 +2564,16 @@ async function install(target) {
 
 async function eraseDevice() {
   if (busy) return;
-  if (!confirm("Erase the entire Cardputer flash? Everything on the device will be wiped and it won't boot until you install firmware.")) return;
+
+  const ok = await askConfirm({
+    emoji: "🧹",
+    title: "Erase flash",
+    subtitle: "Destructive action",
+    text: "Wipe the entire Cardputer flash? Everything on the device will be gone and it won't boot until you install firmware.",
+    okLabel: "Erase",
+    danger: true,
+  });
+  if (!ok) return;
 
   setBusy(true);
   openDialog({
