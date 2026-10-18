@@ -100,6 +100,9 @@
   }
   .chip:hover { color: var(--text); }
   .chip.active { color: #1a0f17; background: var(--accent); border-color: var(--accent); }
+  .chip.danger { color: color-mix(in srgb, var(--bad) 75%, var(--muted)); border-color: color-mix(in srgb, var(--bad) 35%, var(--line)); }
+  .chip.danger:hover { color: var(--bad); }
+  .chip.danger.active { color: #1a0f17; background: var(--bad); border-color: var(--bad); }
   .hidden { display: none !important; }
   .empty { color: var(--muted); text-align: center; padding: 48px 0; }
   .pets { display: grid; gap: 12px; }
@@ -111,6 +114,17 @@
     display: flex;
     align-items: center;
     gap: 16px;
+  }
+  section.danger {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px dashed color-mix(in srgb, var(--bad) 40%, var(--line));
+    background: color-mix(in srgb, var(--bad) 7%, transparent);
+  }
+  section.danger .section { color: var(--bad); }
+  section.danger .pet {
+    border-color: color-mix(in srgb, var(--bad) 28%, var(--line));
+    background: color-mix(in srgb, var(--bad) 5%, var(--card));
   }
   .emoji { font-size: 32px; width: 44px; text-align: center; flex-shrink: 0; }
   .info { flex: 1; min-width: 0; }
@@ -153,6 +167,16 @@
   button:active { transform: scale(0.97); }
   button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  button.warn {
+    background: transparent;
+    color: var(--warn);
+    border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  }
+  button.danger {
+    background: transparent;
+    color: var(--bad);
+    border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent);
+  }
   dialog {
     width: min(560px, calc(100vw - 32px));
     padding: 22px;
@@ -214,22 +238,6 @@
   #closeBtn { margin-left: auto; }
   .link-btn { background: none; color: var(--muted); padding: 0; font-weight: 400; font-size: 12px; }
   .link-btn:hover { color: var(--text); }
-  .footer {
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px solid var(--line);
-    display: grid;
-    gap: 14px;
-  }
-  .footer a { color: var(--text); text-underline-offset: 3px; }
-  .footer-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    color: var(--muted);
-    font-size: 12px;
-  }
 </style>
 </head>
 <body>
@@ -252,17 +260,6 @@
 
   <div id="catalog"></div>
   <p class="empty" id="empty" hidden>No installers match.</p>
-
-  <div class="footer">
-    <div class="footer-row">
-      <span>Restore the firmware the Cardputer came with (M5Stack's official User Demo v0.3)</span>
-      <button class="ghost" id="restoreBtn">Restore original</button>
-    </div>
-    <div class="footer-row">
-      <span>Wipe the entire flash. The Cardputer stays blank until you install something</span>
-      <button class="ghost" id="eraseBtn">Erase device</button>
-    </div>
-  </div>
 </main>
 
 <dialog id="dialog">
@@ -611,11 +608,27 @@ const MORE = [
   },
 ];
 
-const RESTORE = {
-  id: "original",
-  name: "Original firmware",
-  parts: [{ file: "cardputer-adv-user-demo-v0.3.bin", address: 0x0 }],
-};
+const DEVICE = [
+  {
+    id: "original",
+    emoji: "📦",
+    name: "Original firmware",
+    repo: "https://github.com/m5stack/M5Cardputer-UserDemo",
+    desc: "M5Stack's official User Demo v0.3 — the firmware the Cardputer came with",
+    button: "Restore",
+    buttonClass: "warn",
+    parts: [{ file: "cardputer-adv-user-demo-v0.3.bin", address: 0x0 }],
+  },
+  {
+    id: "erase",
+    emoji: "🧹",
+    name: "Erase device",
+    desc: "Wipe the entire flash. The Cardputer stays blank until you install something",
+    button: "Erase",
+    buttonClass: "danger",
+    action: "erase",
+  },
+];
 
 const $ = (id) => document.getElementById(id);
 const buttons = [];
@@ -634,6 +647,7 @@ const BLOCKS = [
   { title: "Pets", items: PETS },
   { title: "Tools", items: TOOLS },
   ...MORE.map((g) => ({ title: g.title, items: g.items })),
+  { title: "Device", items: DEVICE, danger: true },
 ];
 
 let query = "";
@@ -642,10 +656,13 @@ let activeCat = "all";
 function cardEl(item, current) {
   const el = document.createElement("div");
   el.className = "pet";
+  const name = item.repo
+    ? `<a href="${item.repo}" target="_blank" rel="noopener"><span class="label">${item.name}</span> <span class="arrow">↗</span></a>`
+    : `<span class="label">${item.name}</span>`;
   el.innerHTML = `
     <div class="emoji">${item.emoji}</div>
     <div class="info">
-      <div class="name"><a href="${item.repo}" target="_blank" rel="noopener"><span class="label">${item.name}</span> <span class="arrow">↗</span></a></div>
+      <div class="name">${name}</div>
       <div class="desc">${item.desc}</div>
     </div>
     <div class="actions">
@@ -654,8 +671,9 @@ function cardEl(item, current) {
     </div>`;
   el.dataset.search = `${item.name} ${item.desc} ${item.tag?.[1] || ""}`.toLowerCase();
   const btn = document.createElement("button");
-  btn.textContent = "Install";
-  btn.onclick = () => install(item);
+  btn.textContent = item.button || "Install";
+  if (item.buttonClass) btn.className = item.buttonClass;
+  btn.onclick = () => (item.action === "erase" ? eraseDevice() : install(item));
   el.querySelector(".actions").appendChild(btn);
   buttons.push(btn);
   return el;
@@ -666,8 +684,11 @@ function renderChips() {
   chips.innerHTML = "";
   const cats = ["all", ...BLOCKS.filter((b) => b.items).map((b) => b.title)];
   for (const cat of cats) {
+    const block = BLOCKS.find((b) => b.title === cat);
     const c = document.createElement("button");
-    c.className = "chip" + (cat === activeCat ? " active" : "");
+    c.className = "chip"
+      + (block?.danger ? " danger" : "")
+      + (cat === activeCat ? " active" : "");
     c.textContent = cat === "all" ? "All" : cat;
     c.onclick = () => { activeCat = cat; renderChips(); applyFilters(); };
     chips.appendChild(c);
@@ -702,6 +723,7 @@ function render() {
   for (const block of BLOCKS) {
     const section = document.createElement("section");
     section.dataset.title = block.title;
+    if (block.danger) section.className = "danger";
     const h = document.createElement("h2");
     h.className = "section";
     h.textContent = block.title;
@@ -712,7 +734,6 @@ function render() {
     section.appendChild(grid);
     catalog.appendChild(section);
   }
-  buttons.push($("restoreBtn"), $("eraseBtn"));
   renderChips();
   applyFilters();
   setBusy(busy);
@@ -865,7 +886,7 @@ async function loadFile(name) {
 
 async function install(target) {
   if (busy) return;
-  if (target === RESTORE && !confirm("Erase the Cardputer and restore the original firmware? Saved pets and settings will be lost.")) return;
+  if (target.id === "original" && !confirm("Replace the current firmware with the original User Demo?")) return;
 
   setBusy(true);
   openDialog({
@@ -908,7 +929,7 @@ async function install(target) {
       flashMode: "keep",
       flashFreq: "keep",
       flashSize: "keep",
-      eraseAll: !!target.eraseAll,
+      eraseAll: false,
       compress: true,
       reportProgress: (i, written, size) => {
         const done = before[i] + (written / size) * fileArray[i].data.length;
@@ -941,7 +962,62 @@ async function install(target) {
   }
 }
 
-$("restoreBtn").onclick = () => install(RESTORE);
+async function eraseDevice() {
+  if (busy) return;
+  if (!confirm("Erase the entire Cardputer flash? Everything on the device will be wiped and it won't boot until you install firmware.")) return;
+
+  setBusy(true);
+  openDialog({
+    emoji: "🧹",
+    title: "Erasing the Cardputer",
+    doneTitle: "Flash erased",
+    doneText: "The Cardputer is blank. Install firmware when you're ready.",
+  });
+  let transport;
+
+  try {
+    setStatus("Pick the Cardputer in the popup…");
+    step("Waiting for a USB device");
+    const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] });
+    const { usbVendorId, usbProductId } = port.getInfo();
+    log(`Selected USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
+
+    setStatus("Connecting…");
+    step("Connecting to the Cardputer");
+    transport = new Transport(port, false);
+    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+    const chip = await loader.main();
+    log(`Connected to ${chip}`, "ok");
+
+    setStatus("Erasing flash (this can take a minute)…");
+    step("Erasing flash");
+    await loader.eraseFlash();
+    setProgress(1);
+    log("Chip erase completed.", "ok");
+
+    setStatus("Restarting the Cardputer…");
+    step("Restarting");
+    await loader.after("hard_reset");
+    localStorage.removeItem("installed");
+    finishDialog(true);
+  } catch (err) {
+    if (!$("log").textContent.endsWith("\n")) write("\n");
+    log(String(err?.stack || err), "bad");
+    $("dlgTitle").textContent = "Couldn't erase the Cardputer";
+    let msg = err?.name === "NotFoundError" ? "No device picked." : String(err?.message || err);
+    if (/busy|open/i.test(msg)) {
+      msg = "The USB port is busy. Close other tabs or apps using the Cardputer (like M5Burner or a terminal running esptool) and try again.";
+    }
+    setStatus(`Erase failed: ${msg}`, "bad");
+    failure = { target: { name: "Erase device", parts: [] }, message: `${err?.name || "Error"}: ${err?.message || err}` };
+    finishDialog(false);
+  } finally {
+    try { await transport?.disconnect(); } catch {}
+    setBusy(false);
+    render();
+  }
+}
+
 render();
 </script>
 </body>
