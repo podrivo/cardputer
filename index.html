@@ -129,6 +129,9 @@
     align-items: center;
     gap: 16px;
   }
+  .pet.current {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  }
   section.danger .section { color: var(--bad); }
   .pet.danger {
     border: 1px dashed color-mix(in srgb, var(--bad) 40%, var(--line));
@@ -1089,7 +1092,8 @@ const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 
 function cardEl(item, current, danger) {
   const el = document.createElement("div");
-  el.className = "pet" + (danger ? " danger" : "");
+  const isCurrent = current === item.id;
+  el.className = "pet" + (danger ? " danger" : "") + (isCurrent ? " current" : "");
   el.innerHTML = `
     <div class="emoji">${item.emoji}</div>
     <div class="info">
@@ -1098,7 +1102,6 @@ function cardEl(item, current, danger) {
     </div>
     <div class="actions">
       ${item.tag ? `<span class="tag ${item.tag[0]}">${item.tag[1]}</span>` : ""}
-      ${current === item.id ? '<span class="tag current">Installed</span>' : ""}
     </div>`;
   el.dataset.search = `${item.name} ${item.desc} ${item.tag?.[1] || ""}`.toLowerCase();
   const nameRow = el.querySelector(".name");
@@ -1127,6 +1130,12 @@ function cardEl(item, current, danger) {
     keysBtn.innerHTML = ICON_KEYBOARD;
     keysBtn.onclick = () => openKeysDialog(item, keys);
     nameRow.appendChild(keysBtn);
+  }
+  if (isCurrent) {
+    const installed = document.createElement("span");
+    installed.className = "tag current";
+    installed.textContent = "Installed";
+    nameRow.appendChild(installed);
   }
   const btn = document.createElement("button");
   btn.textContent = item.button || "Install";
