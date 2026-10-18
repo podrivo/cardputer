@@ -29,6 +29,7 @@
     --text: #f2f2f2;
     --muted: #9a9a9a;
     --accent: #ea6f42; /* fn */
+    --secondary: #7eb8e8;
     --ok: #66c99c;     /* opt */
     --warn: #e8a054;
     --bad: #e05555;
@@ -308,7 +309,7 @@
   .status-text.bad { color: var(--bad); }
   .pct { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
   .bar { height: 6px; background: var(--line); border-radius: 100px; overflow: hidden; margin-top: 16px; }
-  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
+  .bar > div { height: 100%; width: 0; background: var(--secondary); transition: width 0.2s ease; }
   .bar.ok > div { background: var(--ok); }
   .bar.bad > div { background: var(--bad); }
   .log-wrap {
@@ -330,7 +331,7 @@
     white-space: pre-wrap;
     word-break: break-all;
   }
-  .terminal .step { color: var(--accent); }
+  .terminal .step { color: var(--secondary); }
   .terminal .ok { color: var(--ok); }
   .terminal .bad { color: var(--bad); }
   .copy-log-btn {
