@@ -186,8 +186,8 @@
     border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent);
   }
   dialog {
-    width: min(560px, calc(100vw - 32px));
-    padding: 22px;
+    width: min(680px, calc(100vw - 32px));
+    padding: 28px;
     background: var(--card);
     color: var(--text);
     border: 1px solid var(--line);
@@ -198,24 +198,24 @@
   dialog::backdrop { background: rgba(8, 6, 12, 0.7); backdrop-filter: blur(3px); }
   html:has(dialog[open]) { overflow: hidden; }
   @keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
-  .dlg-head { display: flex; align-items: center; gap: 14px; }
+  .dlg-head { display: flex; align-items: center; gap: 16px; }
   .dlg-head .emoji { font-size: 32px; width: 38px; }
   .dlg-title { font-weight: 600; font-size: 16px; }
-  .status-text { color: var(--muted); font-size: 14px; }
+  .status-text { color: var(--muted); font-size: 14px; margin-top: 2px; }
   .status-text.bad { color: var(--bad); }
   .pct { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
-  .bar { height: 6px; background: var(--line); border-radius: 100px; overflow: hidden; margin-top: 16px; }
+  .bar { height: 6px; background: var(--line); border-radius: 100px; overflow: hidden; margin-top: 20px; }
   .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
   .bar.ok > div { background: var(--ok); }
   .bar.bad > div { background: var(--bad); }
   .terminal {
-    margin: 14px 0 0;
+    margin: 20px 0 0;
     height: 240px;
     overflow: auto;
     background: #0b0a0f;
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
     color: #c9c4d8;
     white-space: pre-wrap;
@@ -225,12 +225,12 @@
   .terminal .ok { color: var(--ok); }
   .terminal .bad { color: var(--bad); }
   .terminal.collapsed { display: none; }
-  .done { text-align: center; padding: 18px 0 4px; }
+  .done { text-align: center; padding: 24px 0 8px; }
   .done[hidden] { display: none; }
   .check {
     width: 56px;
     height: 56px;
-    margin: 0 auto 14px;
+    margin: 0 auto 16px;
     border-radius: 100px;
     background: color-mix(in srgb, var(--ok) 16%, transparent);
     color: var(--ok);
@@ -241,17 +241,17 @@
   }
   @keyframes pop { from { transform: scale(0.5); opacity: 0; } }
   .done-title { font-size: 16px; font-weight: 600; }
-  .done-text { color: var(--muted); margin-top: 4px; font-size: 14px; }
-  .dlg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
+  .done-text { color: var(--muted); margin-top: 6px; font-size: 14px; }
+  .dlg-actions { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
   .dlg-actions[hidden] { display: none; }
   #closeBtn { margin-left: auto; }
   .file-pick { padding: 4px 0 2px; }
   .file-pick[hidden] { display: none; }
   .drop {
-    margin-top: 16px;
+    margin-top: 20px;
     border: 1.5px dashed var(--line);
     border-radius: 12px;
-    padding: 28px 20px;
+    padding: 32px 24px;
     text-align: center;
     color: var(--muted);
     cursor: pointer;
