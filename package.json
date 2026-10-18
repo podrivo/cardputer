@@ -1,0 +1,12 @@
+{
+  "name": "cardputer-installers",
+  "private": true,
+  "scripts": {
+    "dev": "serve .",
+    "build": "node -e \"console.log('Static site — nothing to build')\"",
+    "fetch-keys": "node scripts/fetch-catalog-keys.mjs"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
