@@ -10,12 +10,12 @@ Firmware images live in [`bins/`](bins/). The page uses [esptool-js](https://git
 |---|---|
 | **Pets** | Demonym, ViperPet, Raising Hell, Tamaputer |
 | **Games** | Doom, Hazke, Card Craft, Silicon Casino, Sound Terrarium, Game Station, Gameboy Enhanced |
-| **Tools** | Launcher, Bruce, Evil-Cardputer |
+| **Tools** | Launcher, Bruce, Evil-Cardputer, Flashlight |
 | **Music** | miniacid, MicroGroove, WebRadio |
-| **AI** | Cardputer AI (offline LLM) |
+| **AI** | Cardputer AI, AI Offline Chat |
 | **Mesh** | Meshtastic, Plai, MeshCore, rsCardputer, SSH, Ultimate Remote |
 | **Security** | GhostESP, ChimeraBLE, BadCard, Wi-Fi & BLE Radar, GhostBLE |
-| **Sensing** | CSI Radar, CSI Human Detector, CardSat |
+| **Sensing** | CSI Radar, CSI Human Detector, CardSat, IMU Acoustic Analyzer |
 | **Systems** | MicroHydra, PaperOS, NucleoOS, Wikipedia Offline |
 | **Device** | Restore official User Demo v0.3, or erase the whole flash |
 
