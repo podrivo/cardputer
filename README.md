@@ -5,7 +5,8 @@ Notes from getting a virtual pet running on my Cardputer ADV (ESP32-S3, 8 MB fla
 ## Current state
 
 - **Installed:** [Demonym](https://github.com/eyeofbri/Demonym) `v0.9.23.2-alpha-dev`, flashed on 2026-10-17. It works without an SD card and saves to internal memory (NVS).
-- **Backup of the original firmware:** `backup-original-firmware.bin`, a full 8 MB flash dump taken before flashing.
+- **Backup of the original firmware:** `backup-original-firmware.bin`, kept locally and not in git. Despite being 8 MB, it only holds the factory app image (no bootloader or partition table), so it probably won't boot if written at `0x0`.
+- **Official factory firmware:** `cardputer-adv-user-demo-v0.3.bin`, M5Stack's "Cardputer-Adv User Demo" v0.3 from M5Burner. It's a merged image and is what the installer's "Restore original" button flashes.
 
 ### Demonym controls
 
@@ -126,7 +127,7 @@ Only use the attack features of these on networks and devices you own or have pe
 - The code expects `tama.b` to be exactly **12,288 bytes**. The README says 40,960, but the size check in `src/tamalib_cardputer_hal.cpp` uses `ROM_SIZE 12288`.
 - If the ROM is missing or the wrong size, the app shows a red "not found" error and stops.
 - `Tamagotchi (USA, Europe) (SGB Enhanced).gb` is the **Game Boy** game, not the P1 ROM, so it won't work with Tamaputer. Use a Game Boy emulator from the list above instead.
-- Without an SD card, Tamaputer could be modified to build the ROM into the firmware and save to NVS.
+- Without an SD card, Tamaputer could be modified to build the ROM into the firmware and save to NVS. A build like that contains the copyrighted ROM, so it stays out of git and off the installer site.
 - The project's description only mentions the original Cardputer, so its keyboard handling may not work on the ADV.
 
 ## Flashing with esptool
@@ -158,7 +159,7 @@ xxd -s 0x8000 -l 4 firmware.bin   # "aa50" at 0x8000 means a partition table is 
 
 # Restore the original firmware
 .venv/bin/esptool.py --chip esp32s3 --port /dev/cu.usbmodem101 --baud 921600 \
-  write_flash 0x0 backup-original-firmware.bin
+  write_flash 0x0 cardputer-adv-user-demo-v0.3.bin
 ```
 
 ## Gotchas
