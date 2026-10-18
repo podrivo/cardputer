@@ -1,4 +1,6 @@
 .venv/
-*.bin
 *.zip
 .DS_Store
+backup-original-firmware.bin
+tamaputer-*.bin
+purplx-*.bin

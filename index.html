@@ -42,6 +42,45 @@
   .section { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 28px 0 12px; }
   .section:first-of-type { margin-top: 0; }
   .section-sub { color: var(--muted); font-size: 13px; margin: -6px 0 12px; }
+  .sub-section { font-size: 12px; color: var(--text); margin: 24px 0 10px; opacity: 0.75; }
+  .sub-section:first-child { margin-top: 4px; }
+  .filters {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+    padding: 14px 0 16px;
+    margin: 0 0 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  #search {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+    font: inherit;
+  }
+  #search::placeholder { color: var(--muted); }
+  #search:focus { outline: none; border-color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .chip:hover { color: var(--text); }
+  .chip.active { color: #1a0f17; background: var(--accent); border-color: var(--accent); }
+  .hidden { display: none !important; }
+  .empty { color: var(--muted); text-align: center; padding: 48px 0; }
   .pets { display: grid; gap: 12px; }
   .pet {
     background: var(--card);
@@ -170,16 +209,17 @@
 
   <div class="notice" id="notice"></div>
 
-  <h2 class="section">Pets</h2>
-  <div class="pets" id="pets"></div>
+  <div class="filters">
+    <input type="search" id="search" placeholder="Search installers…" autocomplete="off">
+    <div class="chips" id="chips"></div>
+  </div>
 
-  <h2 class="section">Tools</h2>
-  <p class="section-sub">Not pets. Use the attack features only on networks and devices you own or have permission to test.</p>
-  <div class="pets" id="tools"></div>
+  <div id="catalog"></div>
+  <p class="empty" id="empty" hidden>No installers match.</p>
 
   <div class="footer">
     <div class="footer-row">
-      <span>Restore the firmware the Cardputer came with (8 MB, takes a few minutes).</span>
+      <span>Restore the firmware the Cardputer came with (M5Stack's official User Demo v0.3).</span>
       <button class="ghost" id="restoreBtn">Restore original</button>
     </div>
   </div>
@@ -244,15 +284,6 @@ const PETS = [
     parts: [{ file: "raising-hell-m5burner-v3.0.0.bin", address: 0x0 }],
   },
   {
-    id: "tamaputer",
-    emoji: "🥚",
-    name: "Tamaputer",
-    repo: "https://github.com/mindovermiles262/tamaputer",
-    desc: "The original 1996 Tamagotchi, emulated. Local build with the ROM built in. Press Z to save.",
-    tag: ["ok", "No SD card"],
-    parts: [{ file: "tamaputer-rom.bin", address: 0x0 }],
-  },
-  {
     id: "game-station",
     emoji: "🎮",
     name: "Game Station",
@@ -302,10 +333,266 @@ const TOOLS = [
   },
 ];
 
+const MORE = [
+  {
+    title: "Games & toys",
+    items: [
+      {
+        id: "sound-terrarium",
+        emoji: "🌍",
+        name: "Sound Terrarium",
+        repo: "https://github.com/kariagepompadour/SOUND-TERRARIUM",
+        desc: "A tiny living world shaped by sound, tilt, time and weather. Uses the ADV's IMU.",
+        tag: ["ok", "No SD card"],
+        parts: [{ file: "sound-terrarium-v108cs.bin", address: 0x0 }],
+      },
+    ],
+  },
+  {
+    title: "Music & audio",
+    items: [
+      {
+        id: "miniacid",
+        emoji: "🎛️",
+        name: "miniacid",
+        repo: "https://github.com/urtubia/miniacid",
+        desc: "Acid-style mini groovebox made for the ADV.",
+        tag: ["ok", "No SD card"],
+        parts: [{ file: "miniacid-v0.0.8.bin", address: 0x0 }],
+      },
+      {
+        id: "microgroove",
+        emoji: "🎚️",
+        name: "MicroGroove",
+        repo: "https://github.com/matoslav/MicroGroove",
+        desc: "Four-track acid groovebox with three 303 voices and 808/909 drums. Samples load from the SD card.",
+        tag: ["warn", "SD card optional"],
+        parts: [{ file: "microgroove-v1.0.bin", address: 0x0 }],
+      },
+      {
+        id: "webradio",
+        emoji: "📻",
+        name: "WebRadio",
+        repo: "https://github.com/cyberwisk/M5Cardputer_WebRadio",
+        desc: "Internet radio over Wi-Fi. Reads its station list from the SD card.",
+        tag: ["warn", "SD card"],
+        parts: [{ file: "webradio.bin", address: 0x0 }],
+      },
+    ],
+  },
+  {
+    title: "AI",
+    items: [
+      {
+        id: "cardputer-ai",
+        emoji: "🤖",
+        name: "Cardputer AI",
+        repo: "https://github.com/therezor/cardputer-ai",
+        desc: "A fully offline tiny LLM baked into the firmware. No account, no network.",
+        tag: ["ok", "No SD card"],
+        parts: [{ file: "cardputer-ai-v2.2.bin", address: 0x0 }],
+      },
+    ],
+  },
+  {
+    title: "Mesh, radio & comms",
+    sub: "Most of these need a LoRa cap or a nearby radio to actually send messages.",
+    items: [
+      {
+        id: "meshtastic-adv",
+        emoji: "💬",
+        name: "Meshtastic ADV",
+        repo: "https://github.com/anton-vinogradov/meshtastic-adv",
+        desc: "Keyboard-first Meshtastic client. Use its own Cap LoRa-1262 or any BLE node's radio.",
+        tag: ["warn", "LoRa / BLE node"],
+        parts: [{ file: "meshtastic-adv-v1.1.2.bin", address: 0x0 }],
+      },
+      {
+        id: "plai",
+        emoji: "📡",
+        name: "Plai",
+        repo: "https://github.com/d4rkmen/plai",
+        desc: "Standalone Meshtastic node — no phone. Needs the LoRa cap and an SD card for history.",
+        tag: ["warn", "LoRa cap + SD"],
+        parts: [{ file: "plai-v2.1.bin", address: 0x0 }],
+      },
+      {
+        id: "meshcore-tft",
+        emoji: "🌐",
+        name: "MeshCore (TFT UI)",
+        repo: "https://github.com/Stachugit/MeshCore-Cardputer-ADV",
+        desc: "MeshCore client with an enhanced TFT interface. Needs the Cap LoRa-1262.",
+        tag: ["warn", "LoRa cap"],
+        parts: [{ file: "meshcore-tft-v1.10.bin", address: 0x0 }],
+      },
+      {
+        id: "meshcore-adv",
+        emoji: "🕸️",
+        name: "MeshCore",
+        repo: "https://github.com/sosprz/meshcore-cardputer-adv",
+        desc: "MeshCore companion radio client for the ADV. Needs a LoRa cap.",
+        tag: ["warn", "LoRa cap"],
+        parts: [{ file: "meshcore-adv-v1.15.81.bin", address: 0x0 }],
+      },
+      {
+        id: "rscardputer",
+        emoji: "🐀",
+        name: "rsCardputer",
+        repo: "https://github.com/ratspeak/rsCardputer",
+        desc: "Reticulum / LXMF messenger and RNode, all in one. Needs a LoRa cap.",
+        tag: ["warn", "LoRa cap"],
+        parts: [{ file: "rscardputer-v2.0.3.bin", address: 0x0 }],
+      },
+      {
+        id: "cardputer-ssh",
+        emoji: "🖥️",
+        name: "SSH Client",
+        repo: "https://github.com/MangoX0567/M5Stack-Cardputer-SSH",
+        desc: "A portable SSH client for the ADV over Wi-Fi.",
+        tag: ["ok", "No SD card"],
+        parts: [{ file: "cardputer-ssh-v1.0.0.bin", address: 0x0 }],
+      },
+      {
+        id: "ultimate-remote",
+        emoji: "📺",
+        name: "Ultimate Remote",
+        repo: "https://github.com/geo-tp/Ultimate-Remote",
+        desc: "Universal IR remote with 3498 profiles. Load more from an SD card.",
+        tag: ["ok", "SD card optional"],
+        parts: [{ file: "ultimate-remote-v1.2.bin", address: 0x0 }],
+      },
+    ],
+  },
+  {
+    title: "Security, RF & Wi-Fi",
+    sub: "Only use the attack features on networks and devices you own or have permission to test.",
+    items: [
+      {
+        id: "ghostesp",
+        emoji: "👻",
+        name: "GhostESP",
+        repo: "https://github.com/GhostESP-Revival/GhostESP",
+        desc: "Open-source wireless research platform. SD card for captures.",
+        tag: ["warn", "Use responsibly"],
+        parts: [{ file: "ghostesp-v2.2.2.bin", address: 0x0 }],
+      },
+      {
+        id: "chimerable",
+        emoji: "🧬",
+        name: "ChimeraBLE",
+        repo: "https://github.com/MatthewKuKanich/ChimeraBLE",
+        desc: "BLE security and reverse-engineering: scan, GATT dump, clone, MITM.",
+        tag: ["warn", "Use responsibly"],
+        parts: [{ file: "chimerable-v1.0.1.bin", address: 0x0 }],
+      },
+      {
+        id: "badcard",
+        emoji: "💳",
+        name: "BadCard",
+        repo: "https://github.com/VoidNoi/BadCard",
+        desc: "BadUSB with Ducky Script support. Payloads live in /BadCard on the SD card.",
+        tag: ["warn", "Use responsibly"],
+        parts: [{ file: "badcard-v1.7.2.bin", address: 0x0 }],
+      },
+      {
+        id: "wifi-ble-radar",
+        emoji: "📶",
+        name: "Wi-Fi & BLE Radar",
+        repo: "https://github.com/Zeloksa/Cardputer-ADV-WiFi-BLE-Radar",
+        desc: "Spectrum analyzer and tracking radar with a retro CRT UI. ADV only.",
+        tag: ["warn", "Use responsibly"],
+        parts: [{ file: "wifi-ble-radar-v3.1.bin", address: 0x0 }],
+      },
+      {
+        id: "ghostble",
+        emoji: "👁️",
+        name: "GhostBLE",
+        repo: "https://github.com/SmonSE/GhostBLE",
+        desc: "BLE privacy scanner with a mascot. SD card needed on the Cardputer for logging.",
+        tag: ["warn", "Use responsibly"],
+        parts: [{ file: "ghostble-v1.4.9.bin", address: 0x0 }],
+      },
+    ],
+  },
+  {
+    title: "Sensing & instruments",
+    items: [
+      {
+        id: "csi-radar",
+        emoji: "🌊",
+        name: "Wi-Fi CSI Radar",
+        repo: "https://github.com/Zeloksa/Cardputer-ADV-CSI-Radar",
+        desc: "High-performance Wi-Fi CSI sensing, self-contained on the ADV.",
+        tag: ["ok", "No SD card"],
+        parts: [{ file: "csi-radar-v2.0.bin", address: 0x0 }],
+      },
+      {
+        id: "csi-human-detector",
+        emoji: "🚶",
+        name: "CSI Human Detector",
+        repo: "https://github.com/skizzophrenic/Cardputer-CSI-Human-Detector",
+        desc: "Detects people through Wi-Fi signal changes. The radar scope wants an external TFT.",
+        tag: ["warn", "Extra screen"],
+        parts: [{ file: "csi-human-detector-v1.2.0.bin", address: 0x0 }],
+      },
+      {
+        id: "cardsat",
+        emoji: "🛰️",
+        name: "CardSat",
+        repo: "https://github.com/prstoetzer/CardSat",
+        desc: "Satellite tracker with multi-radio CAT Doppler control.",
+        tag: ["ok", "No SD card"],
+        parts: [{ file: "cardsat-v0.9.76.bin", address: 0x0 }],
+      },
+    ],
+  },
+  {
+    title: "Full OSes, launchers & productivity",
+    items: [
+      {
+        id: "microhydra",
+        emoji: "💧",
+        name: "MicroHydra",
+        repo: "https://github.com/echo-lalia/MicroHydra",
+        desc: "MicroPython app switcher. Drop apps in /apps on flash or SD. ADV build is a preview.",
+        tag: ["warn", "SD card optional"],
+        parts: [{ file: "microhydra-v2.6-preview.bin", address: 0x0 }],
+      },
+      {
+        id: "paperos",
+        emoji: "📄",
+        name: "PaperOS",
+        repo: "https://github.com/Artem76228/PaperOS",
+        desc: "A whole little OS: files, paint, browser, offline AI, emulator and Lua. Keep an SD card in.",
+        tag: ["warn", "SD card"],
+        parts: [{ file: "paperos-v1.3.bin", address: 0x0 }],
+      },
+      {
+        id: "nucleoos",
+        emoji: "⚛️",
+        name: "NucleoOS",
+        repo: "https://github.com/indecenti/NucleoOs",
+        desc: "Web-native OS with a browser shell, offline AI and OTA. Needs a FAT32 SD card.",
+        tag: ["warn", "SD card"],
+        parts: [{ file: "nucleoos-v0.7.2.bin", address: 0x0 }],
+      },
+      {
+        id: "wikipedia-offline",
+        emoji: "📚",
+        name: "Wikipedia Offline",
+        repo: "https://github.com/Zeloksa/Wikipedia-Offline-ADV",
+        desc: "6.4M offline Wikipedia articles. Needs a 32 GB SD card and the 18 GB database.",
+        tag: ["warn", "32 GB SD + DB"],
+        parts: [{ file: "wikipedia-offline-v1.2.bin", address: 0x0 }],
+      },
+    ],
+  },
+];
+
 const RESTORE = {
   id: "original",
   name: "Original firmware",
-  parts: [{ file: "backup-original-firmware.bin", address: 0x0 }],
+  parts: [{ file: "cardputer-adv-user-demo-v0.3.bin", address: 0x0 }],
 };
 
 const $ = (id) => document.getElementById(id);
@@ -321,38 +608,110 @@ function showNotice(html) {
   $("notice").style.display = "block";
 }
 
-function renderCards(containerId, items, current) {
-  const container = $(containerId);
-  container.innerHTML = "";
-  for (const item of items) {
-    const el = document.createElement("div");
-    el.className = "pet";
-    el.innerHTML = `
-      <div class="emoji">${item.emoji}</div>
-      <div class="info">
-        <div class="name"><a href="${item.repo}" target="_blank" rel="noopener"><span class="label">${item.name}</span> <span class="arrow">↗</span></a>
-          <span class="tag ${item.tag[0]}">${item.tag[1]}</span>
-          ${current === item.id ? '<span class="tag current">Installed</span>' : ""}
-        </div>
-        <div class="desc">${item.desc}</div>
-      </div>`;
-    const btn = document.createElement("button");
-    btn.textContent = "Install";
-    btn.onclick = () => install(item);
-    el.appendChild(btn);
-    buttons.push(btn);
-    container.appendChild(el);
+const BLOCKS = [
+  { level: 2, title: "Pets", items: PETS },
+  { level: 2, title: "Tools", sub: "Not pets. Use the attack features only on networks and devices you own or have permission to test.", items: TOOLS },
+  { level: 2, title: "More to explore", sub: "A wider sweep of the Cardputer ecosystem. These favour the ADV and flash the same way, but I haven't run each one — check the repo and your hardware before flashing. Only use attack features on networks and devices you own or have permission to test." },
+  ...MORE.map((g) => ({ level: 3, title: g.title, sub: g.sub, items: g.items, parent: "More to explore" })),
+];
+
+let query = "";
+let activeCat = "all";
+
+function cardEl(item, current) {
+  const el = document.createElement("div");
+  el.className = "pet";
+  el.innerHTML = `
+    <div class="emoji">${item.emoji}</div>
+    <div class="info">
+      <div class="name"><a href="${item.repo}" target="_blank" rel="noopener"><span class="label">${item.name}</span> <span class="arrow">↗</span></a>
+        <span class="tag ${item.tag[0]}">${item.tag[1]}</span>
+        ${current === item.id ? '<span class="tag current">Installed</span>' : ""}
+      </div>
+      <div class="desc">${item.desc}</div>
+    </div>`;
+  el.dataset.search = `${item.name} ${item.desc} ${item.tag[1]}`.toLowerCase();
+  const btn = document.createElement("button");
+  btn.textContent = "Install";
+  btn.onclick = () => install(item);
+  el.appendChild(btn);
+  buttons.push(btn);
+  return el;
+}
+
+function renderChips() {
+  const chips = $("chips");
+  chips.innerHTML = "";
+  const cats = ["all", ...BLOCKS.filter((b) => b.items).map((b) => b.title)];
+  for (const cat of cats) {
+    const c = document.createElement("button");
+    c.className = "chip" + (cat === activeCat ? " active" : "");
+    c.textContent = cat === "all" ? "All" : cat;
+    c.onclick = () => { activeCat = cat; renderChips(); applyFilters(); };
+    chips.appendChild(c);
   }
+}
+
+function applyFilters() {
+  const q = query.trim().toLowerCase();
+  const sections = [...$("catalog").children];
+  let anyVisible = false;
+  for (const section of sections) {
+    const grid = section.querySelector(".pets");
+    if (!grid) continue;
+    const title = section.dataset.title;
+    let shown = 0;
+    for (const card of grid.children) {
+      const vis = (activeCat === "all" || activeCat === title) && (!q || card.dataset.search.includes(q));
+      card.classList.toggle("hidden", !vis);
+      if (vis) shown++;
+    }
+    section.classList.toggle("hidden", shown === 0);
+    if (shown) anyVisible = true;
+  }
+  // Header-only sections (e.g. "More to explore") follow their children.
+  for (const section of sections) {
+    if (section.querySelector(".pets")) continue;
+    const hasChild = sections.some((s) => s.dataset.parent === section.dataset.title && !s.classList.contains("hidden"));
+    section.classList.toggle("hidden", !hasChild);
+  }
+  $("empty").hidden = anyVisible;
 }
 
 function render() {
   const current = localStorage.getItem("installed");
+  const catalog = $("catalog");
+  catalog.innerHTML = "";
   buttons.length = 0;
-  renderCards("pets", PETS, current);
-  renderCards("tools", TOOLS, current);
+  for (const block of BLOCKS) {
+    const section = document.createElement("section");
+    section.dataset.title = block.title;
+    if (block.parent) section.dataset.parent = block.parent;
+    const h = document.createElement(block.level === 2 ? "h2" : "h3");
+    h.className = block.level === 2 ? "section" : "section sub-section";
+    h.textContent = block.title;
+    section.appendChild(h);
+    if (block.sub) {
+      const p = document.createElement("p");
+      p.className = "section-sub";
+      p.textContent = block.sub;
+      section.appendChild(p);
+    }
+    if (block.items) {
+      const grid = document.createElement("div");
+      grid.className = "pets";
+      for (const item of block.items) grid.appendChild(cardEl(item, current));
+      section.appendChild(grid);
+    }
+    catalog.appendChild(section);
+  }
   buttons.push($("restoreBtn"));
+  renderChips();
+  applyFilters();
   setBusy(busy);
 }
+
+$("search").addEventListener("input", (e) => { query = e.target.value; applyFilters(); });
 
 function setBusy(value) {
   busy = value;
@@ -431,7 +790,7 @@ function aiPrompt({ target, message }) {
   const files = target.parts.map((p) => `${p.file} at ${hex(p.address)}`).join(", ");
   return [
     "I'm flashing firmware onto an M5Stack Cardputer ADV (ESP32-S3, 8 MB flash, native USB-Serial/JTAG) " +
-      "from a local web page that uses esptool-js 0.7.0 over Web Serial, and the install failed. " +
+      "from a web page that uses esptool-js 0.7.0 over Web Serial, and the install failed. " +
       "Explain what went wrong and give me the steps to fix it.",
     "",
     `Firmware: ${target.name} (${files})`,
