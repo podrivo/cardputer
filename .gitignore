@@ -1,5 +1,6 @@
 .venv/
 *.zip
+!assets/*.zip
 .DS_Store
 bins/backup-original-firmware.bin
 bins/tamaputer-rom.bin
