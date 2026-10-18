@@ -164,7 +164,8 @@
   .icon-btn:active { transform: scale(0.96); }
   .icon-btn + .icon-btn { margin-left: -4px; }
   .icon-btn svg { width: 15px; height: 15px; display: block; }
-  .icon-btn[data-tip]::after {
+  .icon-btn[data-tip]::after,
+  .copy-log-btn[data-tip]::after {
     content: attr(data-tip);
     position: absolute;
     left: 50%;
@@ -185,7 +186,10 @@
     z-index: 6;
   }
   .icon-btn[data-tip]:hover::after,
-  .icon-btn[data-tip]:focus-visible::after {
+  .icon-btn[data-tip]:focus-visible::after,
+  .copy-log-btn[data-tip]:hover::after,
+  .copy-log-btn[data-tip]:focus-visible::after,
+  .copy-log-btn.copied[data-tip]::after {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
@@ -474,7 +478,7 @@
   </div>
   <div class="log-wrap" id="logWrap">
     <pre class="terminal" id="log"></pre>
-    <button type="button" class="copy-log-btn" id="copyLogBtn" title="Copy logs" aria-label="Copy logs">
+    <button type="button" class="copy-log-btn" id="copyLogBtn" data-tip="Copy to clipboard" aria-label="Copy to clipboard">
       <svg class="copy-log-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <rect x="9" y="9" width="13" height="13" rx="2"/>
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -1911,8 +1915,14 @@ $("copyLogBtn").onclick = async () => {
   await copyText(text);
   const btn = $("copyLogBtn");
   btn.classList.add("copied");
+  btn.dataset.tip = "Copied";
+  btn.setAttribute("aria-label", "Copied");
   clearTimeout(copyLogTimer);
-  copyLogTimer = setTimeout(() => btn.classList.remove("copied"), 1600);
+  copyLogTimer = setTimeout(() => {
+    btn.classList.remove("copied");
+    btn.dataset.tip = "Copy to clipboard";
+    btn.setAttribute("aria-label", "Copy to clipboard");
+  }, 1600);
 };
 
 $("copyBtn").onclick = async () => {
