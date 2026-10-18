@@ -1,0 +1,11 @@
+{
+  "name": "cardputer-installers",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "fetch-keys": "node scripts/fetch-catalog-keys.mjs"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}
