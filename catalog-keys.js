@@ -2,39 +2,6 @@
 // Re-run: node scripts/fetch-catalog-keys.mjs
 
 export const KEYS = {
-  "adv-b-flight-radar": {
-    "rows": [
-      [
-        "Tab",
-        "Cycles between flights on radar to view information"
-      ],
-      [
-        "Enter",
-        "With a flight selected, opens a full-detail panel for it (adds airline, seat estimate, squawk, heading, bearing, and lat/lon on top of what's already in the HUD); Tab still cycles flights while it's open, Esc returns to the radar"
-      ],
-      [
-        "Del",
-        "Opens up settings page to configure Wi-fi, Location, Units, Proximity Beep, Key Beep, Radar Rotation, Display brightness, LED Brightness, Volume for tone beeps, and the Flight Logbook"
-      ],
-      [
-        "Esc",
-        "Exits settings (also backs out of a settings sub-screen one level at a time)"
-      ],
-      [
-        "Space",
-        "Cycles between radar distance scales (10km, 25km, 50km, 100km)"
-      ],
-      [
-        "Fn + arrow keys",
-        "Cycles between wifi networks"
-      ],
-      [
-        "Fn + Esc",
-        "Exits Wifi setup"
-      ]
-    ],
-    "source": "https://raw.githubusercontent.com/Jay-Jayismyname1/Cardputer-ABS-B-Radar/main/README.md"
-  },
   "cardputer-ssh": {
     "rows": [
       [
@@ -88,88 +55,6 @@ export const KEYS = {
     ],
     "source": "https://raw.githubusercontent.com/MangoX0567/M5Stack-Cardputer-SSH/main/README.md"
   },
-  "carduboy-arduboy-game-example-for-cardputer-adv": {
-    "rows": [
-      [
-        "Arrow keys",
-        "Movement"
-      ],
-      [
-        "Z and X",
-        "Arduboy A and B buttons"
-      ],
-      [
-        "1",
-        "Change color"
-      ],
-      [
-        "+",
-        "Volume up"
-      ],
-      [
-        "–",
-        "Volume down"
-      ],
-      [
-        "] or [",
-        "Set screen brightness"
-      ],
-      [
-        "ENTER",
-        "Pause the Game"
-      ]
-    ],
-    "source": "https://raw.githubusercontent.com/bomberman30/Carduboy-Arduboy-For-Cardputer/main/README.md"
-  },
-  "cave-mine-for-cardputer-adv": {
-    "rows": [
-      [
-        "E",
-        "Move forward"
-      ],
-      [
-        "S",
-        "Move backward"
-      ],
-      [
-        "A",
-        "Strafe left"
-      ],
-      [
-        "D",
-        "Strafe right"
-      ],
-      [
-        "Space",
-        "Jump"
-      ],
-      [
-        ";",
-        "Look up"
-      ],
-      [
-        ".",
-        "Look down"
-      ],
-      [
-        ",",
-        "Yaw left"
-      ],
-      [
-        "X",
-        "Break block"
-      ],
-      [
-        "C",
-        "Place block"
-      ],
-      [
-        "1 – 5",
-        "Select hotbar slot"
-      ]
-    ],
-    "source": "https://raw.githubusercontent.com/question-and-answer/cave-mine-cardputer-alpha1/main/README.md"
-  },
   "doom": {
     "rows": [
       [
@@ -210,35 +95,6 @@ export const KEYS = {
       ]
     ],
     "source": "https://raw.githubusercontent.com/zspuspoki/CardPuterAdvancedDoom/main/README.md"
-  },
-  "game-snake-m5cartputer": {
-    "rows": [
-      [
-        ",",
-        "Left"
-      ],
-      [
-        "/",
-        "Right"
-      ],
-      [
-        ";",
-        "Up"
-      ],
-      [
-        ".",
-        "Down"
-      ],
-      [
-        "p",
-        "Pause"
-      ],
-      [
-        "n",
-        "New game"
-      ]
-    ],
-    "source": "https://raw.githubusercontent.com/ZrutrA/game-snake-m5cardputer/main/README.md"
   },
   "game-station": {
     "rows": [
@@ -284,47 +140,6 @@ export const KEYS = {
       ]
     ],
     "source": "https://raw.githubusercontent.com/geo-tp/Cardputer-Game-Station-Emulators/main/README.md"
-  },
-  "pomodoro-card": {
-    "rows": [
-      [
-        "Enter",
-        "Open / start / confirm the current selection"
-      ],
-      [
-        "Jump directly to a preset card on the home screen",
-        "1–5"
-      ],
-      [
-        "Space",
-        "Pause / resume the timer"
-      ],
-      [
-        "N",
-        "Skip to the next phase"
-      ],
-      [
-        "R",
-        "Reset the timer and return home"
-      ],
-      [
-        "P",
-        "Open the pet picker"
-      ],
-      [
-        "O",
-        "Open Settings"
-      ],
-      [
-        "H",
-        "Help screen (any key returns)"
-      ],
-      [
-        "Dismiss the end-of-phase alarm",
-        "Shake the device"
-      ]
-    ],
-    "source": "https://raw.githubusercontent.com/mohith-das/pomodoro-card/main/README.md"
   },
   "raising-hell": {
     "rows": [
