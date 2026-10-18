@@ -2,6 +2,56 @@
 // Re-run: node scripts/fetch-catalog-keys.mjs
 
 export const KEYS = {
+  "card-craft": {
+    "rows": [
+      ["Arrows", "Move, turn"],
+      ["W (hold)", "Mine, attack"],
+      ["A", "Build"],
+      ["E / S", "Look up / down"],
+      ["Enter", "Centre the view"],
+      ["Space", "Jump"],
+      ["1–9", "Pick a block"],
+      ["Q", "Drop"],
+      ["Tab", "Craft"],
+      ["Enter / Esc", "Confirm / back"],
+    ],
+    "source": "https://raw.githubusercontent.com/therezor/card-craft/main/README.md",
+  },
+  "hazke": {
+    "rows": [
+      ["↑ ↓", "Pitch"],
+      ["← →", "Roll"],
+      ["L / '", "Yaw"],
+      ["E / S", "Speed up / slow down"],
+      ["W or Space", "Fire laser"],
+      ["R / A", "Cycle missile lock / fire missile"],
+      ["Q", "ECM"],
+      ["F", "Autolock / map zoom"],
+      ["Tab", "Next target"],
+      ["H", "Hail or loot"],
+      ["M", "System map"],
+      ["Tilt ADV", "Aim (with GYRO on)"],
+      ["Alt (hold)", "Stop gyro aiming"],
+      ["Enter", "Confirm"],
+      ["`", "Back / pause"],
+    ],
+    "source": "https://raw.githubusercontent.com/therezor/hazke/main/README.md",
+  },
+  "silicon-casino": {
+    "rows": [
+      ["Space / Enter", "Confirm: spin, deal, draw, launch"],
+      ["Shake", "Pull the lever / spin / launch ball"],
+      ["← →", "Change bet or move hand cursor"],
+      ["↑ ↓", "Lobby navigate / roulette number"],
+      ["1–9 / 0", "House credit (+10…+90 / +100)"],
+      ["H", "Help"],
+      ["S", "Settings"],
+      ["L", "Leaderboard"],
+      ["A", "About"],
+      ["Esc", "Back (anywhere)"],
+    ],
+    "source": "https://raw.githubusercontent.com/chatelp/geek-casino-cardputeradv/main/README.md",
+  },
   "cardputer-ssh": {
     "rows": [
       [
