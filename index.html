@@ -46,8 +46,142 @@
     padding: 48px 20px;
   }
   main { width: 100%; max-width: 1040px; }
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    margin: 0 0 28px;
+  }
+  .hero-copy { min-width: 0; }
   h1 { font-size: 32px; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { color: var(--muted); margin: 0 0 28px; }
+  .sub { color: var(--muted); margin: 0; }
+  .hero-media {
+    /* Size to the copy column; don't let the image set the row height */
+    height: 0;
+    min-height: 100%;
+  }
+  .hero-zoom {
+    display: block;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .hero-img {
+    display: block;
+    height: 100%;
+    width: auto;
+  }
+  #heroLightbox {
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #heroLightbox[open] {
+    display: block;
+  }
+  #heroLightbox::backdrop {
+    background: rgba(255, 255, 255, 1);
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  #heroLightbox[open]:not(.closing)::backdrop { opacity: 1; }
+  @starting-style {
+    #heroLightbox[open]:not(.closing)::backdrop { opacity: 0; }
+  }
+  .hero-lightbox-close {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #1b1b1b;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  #heroLightbox[open]:not(.closing) .hero-lightbox-close { opacity: 1; }
+  .hero-lightbox-close svg { width: 20px; height: 20px; display: block; }
+  .hero-lightbox-dots {
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    gap: 0;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  #heroLightbox[open]:not(.closing) .hero-lightbox-dots { opacity: 1; }
+  .hero-lightbox-dot {
+    display: grid;
+    place-items: center;
+    box-sizing: content-box;
+    width: 6px;
+    height: 6px;
+    padding: 4px 9px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    transition: height 0.15s ease;
+  }
+  .hero-lightbox-dot.active { height: 12px; }
+  .hero-lightbox-dot::after {
+    content: "";
+    width: 6px;
+    height: 100%;
+    border-radius: 100px;
+    background: #c8c8c8;
+    transition: background 0.15s ease;
+  }
+  .hero-lightbox-dot:hover::after { background: #9a9a9a; }
+  .hero-lightbox-dot.active::after { background: #1b1b1b; }
+  .hero-lightbox-scroll {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hero-lightbox-panel {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+  }
+  .hero-lightbox-shot {
+    display: block;
+    width: min(100vw, 100vh);
+    height: min(100vw, 100vh);
+    object-fit: contain;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  .hero-img.is-expanded { opacity: 0; }
+  @media (max-width: 720px) {
+    .hero { gap: 16px; }
+  }
   .notice {
     border: 1px solid var(--warn);
     color: var(--warn);
@@ -316,8 +450,8 @@
   }
   /* Install dialog only: let copy-log tip paint outside the box */
   #dialog { overflow: visible; }
-  dialog[open] { animation: dialog-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  dialog::backdrop { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(3px); }
+  dialog[open]:not(#heroLightbox) { animation: dialog-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  dialog:not(#heroLightbox)::backdrop { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(3px); }
   html:has(dialog[open]) { overflow: hidden; }
   @keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
   .dlg-head { display: flex; align-items: center; gap: 14px; }
@@ -546,8 +680,17 @@
 </head>
 <body>
 <main>
-  <h1>Cardputer ADV Installers</h1>
-  <p class="sub">Turn the device off, use a cable to plug it in, select an installer below, and click Install</p>
+  <header class="hero">
+    <div class="hero-copy">
+      <h1>Cardputer ADV Installers</h1>
+      <p class="sub">Turn the device off, use a cable to plug it in, select an installer below, and click Install</p>
+    </div>
+    <div class="hero-media">
+      <button type="button" class="hero-zoom" id="heroZoom" aria-label="View Cardputer ADV full size">
+        <img class="hero-img" src="cardputer-adv.png" alt="M5Stack Cardputer ADV" width="1024" height="1024">
+      </button>
+    </div>
+  </header>
 
   <div class="notice" id="notice"></div>
 
@@ -660,6 +803,41 @@
   <div class="dlg-actions">
     <button type="button" class="ghost" id="confirmCancelBtn">Cancel</button>
     <button type="button" id="confirmOkBtn">Confirm and install</button>
+  </div>
+</dialog>
+
+<dialog id="heroLightbox" aria-label="Cardputer ADV">
+  <button type="button" class="hero-lightbox-close" id="heroLightboxClose" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+    </svg>
+  </button>
+  <nav class="hero-lightbox-dots" id="heroLightboxDots" aria-label="Image gallery"></nav>
+  <div class="hero-lightbox-scroll" id="heroLightboxScroll">
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" id="heroLightboxShot" src="cardputer-adv.png" alt="M5Stack Cardputer ADV" width="1024" height="1024">
+    </div>
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" src="cardputer-adv-front.jpg" alt="M5Stack Cardputer ADV front view" width="1200" height="1200">
+    </div>
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" src="cardputer-adv-ports.jpg" alt="M5Stack Cardputer ADV ports and edge" width="1200" height="1200">
+    </div>
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" src="cardputer-adv-side.jpg" alt="M5Stack Cardputer ADV side profile" width="1200" height="1200">
+    </div>
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" src="cardputer-adv-edge.jpg" alt="M5Stack Cardputer ADV controls edge" width="1200" height="1200">
+    </div>
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" src="cardputer-adv-usb.jpg" alt="M5Stack Cardputer ADV USB and audio" width="1200" height="1200">
+    </div>
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" src="cardputer-adv-diagram.jpg" alt="M5Stack Cardputer ADV pinout diagram" width="1200" height="1200">
+    </div>
+    <div class="hero-lightbox-panel">
+      <img class="hero-lightbox-shot" src="cardputer-adv-back.jpg" alt="M5Stack Cardputer ADV back" width="1200" height="1200">
+    </div>
   </div>
 </dialog>
 
@@ -1368,6 +1546,158 @@ function openKeysDialog(item, keys) {
 $("keysCloseBtn").onclick = () => $("keysDialog").close();
 $("keysDialog").addEventListener("click", (e) => {
   if (e.target === $("keysDialog")) $("keysDialog").close();
+});
+
+const HERO_EASE = "transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)";
+let heroBusy = false;
+let heroDotIndex = 0;
+
+function heroThumb() {
+  return document.querySelector(".hero-img");
+}
+
+function heroPanels() {
+  return [...$("heroLightboxScroll").querySelectorAll(".hero-lightbox-panel")];
+}
+
+function heroFlip(from, to) {
+  const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+  const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+  const s = from.width / to.width;
+  return `translate(${dx}px, ${dy}px) scale(${s})`;
+}
+
+function waitHeroTransition(el) {
+  return new Promise((resolve) => {
+    const done = () => {
+      el.removeEventListener("transitionend", onEnd);
+      resolve();
+    };
+    const onEnd = (e) => {
+      if (e.target === el && e.propertyName === "transform") done();
+    };
+    el.addEventListener("transitionend", onEnd);
+    setTimeout(done, 450);
+  });
+}
+
+function setHeroDot(index) {
+  heroDotIndex = index;
+  const dots = $("heroLightboxDots").children;
+  for (let i = 0; i < dots.length; i++) {
+    dots[i].classList.toggle("active", i === index);
+    dots[i].setAttribute("aria-current", i === index ? "true" : "false");
+  }
+}
+
+function syncHeroDots() {
+  const scroll = $("heroLightboxScroll");
+  const panels = heroPanels();
+  if (!panels.length) return;
+  const mid = scroll.scrollTop + scroll.clientHeight / 2;
+  let best = 0;
+  let bestDist = Infinity;
+  panels.forEach((panel, i) => {
+    const center = panel.offsetTop + panel.offsetHeight / 2;
+    const dist = Math.abs(center - mid);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = i;
+    }
+  });
+  setHeroDot(best);
+}
+
+function buildHeroDots() {
+  const nav = $("heroLightboxDots");
+  const panels = heroPanels();
+  nav.innerHTML = "";
+  panels.forEach((panel, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "hero-lightbox-dot";
+    btn.setAttribute("aria-label", `Image ${i + 1} of ${panels.length}`);
+    btn.addEventListener("click", () => {
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      setHeroDot(i);
+    });
+    nav.appendChild(btn);
+  });
+  setHeroDot(0);
+}
+
+buildHeroDots();
+$("heroLightboxScroll").addEventListener("scroll", syncHeroDots, { passive: true });
+
+async function openHeroLightbox() {
+  if (heroBusy || $("heroLightbox").open) return;
+  heroBusy = true;
+  const lb = $("heroLightbox");
+  const img = $("heroLightboxShot");
+  const scroll = $("heroLightboxScroll");
+  const thumb = heroThumb();
+  const from = thumb.getBoundingClientRect();
+
+  thumb.classList.add("is-expanded");
+  scroll.scrollTop = 0;
+  setHeroDot(0);
+  // Mount with overlay hidden, then fade it in with the image scale
+  lb.classList.add("closing");
+  lb.showModal();
+
+  const to = img.getBoundingClientRect();
+  img.style.transition = "none";
+  img.style.transform = heroFlip(from, to);
+  void img.offsetWidth;
+  lb.classList.remove("closing");
+  img.style.transition = HERO_EASE;
+  img.style.transform = "none";
+  await waitHeroTransition(img);
+  img.style.transition = "";
+  heroBusy = false;
+}
+
+function clearHeroSelection() {
+  const sel = window.getSelection?.();
+  if (sel?.rangeCount) sel.removeAllRanges();
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body) active.blur();
+}
+
+async function closeHeroLightbox() {
+  if (heroBusy || !$("heroLightbox").open) return;
+  heroBusy = true;
+  clearHeroSelection();
+  const lb = $("heroLightbox");
+  const img = $("heroLightboxShot");
+  const scroll = $("heroLightboxScroll");
+  const thumb = heroThumb();
+
+  // Snap back to the first shot before morphing closed
+  scroll.scrollTop = 0;
+  setHeroDot(0);
+  const from = img.getBoundingClientRect();
+  const to = thumb.getBoundingClientRect();
+
+  lb.classList.add("closing");
+  img.style.transition = HERO_EASE;
+  img.style.transform = heroFlip(to, from);
+  await waitHeroTransition(img);
+  lb.close();
+  lb.classList.remove("closing");
+  img.style.transition = "";
+  img.style.transform = "";
+  thumb.classList.remove("is-expanded");
+  clearHeroSelection();
+  heroBusy = false;
+}
+
+$("heroZoom").onclick = () => openHeroLightbox();
+$("heroLightboxClose").onclick = () => closeHeroLightbox();
+$("heroLightbox").addEventListener("cancel", (e) => {
+  e.preventDefault();
+  clearHeroSelection();
+  closeHeroLightbox();
 });
 
 /** @type {{ resolve: (ok: boolean) => void } | null} */
