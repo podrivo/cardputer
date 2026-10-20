@@ -247,7 +247,25 @@ export function measureAppSize(image) {
  * Plan the next ota_* carve from a live partition table.
  * @returns {{ entry, table, appOffset, appSize, freeAfter }}
  */
-export function planAppendOta(tableBytes, appImage) {
+function isGenericLabel(s) {
+  if (!s) return true;
+  const t = String(s).trim();
+  if (!t) return true;
+  if (/^ota_\d+$/i.test(t)) return true;
+  if (["app", "firmware", "project", "arduino-lib-builder"].includes(t.toLowerCase())) return true;
+  return false;
+}
+
+/** Partition label max 15 chars. Prefer catalog name. */
+export function pickPartitionLabel(name, index) {
+  const raw = !isGenericLabel(name) ? name : `ota_${index}`;
+  return String(raw)
+    .replace(/[^\w.\- ]+/g, "")
+    .trim()
+    .slice(0, 15) || `ota_${index}`;
+}
+
+export function planAppendOta(tableBytes, appImage, opts = {}) {
   if (appImage[0] !== 0xe9) throw new Error("App image missing 0xe9 magic");
   const entries = parseTable(tableBytes);
   if (!entries.length) throw new Error("No Mini Launcher partition table on device — Install Mini Launcher first");
@@ -276,7 +294,7 @@ export function planAppendOta(tableBytes, appImage) {
     subtype: SUB_OTA_0 + otas.length,
     address: end,
     size,
-    label: `ota_${otas.length}`,
+    label: pickPartitionLabel(opts.name, otas.length),
     flags: 0,
   };
   entry.raw = encodeEntry(entry);

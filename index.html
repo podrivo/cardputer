@@ -1080,7 +1080,7 @@ const TOOLS = [
     emoji: "📂",
     name: "Mini Launcher",
     repo: "https://github.com/podrivo/cardputer-launcher",
-    desc: "Tiny USB-packed app menu in factory flash — Add to launcher on other apps, then ← → Enter; power off returns here",
+    desc: "Cycle through multiple apps packed into flash",
     launcherBase: true,
     keys: {
       rows: [
@@ -2935,7 +2935,7 @@ async function addToLauncher(target) {
 
       let plan;
       try {
-        plan = planAppendOta(tableBytes, appImage);
+        plan = planAppendOta(tableBytes, appImage, { name: target.name });
       } catch (err) {
         const msg = String(err?.message || err);
         if (/max apps/i.test(msg)) throw new Error("Max apps (16) — re-flash Mini Launcher to clear.");
