@@ -849,6 +849,12 @@ import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.
 import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 import { EXTRA } from "./catalog-extra.js";
 import { KEYS } from "./catalog-keys.js";
+import {
+  TABLE_OFF,
+  TABLE_SIZE,
+  extractAppImage,
+  planAppendOta,
+} from "./launcher-partition.js";
 
 const bin = (name) => `bins/${name}`;
 
@@ -1069,6 +1075,23 @@ const GAMES = [
 ];
 
 const TOOLS = [
+  {
+    id: "mini-launcher",
+    emoji: "📂",
+    name: "Mini Launcher",
+    repo: "https://github.com/podrivo/cardputer-launcher",
+    desc: "Tiny USB-packed app menu in factory flash — Add to launcher on other apps, then ← → Enter; power off returns here",
+    launcherBase: true,
+    keys: {
+      rows: [
+        ["← / →", "Browse installed apps"],
+        ["↑ / ↓", "Browse (same)"],
+        ["Enter", "Open app (one-shot; power off returns here)"],
+      ],
+      source: "https://github.com/podrivo/cardputer-launcher",
+    },
+    parts: [{ file: bin("cardputer_launcher.bin"), address: 0x0 }],
+  },
   {
     id: "launcher",
     emoji: "🚀",
@@ -1887,6 +1910,16 @@ function cardEl(item, current, danger) {
     keysBtn.innerHTML = ICON_KEYBOARD;
     keysBtn.onclick = () => openKeysDialog(item, keys);
     actions.appendChild(keysBtn);
+  }
+  if (item.parts && !item.launcherBase && item.action !== "erase") {
+    const addBtn = document.createElement("button");
+    addBtn.className = "ghost";
+    addBtn.textContent = "Add";
+    addBtn.dataset.tip = "Add to Mini Launcher";
+    addBtn.setAttribute("aria-label", "Add to Mini Launcher");
+    addBtn.onclick = () => addToLauncher(item);
+    actions.appendChild(addBtn);
+    buttons.push(addBtn);
   }
   const btn = document.createElement("button");
   const btnLabel = item.button || "Install";
@@ -2845,6 +2878,128 @@ function resolveFlashAddress(data, address) {
   return address;
 }
 
+/** Pack an app into the next sized ota_* slot on a Mini Launcher device. */
+async function addToLauncher(target) {
+  if (busy) return;
+  if (!target.parts?.length) return;
+
+  const ok = await askConfirm({
+    emoji: "📂",
+    title: target.name,
+    subtitle: "Add to Mini Launcher",
+    text: `Carve a flash slot for ${target.name} and write only that app. Requires Mini Launcher already installed. Does not replace the launcher.`,
+    okLabel: "Add to launcher",
+  });
+  if (!ok) return;
+
+  setBusy(true);
+  pendingExtra = null;
+
+  try {
+    openDialog({
+      emoji: "📂",
+      title: `Adding ${target.name}`,
+      doneTitle: `${target.name} added`,
+      doneText: "Power cycle if needed, then open it from Mini Launcher with Enter. Power off returns to the menu.",
+    });
+
+    setStatus("Looking for the Cardputer…");
+    step("Waiting for a USB device");
+    const { port, reused } = await resolveSerialPort();
+    const { usbVendorId, usbProductId } = port.getInfo();
+    setStatus(reused ? "Using the saved USB device…" : "USB device selected…");
+    log(`${reused ? "Reusing" : "Selected"} USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
+
+    setStatus("Loading firmware…");
+    step("Loading firmware files");
+    const part = target.parts[0];
+    const data = await loadFile(part.file);
+    const appImage = extractAppImage(data);
+    log(`${part.file}: app payload ${appImage.length.toLocaleString()} bytes`);
+
+    setStatus("Connecting…");
+    step("Connecting to the Cardputer");
+    setProgress(0);
+    const transport = new Transport(port, false);
+    try {
+      const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+      const chip = await loader.main();
+      log(`Connected to ${chip}`, "ok");
+
+      setStatus("Reading partition table…");
+      step("Reading partition table");
+      const tableRaw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
+      const tableBytes = tableRaw instanceof Uint8Array ? tableRaw : new Uint8Array(tableRaw);
+
+      let plan;
+      try {
+        plan = planAppendOta(tableBytes, appImage);
+      } catch (err) {
+        const msg = String(err?.message || err);
+        if (/max apps/i.test(msg)) throw new Error("Max apps (16) — re-flash Mini Launcher to clear.");
+        if (/not enough space/i.test(msg)) throw new Error("Not enough space for this app on the device.");
+        if (/Mini Launcher|factory/i.test(msg)) throw new Error("Install Mini Launcher first, then use Add.");
+        throw err;
+      }
+
+      log(
+        `Carving ${plan.entry.label} @ ${hex(plan.entry.address)} size ${hex(plan.entry.size)} (${plan.otaCount}/16, free after ${plan.freeAfter.toLocaleString()} bytes)`,
+        "ok"
+      );
+
+      const fileArray = [
+        { data: plan.table, address: TABLE_OFF },
+        { data: appImage, address: plan.appOffset },
+      ];
+      const total = fileArray.reduce((n, f) => n + f.data.length, 0);
+      const before = fileArray.map((_, i) => fileArray.slice(0, i).reduce((n, f) => n + f.data.length, 0));
+
+      setStatus("Writing app into free flash…");
+      step("Writing partition + app");
+      await loader.writeFlash({
+        fileArray,
+        flashMode: "keep",
+        flashFreq: "keep",
+        flashSize: "keep",
+        eraseAll: false,
+        compress: true,
+        reportProgress: (i, written, size) => {
+          const done = before[i] + (written / size) * fileArray[i].data.length;
+          setProgress(done / total);
+        },
+      });
+
+      setStatus("Restarting the Cardputer…");
+      step("Restarting");
+      await loader.after("hard_reset");
+      setProgress(1);
+      log(`Done. ${target.name} is on ${plan.entry.label}.`, "ok");
+    } finally {
+      try { await transport.disconnect(); } catch {}
+    }
+
+    finishDialog(true);
+  } catch (err) {
+    if (isPortPickCancelled(err)) {
+      $("dialog").close();
+      return;
+    }
+    if (!$("log").textContent.endsWith("\n")) write("\n");
+    log(String(err?.stack || err), "bad");
+    $("dlgTitle").textContent = `Couldn't add ${target.name}`;
+    let msg = String(err?.message || err);
+    if (/busy|open/i.test(msg)) {
+      msg = "The USB port is busy. Close other tabs or apps using the Cardputer and try again.";
+    }
+    setStatus(`Add failed: ${msg}`, "bad");
+    failure = { target, message: `${err?.name || "Error"}: ${err?.message || err}` };
+    finishDialog(false);
+  } finally {
+    setBusy(false);
+    render();
+  }
+}
+
 async function install(target) {
   if (busy) return;
 
@@ -2855,7 +3010,9 @@ async function install(target) {
     subtitle: "Install firmware",
     text: target.id === "original"
       ? "This replaces whatever is on the Cardputer with the original User Demo."
-      : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
+      : target.launcherBase
+        ? `Flash Mini Launcher onto the Cardputer? This replaces the current firmware and clears packed apps.`
+        : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
     meta,
     okLabel: "Confirm and install",
   });
