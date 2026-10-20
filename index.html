@@ -1991,6 +1991,22 @@ function render() {
 
 $("search").addEventListener("input", (e) => { query = e.target.value; applyFilters(); });
 
+document.addEventListener("keydown", (e) => {
+  if (!(e.metaKey || e.ctrlKey)) return;
+  const key = e.key.toLowerCase();
+  if (key !== "k" && key !== "f") return;
+  if (
+    $("dialog").open ||
+    $("keysDialog").open ||
+    $("confirmDialog").open ||
+    $("heroLightbox").open
+  ) return;
+  e.preventDefault();
+  const search = $("search");
+  search.focus();
+  search.select();
+});
+
 {
   const glow = new WeakMap();
   let raf = 0;
