@@ -2883,12 +2883,14 @@ async function addToLauncher(target) {
   if (busy) return;
   if (!target.parts?.length) return;
 
+  const meta = await confirmMetaFor(target);
   const ok = await askConfirm({
     emoji: "📂",
     title: target.name,
     subtitle: "Add to Mini Launcher",
-    text: `Carve a flash slot for ${target.name} and write only that app. Requires Mini Launcher already installed. Does not replace the launcher.`,
-    okLabel: "Add to launcher",
+    text: "Requires Mini Launcher already installed. Does not replace the launcher.",
+    meta,
+    okLabel: "Add to Mini Launcher",
   });
   if (!ok) return;
 
