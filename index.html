@@ -2362,12 +2362,15 @@ async function filesFromDataTransfer(dt) {
   return [...(dt?.files || [])];
 }
 
-function promptForExtraFile(target) {
+function promptForExtraFile(target, {
+  continueLabel = "Install firmware",
+  status = target.needsFile?.status,
+} = {}) {
   const needs = target.needsFile;
   return new Promise((resolve, reject) => {
     $("filePickEmoji").textContent = target.emoji || "💾";
     $("filePickTitle").textContent = needs.title;
-    $("filePickStatus").textContent = needs.status;
+    $("filePickStatus").textContent = status || needs.status;
     $("dropTitle").textContent = needs.dropTitle;
     $("dropHint").textContent = needs.dropHint;
     $("dropFile").textContent = "";
@@ -2385,7 +2388,7 @@ function promptForExtraFile(target) {
     const continueBtn = $("continueBtn");
     continueBtn.hidden = false;
     continueBtn.disabled = true;
-    continueBtn.textContent = "Install firmware";
+    continueBtn.textContent = continueLabel;
 
     if (!$("dialog").open) $("dialog").showModal();
 
@@ -2923,7 +2926,47 @@ async function addToLauncher(target) {
       title: `Adding ${target.name}`,
       doneTitle: `${target.name} added`,
       doneText: "Power cycle if needed, then open it from Mini Launcher with Enter. Power off returns to the menu.",
+      pickFile: Boolean(target.needsFile),
     });
+
+    // SD helper would replace Mini Launcher, so Add only offers manual Save to SD after packing.
+    if (target.needsFile) {
+      let picked;
+      try {
+        picked = await promptForExtraFile(target, {
+          continueLabel: "Add to Mini Launcher",
+          status: `We'll pack ${target.name} into Mini Launcher, then you can save this file to the SD card.`,
+        });
+      } catch {
+        setBusy(false);
+        render();
+        return;
+      }
+      showProgressView();
+      $("actions").hidden = true;
+      pendingExtra = {
+        needs: target.needsFile,
+        data: picked.data,
+        name: picked.name,
+        appName: target.name,
+      };
+      log(
+        `File ready: ${resolveSdPath(target.needsFile, picked.name)} (${picked.data.length.toLocaleString()} bytes)`,
+        "ok"
+      );
+    }
+
+    if (target.sdAssets) {
+      showProgressView();
+      $("actions").hidden = true;
+      setStatus("Loading asset pack…");
+      step("Loading asset pack");
+      const pack = await loadFile(target.sdAssets.file);
+      log(`Asset pack ready: ${target.sdAssets.file}`, "ok");
+      if (!pendingExtra) {
+        pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack", appName: target.name };
+      }
+    }
 
     setStatus("Looking for the Cardputer…");
     step("Waiting for a USB device");
@@ -3001,9 +3044,25 @@ async function addToLauncher(target) {
       try { await transport.disconnect(); } catch {}
     }
 
-    finishDialog(true);
+    if (pendingExtra && target.needsFile) {
+      $("doneText").textContent =
+        `${target.name} is added. Save the file to the SD card, then open it from Mini Launcher with Enter.`;
+    } else if (pendingExtra && target.sdAssets) {
+      $("doneText").textContent =
+        `${target.name} is added. Save the assets to the SD card, then open it from Mini Launcher with Enter.`;
+    }
+
+    finishDialog(true, {
+      sdPath: pendingExtra && target.needsFile && pendingExtra.kind !== "pack"
+        ? resolveSdPath(target.needsFile, pendingExtra.name)
+        : undefined,
+      sdLabel: (pendingExtra?.kind === "pack" ? target.sdAssets?.buttonText : null)
+        || target.needsFile?.buttonText
+        || target.sdAssets?.buttonText,
+    });
   } catch (err) {
     if (isPortPickCancelled(err)) {
+      pendingExtra = null;
       $("dialog").close();
       return;
     }
@@ -3016,6 +3075,7 @@ async function addToLauncher(target) {
     }
     setStatus(`Add failed: ${msg}`, "bad");
     failure = { target, message: `${err?.name || "Error"}: ${err?.message || err}` };
+    pendingExtra = null;
     finishDialog(false);
   } finally {
     setBusy(false);
