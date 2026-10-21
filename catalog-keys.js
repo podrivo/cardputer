@@ -354,5 +354,21 @@ export const KEYS = {
       ]
     ],
     "source": "https://raw.githubusercontent.com/mindovermiles262/tamaputer/main/README.md"
-  }
+  },
+  "t3-cardputer": {
+    "rows": [
+      ["Enter", "Open the selected thread, send"],
+      ["Bksp", "Back, or delete while typing"],
+      ["N", "New task (on Home)"],
+      ["R", "Refresh"],
+      ["Tab", "Open the waiting approval or question"],
+      ["Y / A / N / T", "Allow once, always allow, deny, deny and say why"],
+      ["1 to 9", "Pick an answer to a question"],
+      ["Enter in a thread", "Queue the reply for after the running turn"],
+      ["Fn+Enter in a thread", "Steer the running turn with the reply"],
+      ["Hold `", "Talk. Release to stop"],
+      ["Fn+S", "Setup: WiFi, relay URL, pairing"],
+    ],
+    "source": "https://raw.githubusercontent.com/joaopcm/t3-cardputer/main/README.md",
+  },
 };

@@ -16,7 +16,7 @@ Firmware images live in [`bins/`](bins/). The page uses [esptool-js](https://git
 | **Games** | Doom, Hazke, Card Craft, Silicon Casino, Puzzles, Battleship, MiniMaze, CardLife, Sound Terrarium, Game Station, Gameboy Enhanced |
 | **Tools** | Mini Launcher, Launcher, Bruce, Evil-Cardputer, Flashlight |
 | **Music** | GLIDE, miniacid, MicroGroove, WebRadio |
-| **AI** | Cardputer AI, AI Offline Chat |
+| **AI** | Cardputer AI, AI Offline Chat, T3 Cardputer |
 | **Mesh** | Meshtastic, Plai, MeshCore, rsCardputer, SSH, Ultimate Remote |
 | **Security** | GhostESP, ChimeraBLE, BadCard, Wi-Fi & BLE Radar, GhostBLE |
 | **Sensing** | CSI Radar, CSI Human Detector, CardSat, IMU Acoustic Analyzer |
