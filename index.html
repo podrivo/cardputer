@@ -1593,9 +1593,6 @@ function openKeysDialog(item, keys) {
 }
 
 $("keysCloseBtn").onclick = () => $("keysDialog").close();
-$("keysDialog").addEventListener("click", (e) => {
-  if (e.target === $("keysDialog")) $("keysDialog").close();
-});
 
 const HERO_EASE = "transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)";
 let heroBusy = false;
@@ -1880,9 +1877,6 @@ async function confirmMetaFor(target) {
 $("confirmOkBtn").onclick = () => settleConfirm(true);
 $("confirmCancelBtn").onclick = () => settleConfirm(false);
 $("confirmAltBtn").onclick = () => settleConfirm("alt");
-$("confirmDialog").addEventListener("click", (e) => {
-  if (e.target === $("confirmDialog")) settleConfirm(false);
-});
 $("confirmDialog").addEventListener("cancel", (e) => {
   e.preventDefault();
   settleConfirm(false);
