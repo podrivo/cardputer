@@ -291,6 +291,9 @@
   .pet.current {
     border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
   }
+  .pet.added {
+    border-color: color-mix(in srgb, var(--secondary) 55%, var(--line));
+  }
   section.danger .section { color: var(--bad); }
   .pet.danger {
     border: 1px dashed color-mix(in srgb, var(--bad) 40%, var(--line));
@@ -389,6 +392,7 @@
   }
   .tag.ok { color: var(--ok); }
   .tag.current { color: var(--accent); }
+  .tag.added { color: var(--secondary); }
   button {
     font: inherit;
     font-size: 14px;
@@ -545,6 +549,9 @@
     width: min(380px, calc(100vw - 32px));
     padding: 22px;
   }
+  #confirmDialog:has(#confirmAltBtn:not([hidden])) { width: min(480px, calc(100vw - 32px)); }
+  #confirmDialog .dlg-actions { flex-wrap: wrap; justify-content: flex-end; }
+  #confirmDialog .dlg-actions button { white-space: nowrap; }
   #keysDialog .dlg-head,
   #confirmDialog .dlg-head { margin-bottom: 20px; }
   #keysDialog .dlg-actions,
@@ -555,7 +562,20 @@
     line-height: 1.45;
     margin: 0;
   }
+  #confirmDialog .confirm-text a {
+    color: var(--secondary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  #confirmDialog .confirm-text a:hover { color: var(--text); }
   #confirmDialog.danger .confirm-text { color: color-mix(in srgb, var(--bad) 70%, var(--muted)); }
+  .pet.flash {
+    animation: pet-flash 1.2s ease;
+  }
+  @keyframes pet-flash {
+    0%, 100% { border-color: var(--line); }
+    30%, 60% { border-color: color-mix(in srgb, var(--secondary) 70%, var(--line)); }
+  }
   #confirmMeta {
     list-style: none;
     margin: 16px 0 0;
@@ -802,6 +822,7 @@
   <ul class="confirm-meta" id="confirmMeta" hidden></ul>
   <div class="dlg-actions">
     <button type="button" class="ghost" id="confirmCancelBtn">Cancel</button>
+    <button type="button" class="ghost" id="confirmAltBtn" hidden></button>
     <button type="button" id="confirmOkBtn">Confirm and install</button>
   </div>
 </dialog>
@@ -849,6 +870,17 @@ import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.7.0/bundle.
 import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 import { EXTRA } from "./catalog-extra.js";
 import { KEYS } from "./catalog-keys.js";
+import {
+  TABLE_OFF,
+  TABLE_SIZE,
+  extractAppImage,
+  listOtaPartitions,
+  parseTable,
+  pickPartitionLabel,
+  planAppendOta,
+  trimAppImage,
+  writeTable,
+} from "./launcher-partition.js";
 
 const bin = (name) => `bins/${name}`;
 
@@ -1069,6 +1101,23 @@ const GAMES = [
 ];
 
 const TOOLS = [
+  {
+    id: "mini-launcher",
+    emoji: "📂",
+    name: "Mini Launcher",
+    repo: "https://github.com/podrivo/cardputer-launcher",
+    desc: "Cycle through multiple apps packed into flash",
+    link: "https://github.com/podrivo/cardputer-launcher#readme",
+    button: "Get",
+    keys: {
+      rows: [
+        ["← / →", "Browse installed apps"],
+        ["↑ / ↓", "Browse (same)"],
+        ["Enter", "Open app (one-shot; power off returns here)"],
+      ],
+      source: "https://github.com/podrivo/cardputer-launcher",
+    },
+  },
   {
     id: "launcher",
     emoji: "🚀",
@@ -1697,7 +1746,7 @@ $("heroLightbox").addEventListener("cancel", (e) => {
   closeHeroLightbox();
 });
 
-/** @type {{ resolve: (ok: boolean) => void } | null} */
+/** @type {{ resolve: (ok: boolean | "alt") => void } | null} */
 let confirmPending = null;
 
 function settleConfirm(ok) {
@@ -1714,13 +1763,17 @@ function askConfirm({
   text,
   meta = [],
   okLabel = "Confirm and install",
+  altLabel = "",
   danger = false,
 }) {
   settleConfirm(false);
   $("confirmEmoji").textContent = emoji || "↺";
   $("confirmTitle").textContent = title;
   $("confirmSubtitle").textContent = subtitle;
-  $("confirmText").textContent = text;
+  const textEl = $("confirmText");
+  textEl.replaceChildren();
+  if (typeof text === "string") textEl.textContent = text;
+  else if (text) textEl.append(text);
   const metaEl = $("confirmMeta");
   metaEl.innerHTML = "";
   metaEl.hidden = !meta.length;
@@ -1737,6 +1790,8 @@ function askConfirm({
   }
   $("confirmOkBtn").textContent = okLabel;
   $("confirmOkBtn").className = danger ? "danger" : "";
+  $("confirmAltBtn").textContent = altLabel;
+  $("confirmAltBtn").hidden = !altLabel;
   $("confirmDialog").classList.toggle("danger", danger);
   return new Promise((resolve) => {
     confirmPending = { resolve };
@@ -1821,6 +1876,7 @@ async function confirmMetaFor(target) {
 
 $("confirmOkBtn").onclick = () => settleConfirm(true);
 $("confirmCancelBtn").onclick = () => settleConfirm(false);
+$("confirmAltBtn").onclick = () => settleConfirm("alt");
 $("confirmDialog").addEventListener("cancel", (e) => {
   e.preventDefault();
   settleConfirm(false);
@@ -1830,10 +1886,32 @@ const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>`;
 const ICON_INSTALL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
 
-function cardEl(item, current, danger) {
+function goToCatalogItem(id) {
+  const card = $("catalog").querySelector(`[data-id="${CSS.escape(id)}"]`);
+  if (!card) return;
+  if (card.classList.contains("hidden") || card.closest("section")?.classList.contains("hidden")) {
+    query = "";
+    $("search").value = "";
+    applyFilters();
+  }
+  const section = card.closest("section");
+  if (section?.dataset.title) setActiveChip(section.dataset.title);
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.remove("flash");
+  void card.offsetWidth;
+  card.classList.add("flash");
+  window.setTimeout(() => card.classList.remove("flash"), 1300);
+}
+
+function cardEl(item, current, danger, added) {
   const el = document.createElement("div");
   const isCurrent = current === item.id;
-  el.className = "pet" + (danger ? " danger" : "") + (isCurrent ? " current" : "");
+  const isAdded = added?.has(item.id);
+  el.className = "pet"
+    + (danger ? " danger" : "")
+    + (isCurrent ? " current" : "")
+    + (isAdded ? " added" : "");
+  el.dataset.id = item.id;
   el.innerHTML = `
     <div class="emoji">${item.emoji}</div>
     <div class="info">
@@ -1859,6 +1937,12 @@ function cardEl(item, current, danger) {
     installed.textContent = "Installed";
     nameRow.appendChild(installed);
   }
+  if (isAdded) {
+    const addedTag = document.createElement("span");
+    addedTag.className = "tag added";
+    addedTag.textContent = "Added";
+    nameRow.appendChild(addedTag);
+  }
   const actions = el.querySelector(".actions");
   if (item.repo) {
     const origin = document.createElement("a");
@@ -1881,6 +1965,13 @@ function cardEl(item, current, danger) {
     keysBtn.innerHTML = ICON_KEYBOARD;
     keysBtn.onclick = () => openKeysDialog(item, keys);
     actions.appendChild(keysBtn);
+  }
+  if (item.link) {
+    const linkBtn = document.createElement("button");
+    linkBtn.textContent = item.button;
+    linkBtn.onclick = () => window.open(item.link, "_blank", "noopener");
+    actions.appendChild(linkBtn);
+    return el;
   }
   const btn = document.createElement("button");
   const btnLabel = item.button || "Install";
@@ -1958,8 +2049,12 @@ function applyFilters() {
   $("empty").hidden = anyVisible;
 }
 
+/** Last firmware installed / apps packed this browser session (not persisted). */
+let installedThisSession = null;
+const addedThisSession = new Set();
+try { localStorage.removeItem("installed"); } catch {}
+
 function render() {
-  const current = localStorage.getItem("installed");
   const catalog = $("catalog");
   catalog.innerHTML = "";
   buttons.length = 0;
@@ -1973,7 +2068,9 @@ function render() {
     section.appendChild(h);
     const grid = document.createElement("div");
     grid.className = "pets";
-    for (const item of block.items) grid.appendChild(cardEl(item, current, block.danger || item.danger));
+    for (const item of block.items) {
+      grid.appendChild(cardEl(item, installedThisSession, block.danger || item.danger, addedThisSession));
+    }
     section.appendChild(grid);
     catalog.appendChild(section);
   }
@@ -2303,12 +2400,15 @@ async function filesFromDataTransfer(dt) {
   return [...(dt?.files || [])];
 }
 
-function promptForExtraFile(target) {
+function promptForExtraFile(target, {
+  continueLabel = "Install firmware",
+  status = target.needsFile?.status,
+} = {}) {
   const needs = target.needsFile;
   return new Promise((resolve, reject) => {
     $("filePickEmoji").textContent = target.emoji || "💾";
     $("filePickTitle").textContent = needs.title;
-    $("filePickStatus").textContent = needs.status;
+    $("filePickStatus").textContent = status || needs.status;
     $("dropTitle").textContent = needs.dropTitle;
     $("dropHint").textContent = needs.dropHint;
     $("dropFile").textContent = "";
@@ -2326,7 +2426,7 @@ function promptForExtraFile(target) {
     const continueBtn = $("continueBtn");
     continueBtn.hidden = false;
     continueBtn.disabled = true;
-    continueBtn.textContent = "Install firmware";
+    continueBtn.textContent = continueLabel;
 
     if (!$("dialog").open) $("dialog").showModal();
 
@@ -2424,7 +2524,14 @@ const SD_HELPER_BIN = bin("sd-writer-helper.bin");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Flash a single merged image at 0x0, hard-reset, then release the port. */
-async function flashMergedAtZero(port, data, label) {
+function flashMergedAtZero(port, data, label) {
+  return flashFiles(port, [{ data, address: 0x0 }], label);
+}
+
+/** Flash images at their addresses, hard-reset, then release the port. */
+async function flashFiles(port, fileArray, label) {
+  const total = fileArray.reduce((n, f) => n + f.data.length, 0);
+  const before = fileArray.map((_, i) => fileArray.slice(0, i).reduce((n, f) => n + f.data.length, 0));
   const transport = new Transport(port, false);
   try {
     const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
@@ -2432,13 +2539,13 @@ async function flashMergedAtZero(port, data, label) {
     log(`Connected to ${chip}`, "ok");
     setStatus(`Writing ${label}…`);
     await loader.writeFlash({
-      fileArray: [{ data, address: 0x0 }],
+      fileArray,
       flashMode: "keep",
       flashFreq: "keep",
       flashSize: "keep",
       eraseAll: false,
       compress: true,
-      reportProgress: (_i, written, size) => setProgress(written / size),
+      reportProgress: (i, written, size) => setProgress((before[i] + (written / size) * fileArray[i].data.length) / total),
     });
     await loader.after("hard_reset");
     setProgress(1);
@@ -2839,21 +2946,491 @@ function resolveFlashAddress(data, address) {
   return address;
 }
 
+/** Append one or more apps onto a fresh Mini Launcher (table grows after each write). */
+async function appendAppsToLauncher(port, apps) {
+  const transport = new Transport(port, false);
+  try {
+    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+    const chip = await loader.main();
+    log(`Connected to ${chip}`, "ok");
+
+    let tableRaw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
+    let tableBytes = tableRaw instanceof Uint8Array ? tableRaw : new Uint8Array(tableRaw);
+    let lastPlan = null;
+
+    for (let i = 0; i < apps.length; i++) {
+      const app = apps[i];
+      const plan = planAppendOta(tableBytes, app.image, { name: app.name });
+      lastPlan = plan;
+      const verb = plan.replaced ? "Replacing" : "Carving";
+      log(
+        `${verb} ${plan.entry.label} @ ${hex(plan.entry.address)} size ${hex(plan.entry.size)} (${plan.otaCount}/16)`,
+        "ok"
+      );
+      const fileArray = [
+        { data: plan.table, address: TABLE_OFF },
+        { data: app.image, address: plan.appOffset },
+      ];
+      const total = fileArray.reduce((n, f) => n + f.data.length, 0);
+      const before = fileArray.map((_, j) => fileArray.slice(0, j).reduce((n, f) => n + f.data.length, 0));
+      setStatus(
+        apps.length > 1
+          ? `Writing apps to Mini Launcher… (${i + 1}/${apps.length})`
+          : plan.replaced
+            ? "Updating app in flash…"
+            : "Writing app into free flash…"
+      );
+      step(apps.length > 1 ? `Writing app ${i + 1}/${apps.length}` : "Writing partition + app");
+      await loader.writeFlash({
+        fileArray,
+        flashMode: "keep",
+        flashFreq: "keep",
+        flashSize: "keep",
+        eraseAll: false,
+        compress: true,
+        reportProgress: (fi, written, size) => {
+          const done = before[fi] + (written / size) * fileArray[fi].data.length;
+          setProgress((i + done / total) / apps.length);
+        },
+      });
+      tableBytes = plan.table;
+    }
+
+    setStatus("Restarting the Cardputer…");
+    step("Restarting");
+    await loader.after("hard_reset");
+    setProgress(1);
+    return lastPlan;
+  } finally {
+    try { await transport.disconnect(); } catch {}
+  }
+}
+
+function mapLauncherPlanError(err, targetName) {
+  const msg = String(err?.message || err);
+  if (/max apps/i.test(msg)) return new Error("Max apps (16) — re-flash Mini Launcher to clear.");
+  if (/not enough space/i.test(msg)) return new Error("Not enough space for this app on the device.");
+  if (/needs more space/i.test(msg)) {
+    return new Error(
+      `${targetName} is already installed but this update is larger than its slot. Re-flash Mini Launcher to repack.`
+    );
+  }
+  if (/Mini Launcher|factory/i.test(msg)) return new Error("Install Mini Launcher first.");
+  return err;
+}
+
+/** Match a packed partition label to a catalog app (for restore without reading flash). */
+function findCatalogByPartitionLabel(label) {
+  const key = String(label || "").toLowerCase().trim();
+  if (!key) return null;
+  for (const block of BLOCKS) {
+    for (const item of block.items || []) {
+      if (!item.parts?.length || item.action === "erase") continue;
+      if (item.name.toLowerCase() === key) return item;
+      if (item.id.toLowerCase() === key) return item;
+      if (pickPartitionLabel(item.name, 0).toLowerCase() === key) return item;
+    }
+  }
+  return null;
+}
+
+/** readFlash in small chunks with retries — large single reads often fail over Web Serial. */
+async function readFlashChunked(loader, address, size, {
+  chunk = 0x4000,
+  retries = 3,
+  onProgress,
+} = {}) {
+  const out = new Uint8Array(size);
+  let off = 0;
+  while (off < size) {
+    const n = Math.min(chunk, size - off);
+    let lastErr;
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const part = await loader.readFlash(address + off, n);
+        const bytes = part instanceof Uint8Array ? part : new Uint8Array(part);
+        out.set(bytes.subarray(0, n), off);
+        lastErr = null;
+        break;
+      } catch (err) {
+        lastErr = err;
+        log(`Flash read retry ${attempt + 1}/${retries} at ${hex(address + off)} (${n} bytes)`);
+        await sleep(250);
+      }
+    }
+    if (lastErr) throw lastErr;
+    off += n;
+    onProgress?.(off, size);
+  }
+  return out;
+}
+
+/** Read an ESP app image from flash, sized from its segment headers instead of the whole partition. */
+async function readAppImage(loader, address) {
+  const header = await readFlashChunked(loader, address, 24);
+  if (header[0] !== 0xe9) throw new Error(`No app image at ${hex(address)}`);
+  let off = 24;
+  for (let i = 0; i < header[1]; i++) {
+    const seg = await readFlashChunked(loader, address + off, 8);
+    off += 8 + new DataView(seg.buffer).getUint32(4, true);
+  }
+  off = (off + 16) & ~15;
+  if (header[23] === 1) off += 32;
+  return readFlashChunked(loader, address, off);
+}
+
+/** Pack an app into the next sized ota_* slot on a Mini Launcher device. */
+async function addToLauncher(target, { confirmed = false } = {}) {
+  if (busy) return;
+  if (!target.parts?.length) return;
+
+  if (!confirmed) {
+    const meta = await confirmMetaFor(target);
+    const confirmCopy = document.createDocumentFragment();
+    confirmCopy.append("Requires ");
+    const launcherLink = document.createElement("a");
+    launcherLink.href = "#mini-launcher";
+    launcherLink.textContent = "Mini Launcher";
+    launcherLink.onclick = (e) => {
+      e.preventDefault();
+      settleConfirm(false);
+      goToCatalogItem("mini-launcher");
+    };
+    confirmCopy.append(launcherLink);
+    confirmCopy.append(" already installed. If this app is already on the device, it will be replaced.");
+    const ok = await askConfirm({
+      emoji: "📂",
+      title: target.name,
+      subtitle: "Add to Mini Launcher",
+      text: confirmCopy,
+      meta,
+      okLabel: "Add to Mini Launcher",
+    });
+    if (!ok) return;
+  }
+
+  setBusy(true);
+  pendingExtra = null;
+
+  try {
+    openDialog({
+      emoji: "📂",
+      title: `Adding ${target.name}`,
+      doneTitle: `${target.name} added`,
+      doneText: "Power cycle if needed, then open it from Mini Launcher with Enter. Power off returns to the menu.",
+      pickFile: Boolean(target.needsFile),
+    });
+
+    /** @type {{ path: string, data: Uint8Array }[]} */
+    let sdFiles = [];
+    let pickedExtra = null;
+
+    if (target.needsFile) {
+      let picked;
+      try {
+        picked = await promptForExtraFile(target, {
+          continueLabel: "Add to Mini Launcher",
+          status: `We'll copy this file to the SD card, then pack ${target.name} into Mini Launcher.`,
+        });
+      } catch {
+        setBusy(false);
+        render();
+        return;
+      }
+      showProgressView();
+      $("actions").hidden = true;
+      const sdPath = resolveSdPath(target.needsFile, picked.name);
+      pickedExtra = {
+        needs: target.needsFile,
+        data: picked.data,
+        name: picked.name,
+        appName: target.name,
+      };
+      sdFiles.push({ path: sdPath, data: picked.data });
+      log(`File ready: ${sdPath} (${picked.data.length.toLocaleString()} bytes)`, "ok");
+    }
+
+    if (target.sdAssets) {
+      showProgressView();
+      $("actions").hidden = true;
+      setStatus("Loading asset pack…");
+      step("Loading asset pack");
+      const pack = await loadFile(target.sdAssets.file);
+      const assets = await filesFromAssetPack(target.sdAssets, pack);
+      sdFiles = sdFiles.concat(assets);
+      log(`Asset pack ready: ${assets.length} files from ${target.sdAssets.file}`, "ok");
+      if (!pickedExtra) {
+        pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack", appName: target.name };
+      }
+    }
+
+    setStatus("Looking for the Cardputer…");
+    step("Waiting for a USB device");
+    const { port, reused } = await resolveSerialPort();
+    const { usbVendorId, usbProductId } = port.getInfo();
+    setStatus(reused ? "Using the saved USB device…" : "USB device selected…");
+    log(`${reused ? "Reusing" : "Selected"} USB device ${usbVendorId?.toString(16)}:${usbProductId?.toString(16)}`);
+
+    setStatus("Loading firmware…");
+    step("Loading firmware files");
+    const part = target.parts[0];
+    const data = await loadFile(part.file);
+    const appImage = extractAppImage(data);
+    log(`${part.file}: app payload ${appImage.length.toLocaleString()} bytes`);
+
+    /** @type {{ label: string, image: Uint8Array }[]} */
+    let packedApps = [];
+    let planLabel = target.name;
+    let wroteViaHelper = false;
+    /** @type {{ data: Uint8Array, address: number }[]} */
+    let launcherBackup = [];
+
+    // SD helper overwrites flash, so back up Mini Launcher and packed apps, write SD, then restore.
+    if (sdFiles.length) {
+      setStatus("Connecting…");
+      step("Reading packed apps");
+      setProgress(0);
+      const transport = new Transport(port, false);
+      try {
+        const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+        const chip = await loader.main();
+        log(`Connected to ${chip}`, "ok");
+
+        setStatus("Reading partition table…");
+        const tableRaw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
+        const tableBytes = tableRaw instanceof Uint8Array ? tableRaw : new Uint8Array(tableRaw);
+
+        let plan;
+        try {
+          plan = planAppendOta(tableBytes, appImage, { name: target.name });
+        } catch (err) {
+          throw mapLauncherPlanError(err, target.name);
+        }
+        planLabel = plan.entry.label;
+        log(
+          `Will ${plan.replaced ? "replace" : "add"} ${plan.entry.label} (${plan.otaCount}/16 slots after)`,
+          "ok"
+        );
+
+        setStatus("Backing up Mini Launcher…");
+        step("Backing up Mini Launcher");
+        const isOta = (e) => e.type === 0 && e.subtype >= 0x10 && e.subtype <= 0x1f;
+        const baseEntries = parseTable(tableBytes).filter((e) => !isOta(e));
+        const factory = baseEntries.find((e) => e.type === 0 && e.subtype === 0);
+        if (!factory) throw new Error("Install Mini Launcher first.");
+        const head = await readFlashChunked(loader, 0, factory.address);
+        head.set(writeTable(baseEntries), TABLE_OFF);
+        const launcherImage = await readAppImage(loader, factory.address);
+        launcherBackup = [
+          { data: head, address: 0 },
+          { data: launcherImage, address: factory.address },
+        ];
+        log(`Backed up Mini Launcher (${(head.length + launcherImage.length).toLocaleString()} bytes)`, "ok");
+
+        const otas = listOtaPartitions(tableBytes);
+        for (let i = 0; i < otas.length; i++) {
+          const ota = otas[i];
+          setStatus(`Backing up packed apps… (${i + 1}/${otas.length})`);
+          step(`Backing up ${ota.label || `ota_${i}`}`);
+
+          // Prefer catalog bins — full-slot readFlash often dies on serial noise at high baud.
+          const catalogItem = findCatalogByPartitionLabel(ota.label);
+          let image;
+          if (catalogItem) {
+            const binData = await loadFile(catalogItem.parts[0].file);
+            image = extractAppImage(binData);
+            log(
+              `Restoring ${ota.label} from catalog (${image.length.toLocaleString()} bytes)`,
+              "ok"
+            );
+          } else {
+            const raw = await readFlashChunked(loader, ota.address, ota.size, {
+              onProgress: (done, total) => {
+                setProgress((i + done / total) / Math.max(otas.length, 1));
+              },
+            });
+            image = trimAppImage(raw);
+            log(`Backed up ${ota.label} from flash (${image.length.toLocaleString()} bytes)`, "ok");
+          }
+          packedApps.push({ label: ota.label, image });
+          setProgress((i + 1) / Math.max(otas.length, 1));
+        }
+      } finally {
+        try { await transport.disconnect(); } catch {}
+      }
+
+      setStatus("Loading SD helper…");
+      step("Flashing SD writer helper");
+      const helper = await loadFile(SD_HELPER_BIN);
+      log(`${SD_HELPER_BIN}: ${helper.length.toLocaleString()} bytes at ${hex(0)}`);
+      await flashMergedAtZero(port, helper, "SD helper");
+      log("SD helper flashed", "ok");
+
+      try {
+        setStatus("Writing files to SD…");
+        step("Writing files to SD via helper");
+        setProgress(0);
+        await writeFilesViaSdHelper(port, sdFiles);
+        wroteViaHelper = true;
+        pendingExtra = null;
+        log(`All ${sdFiles.length} file(s) written to SD`, "ok");
+      } catch (err) {
+        log(`SD helper write failed: ${err?.message || err}`, "bad");
+        if (pickedExtra) pendingExtra = pickedExtra;
+        else if (target.sdAssets && !pendingExtra) {
+          const pack = await loadFile(target.sdAssets.file);
+          pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack", appName: target.name };
+        }
+        log("Falling back to manual SD save after add");
+      }
+
+      setStatus("Restoring Mini Launcher…");
+      step("Restoring Mini Launcher");
+      await flashFiles(port, launcherBackup, "Mini Launcher");
+      log("Mini Launcher restored", "ok");
+
+      const appsToPack = [
+        ...packedApps
+          .filter((a) => a.label.toLowerCase() !== planLabel.toLowerCase())
+          .map((a) => ({ image: a.image, name: a.label })),
+        { image: appImage, name: target.name },
+      ];
+      setStatus("Re-packing apps into Mini Launcher…");
+      step("Re-packing apps");
+      const lastPlan = await appendAppsToLauncher(port, appsToPack);
+      log(
+        lastPlan?.replaced
+          ? `Done. ${target.name} replaced on ${lastPlan.entry.label}.`
+          : `Done. ${target.name} is on ${lastPlan?.entry.label || "Mini Launcher"}.`,
+        "ok"
+      );
+      addedThisSession.add(target.id);
+      if (lastPlan?.replaced) $("doneTitle").textContent = `${target.name} updated`;
+    } else {
+      setStatus("Connecting…");
+      step("Connecting to the Cardputer");
+      setProgress(0);
+      try {
+        const plan = await appendAppsToLauncher(port, [{ image: appImage, name: target.name }]);
+        log(
+          plan?.replaced
+            ? `Done. ${target.name} replaced on ${plan.entry.label}.`
+            : `Done. ${target.name} is on ${plan?.entry.label || "Mini Launcher"}.`,
+          "ok"
+        );
+        addedThisSession.add(target.id);
+        if (plan?.replaced) $("doneTitle").textContent = `${target.name} updated`;
+      } catch (err) {
+        throw mapLauncherPlanError(err, target.name);
+      }
+    }
+
+    if (wroteViaHelper) {
+      $("doneText").textContent = target.needsFile
+        ? `ROM is on the SD card and ${target.name} is added. Open it from Mini Launcher with Enter.`
+        : target.sdAssets
+          ? `Assets are on the SD card and ${target.name} is added. Open it from Mini Launcher with Enter.`
+          : "Power cycle if needed, then open it from Mini Launcher with Enter. Power off returns to the menu.";
+    } else if (pendingExtra && target.needsFile) {
+      $("doneText").textContent =
+        `${target.name} is added. Save the file to the SD card, then open it from Mini Launcher with Enter.`;
+    } else if (pendingExtra && target.sdAssets) {
+      $("doneText").textContent =
+        `${target.name} is added. Save the assets to the SD card, then open it from Mini Launcher with Enter.`;
+    }
+
+    finishDialog(true, {
+      sdPath: pendingExtra && target.needsFile && pendingExtra.kind !== "pack"
+        ? resolveSdPath(target.needsFile, pendingExtra.name)
+        : undefined,
+      sdLabel: (pendingExtra?.kind === "pack" ? target.sdAssets?.buttonText : null)
+        || target.needsFile?.buttonText
+        || target.sdAssets?.buttonText,
+    });
+  } catch (err) {
+    if (isPortPickCancelled(err)) {
+      pendingExtra = null;
+      $("dialog").close();
+      return;
+    }
+    if (!$("log").textContent.endsWith("\n")) write("\n");
+    log(String(err?.stack || err), "bad");
+    $("dlgTitle").textContent = `Couldn't add ${target.name}`;
+    let msg = String(err?.message || err);
+    if (/busy|open/i.test(msg)) {
+      msg = "The USB port is busy. Close other tabs or apps using the Cardputer and try again.";
+    }
+    setStatus(`Add failed: ${msg}`, "bad");
+    failure = { target, message: `${err?.name || "Error"}: ${err?.message || err}` };
+    pendingExtra = null;
+    finishDialog(false);
+  } finally {
+    setBusy(false);
+    render();
+  }
+}
+
+/** Mini Launcher's base partition table; must match cardputer-launcher's partitions.csv. */
+const MINI_LAUNCHER_TABLE = [
+  { label: "nvs", type: 1, subtype: 2, address: 0x9000, size: 0x6000 },
+  { label: "otadata", type: 1, subtype: 0, address: 0xf000, size: 0x2000 },
+  { label: "phy_init", type: 1, subtype: 1, address: 0x11000, size: 0x1000 },
+  { label: "factory", type: 0, subtype: 0, address: 0x20000, size: 0x100000 },
+];
+
+/** True when the device's partition table is Mini Launcher's base table plus packed ota_* slots. */
+async function deviceHasMiniLauncher(port) {
+  const base = MINI_LAUNCHER_TABLE;
+  const transport = new Transport(port, false);
+  try {
+    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+    await loader.main();
+    const raw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
+    const tableBytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw);
+    await loader.after("hard_reset");
+    const entries = parseTable(tableBytes);
+    const same = (a, b) => a.label === b.label && a.type === b.type && a.subtype === b.subtype
+      && a.address === b.address && a.size === b.size;
+    return base.every((b) => entries.some((e) => same(e, b)))
+      && entries.length === base.length + listOtaPartitions(tableBytes).length;
+  } finally {
+    try { await transport.disconnect(); } catch {}
+  }
+}
+
 async function install(target) {
   if (busy) return;
+
+  let launcherDetected = false;
+  if (target.parts?.length && target.action !== "erase") {
+    setBusy(true);
+    try {
+      const { port } = await resolveSerialPort();
+      launcherDetected = await deviceHasMiniLauncher(port);
+    } catch (err) {
+      if (isPortPickCancelled(err)) return;
+      console.warn("Mini Launcher detection failed", err);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const meta = await confirmMetaFor(target);
   const ok = await askConfirm({
     emoji: target.emoji,
     title: target.name,
-    subtitle: "Install firmware",
-    text: target.id === "original"
-      ? "This replaces whatever is on the Cardputer with the original User Demo."
-      : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
+    subtitle: launcherDetected ? "Mini Launcher detected" : "Install firmware",
+    text: launcherDetected
+      ? `Install ${target.name} and replace everything on the Cardputer, or add it to Mini Launcher and keep your packed apps.`
+      : target.id === "original"
+        ? "This replaces whatever is on the Cardputer with the original User Demo."
+        : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
     meta,
     okLabel: "Confirm and install",
+    altLabel: launcherDetected ? "Add to Mini Launcher" : "",
   });
   if (!ok) return;
+  if (ok === "alt") return addToLauncher(target, { confirmed: true });
 
   setBusy(true);
   pendingExtra = null;
@@ -2988,7 +3565,8 @@ async function install(target) {
       await loader.after("hard_reset");
       setProgress(1);
       log(`Done. ${target.name} is installed.`, "ok");
-      localStorage.setItem("installed", target.id);
+      installedThisSession = target.id;
+      addedThisSession.clear();
     } finally {
       try { await transport.disconnect(); } catch {}
     }
@@ -3080,7 +3658,8 @@ async function eraseDevice() {
     setStatus("Restarting the Cardputer…");
     step("Restarting");
     await loader.after("hard_reset");
-    localStorage.removeItem("installed");
+    installedThisSession = null;
+    addedThisSession.clear();
     finishDialog(true);
   } catch (err) {
     if (isPortPickCancelled(err)) {

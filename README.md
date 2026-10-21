@@ -14,7 +14,7 @@ Firmware images live in [`bins/`](bins/). The page uses [esptool-js](https://git
 |---|---|
 | **Pets** | Demonym, ViperPet, Raising Hell, Tamaputer |
 | **Games** | Doom, Hazke, Card Craft, Silicon Casino, Puzzles, Battleship, MiniMaze, CardLife, Sound Terrarium, Game Station, Gameboy Enhanced |
-| **Tools** | Launcher, Bruce, Evil-Cardputer, Flashlight |
+| **Tools** | Mini Launcher, Launcher, Bruce, Evil-Cardputer, Flashlight |
 | **Music** | GLIDE, miniacid, MicroGroove, WebRadio |
 | **AI** | Cardputer AI, AI Offline Chat |
 | **Mesh** | Meshtastic, Plai, MeshCore, rsCardputer, SSH, Ultimate Remote |
@@ -43,6 +43,17 @@ Re-run after adding catalog entries, or when upstream READMEs change. Manual ove
 4. Wait for the write to finish; the device restarts on its own.
 
 Serve the folder over HTTP if you want `bins/` to load automatically (e.g. Netlify, or `npx serve .`). Opening `index.html` as `file://` still works: the page will ask you to pick the `.bin` from `bins/` when it can't fetch it.
+
+### Mini Launcher (pack apps in flash)
+
+[Mini Launcher](https://github.com/podrivo/cardputer-launcher) is a tiny factory menu. Apps are packed into free flash over USB (each takes only the space it needs, up to 16).
+
+1. Install Mini Launcher once from [its repo](https://github.com/podrivo/cardputer-launcher) (replaces the flash layout). This catalog doesn't ship the launcher binary.
+2. On other catalog apps, click **Install**. If Mini Launcher is detected on the device, choose **Add to Mini Launcher** to carve the next `ota_*` slot and write that app only.
+3. On device: **← / →** browse, **Enter** open. Power off always returns to the launcher.
+4. Choosing **Confirm and install** wipes the launcher layout. To clear packed apps, reinstall Mini Launcher from its repo.
+
+If flash is full or you already have 16 apps, adding stops with a clear error.
 
 **Restore original** flashes M5Stack's [Cardputer-Adv User Demo v0.3](https://github.com/m5stack/M5Cardputer-UserDemo/releases/tag/ADV-V0.3) (`cardputer-adv-user-demo-v0.3.bin`) after erasing the flash. It's a merged image (bootloader, partition table, app at `0x10000`), byte-identical on [M5Burner](https://m5burner-cdn.m5stack.com/firmware/4ed4ab3a388a74e805971f37d6adcc9f.bin) and the GitHub release.
 
