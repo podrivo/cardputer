@@ -1,0 +1,7 @@
+[build]
+  command = "node scripts/export-catalog-meta.mjs"
+  publish = "."
+
+[[edge_functions]]
+  path = "/"
+  function = "installer-og"

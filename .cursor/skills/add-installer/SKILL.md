@@ -56,7 +56,8 @@ Checklist for every new catalog entry. Do not skip items.
 2. Add the object to the right list in `index.html` (`PETS`, `GAMES`, `TOOLS`, …) or `catalog-extra.js`.
 3. Use `parts: [{ file: bin("….bin"), address: 0x0 }]` (or the `file: "bins/…"` form in extras).
 4. Update the README catalog examples row if the section’s highlighted apps changed.
-5. Re-run the checklist above before committing.
+5. Refresh Open Graph share metadata: `npm run export-meta` (writes `catalog-meta.json` for Netlify edge OG tags on `?i=<id>` links).
+6. Re-run the checklist above before committing.
 
 ## Done when
 
@@ -65,3 +66,4 @@ Checklist for every new catalog entry. Do not skip items.
 - [ ] ADV suitability verified (TCA8418 and/or ADV docs)
 - [ ] Keys added when controls exist upstream
 - [ ] Tag added only if needed, matching existing wording
+- [ ] `catalog-meta.json` regenerated (`npm run export-meta`)
