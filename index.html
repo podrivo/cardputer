@@ -879,6 +879,7 @@ import {
   pickPartitionLabel,
   planAppendOta,
   trimAppImage,
+  writeTable,
 } from "./launcher-partition.js";
 
 const bin = (name) => `bins/${name}`;
@@ -1106,7 +1107,8 @@ const TOOLS = [
     name: "Mini Launcher",
     repo: "https://github.com/podrivo/cardputer-launcher",
     desc: "Cycle through multiple apps packed into flash",
-    launcherBase: true,
+    link: "https://github.com/podrivo/cardputer-launcher#readme",
+    button: "Get",
     keys: {
       rows: [
         ["← / →", "Browse installed apps"],
@@ -1115,7 +1117,6 @@ const TOOLS = [
       ],
       source: "https://github.com/podrivo/cardputer-launcher",
     },
-    parts: [{ file: bin("cardputer_launcher.bin"), address: 0x0 }],
   },
   {
     id: "launcher",
@@ -1971,6 +1972,13 @@ function cardEl(item, current, danger, added) {
     keysBtn.onclick = () => openKeysDialog(item, keys);
     actions.appendChild(keysBtn);
   }
+  if (item.link) {
+    const linkBtn = document.createElement("button");
+    linkBtn.textContent = item.button;
+    linkBtn.onclick = () => window.open(item.link, "_blank", "noopener");
+    actions.appendChild(linkBtn);
+    return el;
+  }
   const btn = document.createElement("button");
   const btnLabel = item.button || "Install";
   if (item.buttonClass) btn.className = item.buttonClass;
@@ -2522,7 +2530,14 @@ const SD_HELPER_BIN = bin("sd-writer-helper.bin");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Flash a single merged image at 0x0, hard-reset, then release the port. */
-async function flashMergedAtZero(port, data, label) {
+function flashMergedAtZero(port, data, label) {
+  return flashFiles(port, [{ data, address: 0x0 }], label);
+}
+
+/** Flash images at their addresses, hard-reset, then release the port. */
+async function flashFiles(port, fileArray, label) {
+  const total = fileArray.reduce((n, f) => n + f.data.length, 0);
+  const before = fileArray.map((_, i) => fileArray.slice(0, i).reduce((n, f) => n + f.data.length, 0));
   const transport = new Transport(port, false);
   try {
     const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
@@ -2530,13 +2545,13 @@ async function flashMergedAtZero(port, data, label) {
     log(`Connected to ${chip}`, "ok");
     setStatus(`Writing ${label}…`);
     await loader.writeFlash({
-      fileArray: [{ data, address: 0x0 }],
+      fileArray,
       flashMode: "keep",
       flashFreq: "keep",
       flashSize: "keep",
       eraseAll: false,
       compress: true,
-      reportProgress: (_i, written, size) => setProgress(written / size),
+      reportProgress: (i, written, size) => setProgress((before[i] + (written / size) * fileArray[i].data.length) / total),
     });
     await loader.after("hard_reset");
     setProgress(1);
@@ -3016,7 +3031,7 @@ function findCatalogByPartitionLabel(label) {
   if (!key) return null;
   for (const block of BLOCKS) {
     for (const item of block.items || []) {
-      if (!item.parts?.length || item.launcherBase || item.action === "erase") continue;
+      if (!item.parts?.length || item.action === "erase") continue;
       if (item.name.toLowerCase() === key) return item;
       if (item.id.toLowerCase() === key) return item;
       if (pickPartitionLabel(item.name, 0).toLowerCase() === key) return item;
@@ -3054,6 +3069,20 @@ async function readFlashChunked(loader, address, size, {
     onProgress?.(off, size);
   }
   return out;
+}
+
+/** Read an ESP app image from flash, sized from its segment headers instead of the whole partition. */
+async function readAppImage(loader, address) {
+  const header = await readFlashChunked(loader, address, 24);
+  if (header[0] !== 0xe9) throw new Error(`No app image at ${hex(address)}`);
+  let off = 24;
+  for (let i = 0; i < header[1]; i++) {
+    const seg = await readFlashChunked(loader, address + off, 8);
+    off += 8 + new DataView(seg.buffer).getUint32(4, true);
+  }
+  off = (off + 16) & ~15;
+  if (header[23] === 1) off += 32;
+  return readFlashChunked(loader, address, off);
 }
 
 /** Pack an app into the next sized ota_* slot on a Mini Launcher device. */
@@ -3159,8 +3188,10 @@ async function addToLauncher(target, { confirmed = false } = {}) {
     let packedApps = [];
     let planLabel = target.name;
     let wroteViaHelper = false;
+    /** @type {{ data: Uint8Array, address: number }[]} */
+    let launcherBackup = [];
 
-    // SD helper overwrites flash, so back up packed apps, write SD, then restore Mini Launcher.
+    // SD helper overwrites flash, so back up Mini Launcher and packed apps, write SD, then restore.
     if (sdFiles.length) {
       setStatus("Connecting…");
       step("Reading packed apps");
@@ -3186,6 +3217,21 @@ async function addToLauncher(target, { confirmed = false } = {}) {
           `Will ${plan.replaced ? "replace" : "add"} ${plan.entry.label} (${plan.otaCount}/16 slots after)`,
           "ok"
         );
+
+        setStatus("Backing up Mini Launcher…");
+        step("Backing up Mini Launcher");
+        const isOta = (e) => e.type === 0 && e.subtype >= 0x10 && e.subtype <= 0x1f;
+        const baseEntries = parseTable(tableBytes).filter((e) => !isOta(e));
+        const factory = baseEntries.find((e) => e.type === 0 && e.subtype === 0);
+        if (!factory) throw new Error("Install Mini Launcher first.");
+        const head = await readFlashChunked(loader, 0, factory.address);
+        head.set(writeTable(baseEntries), TABLE_OFF);
+        const launcherImage = await readAppImage(loader, factory.address);
+        launcherBackup = [
+          { data: head, address: 0 },
+          { data: launcherImage, address: factory.address },
+        ];
+        log(`Backed up Mini Launcher (${(head.length + launcherImage.length).toLocaleString()} bytes)`, "ok");
 
         const otas = listOtaPartitions(tableBytes);
         for (let i = 0; i < otas.length; i++) {
@@ -3244,12 +3290,9 @@ async function addToLauncher(target, { confirmed = false } = {}) {
         log("Falling back to manual SD save after add");
       }
 
-      const miniLauncher = TOOLS.find((t) => t.launcherBase);
-      if (!miniLauncher?.parts?.[0]) throw new Error("Mini Launcher firmware missing from catalog");
       setStatus("Restoring Mini Launcher…");
       step("Restoring Mini Launcher");
-      const launcherBin = await loadFile(miniLauncher.parts[0].file);
-      await flashMergedAtZero(port, launcherBin, "Mini Launcher");
+      await flashFiles(port, launcherBackup, "Mini Launcher");
       log("Mini Launcher restored", "ok");
 
       const appsToPack = [
@@ -3333,11 +3376,17 @@ async function addToLauncher(target, { confirmed = false } = {}) {
   }
 }
 
+/** Mini Launcher's base partition table; must match cardputer-launcher's partitions.csv. */
+const MINI_LAUNCHER_TABLE = [
+  { label: "nvs", type: 1, subtype: 2, address: 0x9000, size: 0x6000 },
+  { label: "otadata", type: 1, subtype: 0, address: 0xf000, size: 0x2000 },
+  { label: "phy_init", type: 1, subtype: 1, address: 0x11000, size: 0x1000 },
+  { label: "factory", type: 0, subtype: 0, address: 0x20000, size: 0x100000 },
+];
+
 /** True when the device's partition table is Mini Launcher's base table plus packed ota_* slots. */
 async function deviceHasMiniLauncher(port) {
-  const miniLauncher = TOOLS.find((t) => t.launcherBase);
-  const launcherBin = await loadFile(miniLauncher.parts[0].file);
-  const base = parseTable(launcherBin.subarray(TABLE_OFF, TABLE_OFF + TABLE_SIZE));
+  const base = MINI_LAUNCHER_TABLE;
   const transport = new Transport(port, false);
   try {
     const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
@@ -3359,7 +3408,7 @@ async function install(target) {
   if (busy) return;
 
   let launcherDetected = false;
-  if (target.parts?.length && !target.launcherBase && target.action !== "erase") {
+  if (target.parts?.length && target.action !== "erase") {
     setBusy(true);
     try {
       const { port } = await resolveSerialPort();
@@ -3381,9 +3430,7 @@ async function install(target) {
       ? `Install ${target.name} and replace everything on the Cardputer, or add it to Mini Launcher and keep your packed apps.`
       : target.id === "original"
         ? "This replaces whatever is on the Cardputer with the original User Demo."
-        : target.launcherBase
-          ? `Flash Mini Launcher onto the Cardputer? This replaces the current firmware and clears packed apps.`
-          : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
+        : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
     meta,
     okLabel: "Confirm and install",
     altLabel: launcherDetected ? "Add to Mini Launcher" : "",

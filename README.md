@@ -48,10 +48,10 @@ Serve the folder over HTTP if you want `bins/` to load automatically (e.g. Netli
 
 [Mini Launcher](https://github.com/podrivo/cardputer-launcher) is a tiny factory menu. Apps are packed into free flash over USB (each takes only the space it needs, up to 16).
 
-1. **Install** Mini Launcher once (replaces the flash layout).
+1. Install Mini Launcher once from [its repo](https://github.com/podrivo/cardputer-launcher) (replaces the flash layout). This catalog doesn't ship the launcher binary.
 2. On other catalog apps, click **Install**. If Mini Launcher is detected on the device, choose **Add to Mini Launcher** to carve the next `ota_*` slot and write that app only.
 3. On device: **← / →** browse, **Enter** open. Power off always returns to the launcher.
-4. Choosing **Confirm and install** wipes the launcher layout. To clear packed apps, re-install Mini Launcher.
+4. Choosing **Confirm and install** wipes the launcher layout. To clear packed apps, reinstall Mini Launcher from its repo.
 
 If flash is full or you already have 16 apps, adding stops with a clear error.
 
