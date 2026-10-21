@@ -549,6 +549,9 @@
     width: min(380px, calc(100vw - 32px));
     padding: 22px;
   }
+  #confirmDialog:has(#confirmAltBtn:not([hidden])) { width: min(480px, calc(100vw - 32px)); }
+  #confirmDialog .dlg-actions { flex-wrap: wrap; justify-content: flex-end; }
+  #confirmDialog .dlg-actions button { white-space: nowrap; }
   #keysDialog .dlg-head,
   #confirmDialog .dlg-head { margin-bottom: 20px; }
   #keysDialog .dlg-actions,
@@ -819,6 +822,7 @@
   <ul class="confirm-meta" id="confirmMeta" hidden></ul>
   <div class="dlg-actions">
     <button type="button" class="ghost" id="confirmCancelBtn">Cancel</button>
+    <button type="button" class="ghost" id="confirmAltBtn" hidden></button>
     <button type="button" id="confirmOkBtn">Confirm and install</button>
   </div>
 </dialog>
@@ -871,6 +875,7 @@ import {
   TABLE_SIZE,
   extractAppImage,
   listOtaPartitions,
+  parseTable,
   pickPartitionLabel,
   planAppendOta,
   trimAppImage,
@@ -1743,7 +1748,7 @@ $("heroLightbox").addEventListener("cancel", (e) => {
   closeHeroLightbox();
 });
 
-/** @type {{ resolve: (ok: boolean) => void } | null} */
+/** @type {{ resolve: (ok: boolean | "alt") => void } | null} */
 let confirmPending = null;
 
 function settleConfirm(ok) {
@@ -1760,6 +1765,7 @@ function askConfirm({
   text,
   meta = [],
   okLabel = "Confirm and install",
+  altLabel = "",
   danger = false,
 }) {
   settleConfirm(false);
@@ -1786,6 +1792,8 @@ function askConfirm({
   }
   $("confirmOkBtn").textContent = okLabel;
   $("confirmOkBtn").className = danger ? "danger" : "";
+  $("confirmAltBtn").textContent = altLabel;
+  $("confirmAltBtn").hidden = !altLabel;
   $("confirmDialog").classList.toggle("danger", danger);
   return new Promise((resolve) => {
     confirmPending = { resolve };
@@ -1870,6 +1878,7 @@ async function confirmMetaFor(target) {
 
 $("confirmOkBtn").onclick = () => settleConfirm(true);
 $("confirmCancelBtn").onclick = () => settleConfirm(false);
+$("confirmAltBtn").onclick = () => settleConfirm("alt");
 $("confirmDialog").addEventListener("click", (e) => {
   if (e.target === $("confirmDialog")) settleConfirm(false);
 });
@@ -1961,16 +1970,6 @@ function cardEl(item, current, danger, added) {
     keysBtn.innerHTML = ICON_KEYBOARD;
     keysBtn.onclick = () => openKeysDialog(item, keys);
     actions.appendChild(keysBtn);
-  }
-  if (item.parts && !item.launcherBase && item.action !== "erase") {
-    const addBtn = document.createElement("button");
-    addBtn.className = "ghost";
-    addBtn.textContent = "Add";
-    addBtn.dataset.tip = "Add to Mini Launcher";
-    addBtn.setAttribute("aria-label", "Add to Mini Launcher");
-    addBtn.onclick = () => addToLauncher(item);
-    actions.appendChild(addBtn);
-    buttons.push(addBtn);
   }
   const btn = document.createElement("button");
   const btnLabel = item.button || "Install";
@@ -3007,7 +3006,7 @@ function mapLauncherPlanError(err, targetName) {
       `${targetName} is already installed but this update is larger than its slot. Re-flash Mini Launcher to repack.`
     );
   }
-  if (/Mini Launcher|factory/i.test(msg)) return new Error("Install Mini Launcher first, then use Add.");
+  if (/Mini Launcher|factory/i.test(msg)) return new Error("Install Mini Launcher first.");
   return err;
 }
 
@@ -3058,32 +3057,34 @@ async function readFlashChunked(loader, address, size, {
 }
 
 /** Pack an app into the next sized ota_* slot on a Mini Launcher device. */
-async function addToLauncher(target) {
+async function addToLauncher(target, { confirmed = false } = {}) {
   if (busy) return;
   if (!target.parts?.length) return;
 
-  const meta = await confirmMetaFor(target);
-  const confirmCopy = document.createDocumentFragment();
-  confirmCopy.append("Requires ");
-  const launcherLink = document.createElement("a");
-  launcherLink.href = "#mini-launcher";
-  launcherLink.textContent = "Mini Launcher";
-  launcherLink.onclick = (e) => {
-    e.preventDefault();
-    settleConfirm(false);
-    goToCatalogItem("mini-launcher");
-  };
-  confirmCopy.append(launcherLink);
-  confirmCopy.append(" already installed. If this app is already on the device, it will be replaced.");
-  const ok = await askConfirm({
-    emoji: "📂",
-    title: target.name,
-    subtitle: "Add to Mini Launcher",
-    text: confirmCopy,
-    meta,
-    okLabel: "Add to Mini Launcher",
-  });
-  if (!ok) return;
+  if (!confirmed) {
+    const meta = await confirmMetaFor(target);
+    const confirmCopy = document.createDocumentFragment();
+    confirmCopy.append("Requires ");
+    const launcherLink = document.createElement("a");
+    launcherLink.href = "#mini-launcher";
+    launcherLink.textContent = "Mini Launcher";
+    launcherLink.onclick = (e) => {
+      e.preventDefault();
+      settleConfirm(false);
+      goToCatalogItem("mini-launcher");
+    };
+    confirmCopy.append(launcherLink);
+    confirmCopy.append(" already installed. If this app is already on the device, it will be replaced.");
+    const ok = await askConfirm({
+      emoji: "📂",
+      title: target.name,
+      subtitle: "Add to Mini Launcher",
+      text: confirmCopy,
+      meta,
+      okLabel: "Add to Mini Launcher",
+    });
+    if (!ok) return;
+  }
 
   setBusy(true);
   pendingExtra = null;
@@ -3332,23 +3333,63 @@ async function addToLauncher(target) {
   }
 }
 
+/** True when the device's partition table is Mini Launcher's base table plus packed ota_* slots. */
+async function deviceHasMiniLauncher(port) {
+  const miniLauncher = TOOLS.find((t) => t.launcherBase);
+  const launcherBin = await loadFile(miniLauncher.parts[0].file);
+  const base = parseTable(launcherBin.subarray(TABLE_OFF, TABLE_OFF + TABLE_SIZE));
+  const transport = new Transport(port, false);
+  try {
+    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+    await loader.main();
+    const raw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
+    const tableBytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw);
+    await loader.after("hard_reset");
+    const entries = parseTable(tableBytes);
+    const same = (a, b) => a.label === b.label && a.type === b.type && a.subtype === b.subtype
+      && a.address === b.address && a.size === b.size;
+    return base.every((b) => entries.some((e) => same(e, b)))
+      && entries.length === base.length + listOtaPartitions(tableBytes).length;
+  } finally {
+    try { await transport.disconnect(); } catch {}
+  }
+}
+
 async function install(target) {
   if (busy) return;
+
+  let launcherDetected = false;
+  if (target.parts?.length && !target.launcherBase && target.action !== "erase") {
+    setBusy(true);
+    try {
+      const { port } = await resolveSerialPort();
+      launcherDetected = await deviceHasMiniLauncher(port);
+    } catch (err) {
+      if (isPortPickCancelled(err)) return;
+      console.warn("Mini Launcher detection failed", err);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const meta = await confirmMetaFor(target);
   const ok = await askConfirm({
     emoji: target.emoji,
     title: target.name,
-    subtitle: "Install firmware",
-    text: target.id === "original"
-      ? "This replaces whatever is on the Cardputer with the original User Demo."
-      : target.launcherBase
-        ? `Flash Mini Launcher onto the Cardputer? This replaces the current firmware and clears packed apps.`
-        : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
+    subtitle: launcherDetected ? "Mini Launcher detected" : "Install firmware",
+    text: launcherDetected
+      ? `Install ${target.name} and replace everything on the Cardputer, or add it to Mini Launcher and keep your packed apps.`
+      : target.id === "original"
+        ? "This replaces whatever is on the Cardputer with the original User Demo."
+        : target.launcherBase
+          ? `Flash Mini Launcher onto the Cardputer? This replaces the current firmware and clears packed apps.`
+          : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
     meta,
     okLabel: "Confirm and install",
+    altLabel: launcherDetected ? "Add to Mini Launcher" : "",
   });
   if (!ok) return;
+  if (ok === "alt") return addToLauncher(target, { confirmed: true });
 
   setBusy(true);
   pendingExtra = null;
