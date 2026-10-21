@@ -265,6 +265,25 @@ export function pickPartitionLabel(name, index) {
     .slice(0, 15) || `ota_${index}`;
 }
 
+/** OTA app slots currently carved on a Mini Launcher device (ota_0 … ota_15). */
+export function listOtaPartitions(tableBytes) {
+  return parseTable(tableBytes)
+    .filter(
+      (e) => e.type === TYPE_APP && e.subtype >= SUB_OTA_0 && e.subtype <= SUB_OTA_0 + 15
+    )
+    .sort((a, b) => a.subtype - b.subtype);
+}
+
+/** Trim trailing 0xFF from a flash-read app partition. */
+export function trimAppImage(data) {
+  let len = data.length;
+  while (len > 0 && data[len - 1] === 0xff) len--;
+  if (len === 0 || data[0] !== 0xe9) {
+    throw new Error("Packed app slot has no valid image");
+  }
+  return data.subarray(0, len);
+}
+
 export function planAppendOta(tableBytes, appImage, opts = {}) {
   if (appImage[0] !== 0xe9) throw new Error("App image missing 0xe9 magic");
   const entries = parseTable(tableBytes);

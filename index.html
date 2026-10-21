@@ -857,7 +857,9 @@ import {
   TABLE_OFF,
   TABLE_SIZE,
   extractAppImage,
+  listOtaPartitions,
   planAppendOta,
+  trimAppImage,
 } from "./launcher-partition.js";
 
 const bin = (name) => `bins/${name}`;
@@ -2901,6 +2903,79 @@ function resolveFlashAddress(data, address) {
   return address;
 }
 
+/** Append one or more apps onto a fresh Mini Launcher (table grows after each write). */
+async function appendAppsToLauncher(port, apps) {
+  const transport = new Transport(port, false);
+  try {
+    const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+    const chip = await loader.main();
+    log(`Connected to ${chip}`, "ok");
+
+    let tableRaw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
+    let tableBytes = tableRaw instanceof Uint8Array ? tableRaw : new Uint8Array(tableRaw);
+    let lastPlan = null;
+
+    for (let i = 0; i < apps.length; i++) {
+      const app = apps[i];
+      const plan = planAppendOta(tableBytes, app.image, { name: app.name });
+      lastPlan = plan;
+      const verb = plan.replaced ? "Replacing" : "Carving";
+      log(
+        `${verb} ${plan.entry.label} @ ${hex(plan.entry.address)} size ${hex(plan.entry.size)} (${plan.otaCount}/16)`,
+        "ok"
+      );
+      const fileArray = [
+        { data: plan.table, address: TABLE_OFF },
+        { data: app.image, address: plan.appOffset },
+      ];
+      const total = fileArray.reduce((n, f) => n + f.data.length, 0);
+      const before = fileArray.map((_, j) => fileArray.slice(0, j).reduce((n, f) => n + f.data.length, 0));
+      setStatus(
+        apps.length > 1
+          ? `Writing apps to Mini Launcher… (${i + 1}/${apps.length})`
+          : plan.replaced
+            ? "Updating app in flash…"
+            : "Writing app into free flash…"
+      );
+      step(apps.length > 1 ? `Writing app ${i + 1}/${apps.length}` : "Writing partition + app");
+      await loader.writeFlash({
+        fileArray,
+        flashMode: "keep",
+        flashFreq: "keep",
+        flashSize: "keep",
+        eraseAll: false,
+        compress: true,
+        reportProgress: (fi, written, size) => {
+          const done = before[fi] + (written / size) * fileArray[fi].data.length;
+          setProgress((i + done / total) / apps.length);
+        },
+      });
+      tableBytes = plan.table;
+    }
+
+    setStatus("Restarting the Cardputer…");
+    step("Restarting");
+    await loader.after("hard_reset");
+    setProgress(1);
+    return lastPlan;
+  } finally {
+    try { await transport.disconnect(); } catch {}
+  }
+}
+
+function mapLauncherPlanError(err, targetName) {
+  const msg = String(err?.message || err);
+  if (/max apps/i.test(msg)) return new Error("Max apps (16) — re-flash Mini Launcher to clear.");
+  if (/not enough space/i.test(msg)) return new Error("Not enough space for this app on the device.");
+  if (/needs more space/i.test(msg)) {
+    return new Error(
+      `${targetName} is already installed but this update is larger than its slot. Re-flash Mini Launcher to repack.`
+    );
+  }
+  if (/Mini Launcher|factory/i.test(msg)) return new Error("Install Mini Launcher first, then use Add.");
+  return err;
+}
+
 /** Pack an app into the next sized ota_* slot on a Mini Launcher device. */
 async function addToLauncher(target) {
   if (busy) return;
@@ -2929,13 +3004,16 @@ async function addToLauncher(target) {
       pickFile: Boolean(target.needsFile),
     });
 
-    // SD helper would replace Mini Launcher, so Add only offers manual Save to SD after packing.
+    /** @type {{ path: string, data: Uint8Array }[]} */
+    let sdFiles = [];
+    let pickedExtra = null;
+
     if (target.needsFile) {
       let picked;
       try {
         picked = await promptForExtraFile(target, {
           continueLabel: "Add to Mini Launcher",
-          status: `We'll pack ${target.name} into Mini Launcher, then you can save this file to the SD card.`,
+          status: `We'll copy this file to the SD card, then pack ${target.name} into Mini Launcher.`,
         });
       } catch {
         setBusy(false);
@@ -2944,16 +3022,15 @@ async function addToLauncher(target) {
       }
       showProgressView();
       $("actions").hidden = true;
-      pendingExtra = {
+      const sdPath = resolveSdPath(target.needsFile, picked.name);
+      pickedExtra = {
         needs: target.needsFile,
         data: picked.data,
         name: picked.name,
         appName: target.name,
       };
-      log(
-        `File ready: ${resolveSdPath(target.needsFile, picked.name)} (${picked.data.length.toLocaleString()} bytes)`,
-        "ok"
-      );
+      sdFiles.push({ path: sdPath, data: picked.data });
+      log(`File ready: ${sdPath} (${picked.data.length.toLocaleString()} bytes)`, "ok");
     }
 
     if (target.sdAssets) {
@@ -2962,8 +3039,10 @@ async function addToLauncher(target) {
       setStatus("Loading asset pack…");
       step("Loading asset pack");
       const pack = await loadFile(target.sdAssets.file);
-      log(`Asset pack ready: ${target.sdAssets.file}`, "ok");
-      if (!pendingExtra) {
+      const assets = await filesFromAssetPack(target.sdAssets, pack);
+      sdFiles = sdFiles.concat(assets);
+      log(`Asset pack ready: ${assets.length} files from ${target.sdAssets.file}`, "ok");
+      if (!pickedExtra) {
         pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack", appName: target.name };
       }
     }
@@ -2982,83 +3061,130 @@ async function addToLauncher(target) {
     const appImage = extractAppImage(data);
     log(`${part.file}: app payload ${appImage.length.toLocaleString()} bytes`);
 
-    setStatus("Connecting…");
-    step("Connecting to the Cardputer");
-    setProgress(0);
-    const transport = new Transport(port, false);
-    try {
-      const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
-      const chip = await loader.main();
-      log(`Connected to ${chip}`, "ok");
+    /** @type {{ label: string, image: Uint8Array }[]} */
+    let packedApps = [];
+    let planLabel = target.name;
+    let wroteViaHelper = false;
 
-      setStatus("Reading partition table…");
-      step("Reading partition table");
-      const tableRaw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
-      const tableBytes = tableRaw instanceof Uint8Array ? tableRaw : new Uint8Array(tableRaw);
-
-      let plan;
+    // SD helper overwrites flash, so back up packed apps, write SD, then restore Mini Launcher.
+    if (sdFiles.length) {
+      setStatus("Connecting…");
+      step("Reading packed apps");
+      setProgress(0);
+      const transport = new Transport(port, false);
       try {
-        plan = planAppendOta(tableBytes, appImage, { name: target.name });
-      } catch (err) {
-        const msg = String(err?.message || err);
-        if (/max apps/i.test(msg)) throw new Error("Max apps (16) — re-flash Mini Launcher to clear.");
-        if (/not enough space/i.test(msg)) throw new Error("Not enough space for this app on the device.");
-        if (/needs more space/i.test(msg)) {
-          throw new Error(
-            `${target.name} is already installed but this update is larger than its slot. Re-flash Mini Launcher to repack.`
-          );
+        const loader = new ESPLoader({ transport, baudrate: 921600, terminal, debugLogging: false });
+        const chip = await loader.main();
+        log(`Connected to ${chip}`, "ok");
+
+        setStatus("Reading partition table…");
+        const tableRaw = await loader.readFlash(TABLE_OFF, TABLE_SIZE);
+        const tableBytes = tableRaw instanceof Uint8Array ? tableRaw : new Uint8Array(tableRaw);
+
+        let plan;
+        try {
+          plan = planAppendOta(tableBytes, appImage, { name: target.name });
+        } catch (err) {
+          throw mapLauncherPlanError(err, target.name);
         }
-        if (/Mini Launcher|factory/i.test(msg)) throw new Error("Install Mini Launcher first, then use Add.");
-        throw err;
+        planLabel = plan.entry.label;
+        log(
+          `Will ${plan.replaced ? "replace" : "add"} ${plan.entry.label} (${plan.otaCount}/16 slots after)`,
+          "ok"
+        );
+
+        const otas = listOtaPartitions(tableBytes);
+        for (let i = 0; i < otas.length; i++) {
+          const ota = otas[i];
+          setStatus(`Backing up packed apps… (${i + 1}/${otas.length})`);
+          step(`Backing up ${ota.label || `ota_${i}`}`);
+          const raw = await loader.readFlash(ota.address, ota.size);
+          const bytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw);
+          const image = trimAppImage(bytes);
+          packedApps.push({ label: ota.label, image });
+          log(`Backed up ${ota.label} (${image.length.toLocaleString()} bytes)`, "ok");
+          setProgress((i + 1) / Math.max(otas.length, 1));
+        }
+      } finally {
+        try { await transport.disconnect(); } catch {}
       }
 
-      const verb = plan.replaced ? "Replacing" : "Carving";
-      log(
-        `${verb} ${plan.entry.label} @ ${hex(plan.entry.address)} size ${hex(plan.entry.size)} (${plan.otaCount}/16, free after ${plan.freeAfter.toLocaleString()} bytes)`,
-        "ok"
-      );
+      setStatus("Loading SD helper…");
+      step("Flashing SD writer helper");
+      const helper = await loadFile(SD_HELPER_BIN);
+      log(`${SD_HELPER_BIN}: ${helper.length.toLocaleString()} bytes at ${hex(0)}`);
+      await flashMergedAtZero(port, helper, "SD helper");
+      log("SD helper flashed", "ok");
 
-      const fileArray = [
-        { data: plan.table, address: TABLE_OFF },
-        { data: appImage, address: plan.appOffset },
+      try {
+        setStatus("Writing files to SD…");
+        step("Writing files to SD via helper");
+        setProgress(0);
+        await writeFilesViaSdHelper(port, sdFiles);
+        wroteViaHelper = true;
+        pendingExtra = null;
+        log(`All ${sdFiles.length} file(s) written to SD`, "ok");
+      } catch (err) {
+        log(`SD helper write failed: ${err?.message || err}`, "bad");
+        if (pickedExtra) pendingExtra = pickedExtra;
+        else if (target.sdAssets && !pendingExtra) {
+          const pack = await loadFile(target.sdAssets.file);
+          pendingExtra = { needs: target.sdAssets, data: pack, kind: "pack", appName: target.name };
+        }
+        log("Falling back to manual SD save after add");
+      }
+
+      const miniLauncher = TOOLS.find((t) => t.launcherBase);
+      if (!miniLauncher?.parts?.[0]) throw new Error("Mini Launcher firmware missing from catalog");
+      setStatus("Restoring Mini Launcher…");
+      step("Restoring Mini Launcher");
+      const launcherBin = await loadFile(miniLauncher.parts[0].file);
+      await flashMergedAtZero(port, launcherBin, "Mini Launcher");
+      log("Mini Launcher restored", "ok");
+
+      const appsToPack = [
+        ...packedApps
+          .filter((a) => a.label.toLowerCase() !== planLabel.toLowerCase())
+          .map((a) => ({ image: a.image, name: a.label })),
+        { image: appImage, name: target.name },
       ];
-      const total = fileArray.reduce((n, f) => n + f.data.length, 0);
-      const before = fileArray.map((_, i) => fileArray.slice(0, i).reduce((n, f) => n + f.data.length, 0));
-
-      setStatus(plan.replaced ? "Updating app in flash…" : "Writing app into free flash…");
-      step(plan.replaced ? "Updating partition + app" : "Writing partition + app");
-      await loader.writeFlash({
-        fileArray,
-        flashMode: "keep",
-        flashFreq: "keep",
-        flashSize: "keep",
-        eraseAll: false,
-        compress: true,
-        reportProgress: (i, written, size) => {
-          const done = before[i] + (written / size) * fileArray[i].data.length;
-          setProgress(done / total);
-        },
-      });
-
-      setStatus("Restarting the Cardputer…");
-      step("Restarting");
-      await loader.after("hard_reset");
-      setProgress(1);
+      setStatus("Re-packing apps into Mini Launcher…");
+      step("Re-packing apps");
+      const lastPlan = await appendAppsToLauncher(port, appsToPack);
       log(
-        plan.replaced
-          ? `Done. ${target.name} replaced on ${plan.entry.label}.`
-          : `Done. ${target.name} is on ${plan.entry.label}.`,
+        lastPlan?.replaced
+          ? `Done. ${target.name} replaced on ${lastPlan.entry.label}.`
+          : `Done. ${target.name} is on ${lastPlan?.entry.label || "Mini Launcher"}.`,
         "ok"
       );
       addedThisSession.add(target.id);
-      if (plan.replaced) {
-        $("doneTitle").textContent = `${target.name} updated`;
+      if (lastPlan?.replaced) $("doneTitle").textContent = `${target.name} updated`;
+    } else {
+      setStatus("Connecting…");
+      step("Connecting to the Cardputer");
+      setProgress(0);
+      try {
+        const plan = await appendAppsToLauncher(port, [{ image: appImage, name: target.name }]);
+        log(
+          plan?.replaced
+            ? `Done. ${target.name} replaced on ${plan.entry.label}.`
+            : `Done. ${target.name} is on ${plan?.entry.label || "Mini Launcher"}.`,
+          "ok"
+        );
+        addedThisSession.add(target.id);
+        if (plan?.replaced) $("doneTitle").textContent = `${target.name} updated`;
+      } catch (err) {
+        throw mapLauncherPlanError(err, target.name);
       }
-    } finally {
-      try { await transport.disconnect(); } catch {}
     }
 
-    if (pendingExtra && target.needsFile) {
+    if (wroteViaHelper) {
+      $("doneText").textContent = target.needsFile
+        ? `ROM is on the SD card and ${target.name} is added. Open it from Mini Launcher with Enter.`
+        : target.sdAssets
+          ? `Assets are on the SD card and ${target.name} is added. Open it from Mini Launcher with Enter.`
+          : "Power cycle if needed, then open it from Mini Launcher with Enter. Power off returns to the menu.";
+    } else if (pendingExtra && target.needsFile) {
       $("doneText").textContent =
         `${target.name} is added. Save the file to the SD card, then open it from Mini Launcher with Enter.`;
     } else if (pendingExtra && target.sdAssets) {
