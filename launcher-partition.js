@@ -278,13 +278,68 @@ export function planAppendOta(tableBytes, appImage, opts = {}) {
   const otas = entries.filter(
     (e) => e.type === TYPE_APP && e.subtype >= SUB_OTA_0 && e.subtype <= SUB_OTA_0 + 15
   );
-  if (otas.length >= 16) throw new Error("max apps (16)");
 
   let end = 0;
   for (const e of entries) end = Math.max(end, e.address + e.size);
   end = alignUp(end, ALIGN);
 
   const size = measureAppSize(appImage);
+  const label = pickPartitionLabel(opts.name, otas.length);
+  const existingIdx = entries.findIndex(
+    (e) =>
+      e.type === TYPE_APP &&
+      e.subtype >= SUB_OTA_0 &&
+      e.subtype <= SUB_OTA_0 + 15 &&
+      e.label.toLowerCase() === label.toLowerCase()
+  );
+
+  if (existingIdx >= 0) {
+    const existing = entries[existingIdx];
+    const isLast = existing.address + existing.size >= end;
+    let slotSize = existing.size;
+    if (size > existing.size) {
+      if (!isLast) {
+        throw new Error(
+          `"${existing.label}" is already installed but the update needs more space — re-flash Mini Launcher to repack`
+        );
+      }
+      if (existing.address + size > FLASH_SIZE) {
+        throw new Error(
+          `not enough space (need ${size} bytes, free ${FLASH_SIZE - existing.address})`
+        );
+      }
+      slotSize = size;
+    }
+
+    const entry = {
+      type: existing.type,
+      subtype: existing.subtype,
+      address: existing.address,
+      size: slotSize,
+      label: existing.label,
+      flags: existing.flags || 0,
+    };
+    entry.raw = encodeEntry(entry);
+
+    const newEntries = entries.map((e, i) => (i === existingIdx ? entry : { raw: e.raw }));
+    let flashEnd = 0;
+    for (let i = 0; i < entries.length; i++) {
+      const e = i === existingIdx ? entry : entries[i];
+      flashEnd = Math.max(flashEnd, e.address + e.size);
+    }
+
+    return {
+      entry,
+      table: writeTable(newEntries),
+      appOffset: entry.address,
+      appSize: size,
+      freeAfter: FLASH_SIZE - flashEnd,
+      otaCount: otas.length,
+      replaced: true,
+    };
+  }
+
+  if (otas.length >= 16) throw new Error("max apps (16)");
   if (end + size > FLASH_SIZE) {
     throw new Error(`not enough space (need ${size} bytes, free ${FLASH_SIZE - end})`);
   }
@@ -294,7 +349,7 @@ export function planAppendOta(tableBytes, appImage, opts = {}) {
     subtype: SUB_OTA_0 + otas.length,
     address: end,
     size,
-    label: pickPartitionLabel(opts.name, otas.length),
+    label,
     flags: 0,
   };
   entry.raw = encodeEntry(entry);
@@ -309,5 +364,6 @@ export function planAppendOta(tableBytes, appImage, opts = {}) {
     appSize: size,
     freeAfter: FLASH_SIZE - (end + size),
     otaCount: otas.length + 1,
+    replaced: false,
   };
 }

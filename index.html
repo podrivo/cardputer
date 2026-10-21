@@ -2911,7 +2911,7 @@ async function addToLauncher(target) {
     emoji: "📂",
     title: target.name,
     subtitle: "Add to Mini Launcher",
-    text: "Requires Mini Launcher already installed. Does not replace the launcher.",
+    text: "Requires Mini Launcher already installed. If this app is already on the device, it will be replaced.",
     meta,
     okLabel: "Add to Mini Launcher",
   });
@@ -3003,12 +3003,18 @@ async function addToLauncher(target) {
         const msg = String(err?.message || err);
         if (/max apps/i.test(msg)) throw new Error("Max apps (16) — re-flash Mini Launcher to clear.");
         if (/not enough space/i.test(msg)) throw new Error("Not enough space for this app on the device.");
+        if (/needs more space/i.test(msg)) {
+          throw new Error(
+            `${target.name} is already installed but this update is larger than its slot. Re-flash Mini Launcher to repack.`
+          );
+        }
         if (/Mini Launcher|factory/i.test(msg)) throw new Error("Install Mini Launcher first, then use Add.");
         throw err;
       }
 
+      const verb = plan.replaced ? "Replacing" : "Carving";
       log(
-        `Carving ${plan.entry.label} @ ${hex(plan.entry.address)} size ${hex(plan.entry.size)} (${plan.otaCount}/16, free after ${plan.freeAfter.toLocaleString()} bytes)`,
+        `${verb} ${plan.entry.label} @ ${hex(plan.entry.address)} size ${hex(plan.entry.size)} (${plan.otaCount}/16, free after ${plan.freeAfter.toLocaleString()} bytes)`,
         "ok"
       );
 
@@ -3019,8 +3025,8 @@ async function addToLauncher(target) {
       const total = fileArray.reduce((n, f) => n + f.data.length, 0);
       const before = fileArray.map((_, i) => fileArray.slice(0, i).reduce((n, f) => n + f.data.length, 0));
 
-      setStatus("Writing app into free flash…");
-      step("Writing partition + app");
+      setStatus(plan.replaced ? "Updating app in flash…" : "Writing app into free flash…");
+      step(plan.replaced ? "Updating partition + app" : "Writing partition + app");
       await loader.writeFlash({
         fileArray,
         flashMode: "keep",
@@ -3038,8 +3044,16 @@ async function addToLauncher(target) {
       step("Restarting");
       await loader.after("hard_reset");
       setProgress(1);
-      log(`Done. ${target.name} is on ${plan.entry.label}.`, "ok");
+      log(
+        plan.replaced
+          ? `Done. ${target.name} replaced on ${plan.entry.label}.`
+          : `Done. ${target.name} is on ${plan.entry.label}.`,
+        "ok"
+      );
       addedThisSession.add(target.id);
+      if (plan.replaced) {
+        $("doneTitle").textContent = `${target.name} updated`;
+      }
     } finally {
       try { await transport.disconnect(); } catch {}
     }
