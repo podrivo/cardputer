@@ -1,0 +1,347 @@
+{
+  "demonym": {
+    "emoji": "👹",
+    "name": "Demonym",
+    "desc": "Hatch and raise a creature: train, roam, battle, and pass traits to the next generation"
+  },
+  "viperpet": {
+    "emoji": "🐍",
+    "name": "ViperPet",
+    "desc": "Tamagotchi-style pet with evolutions, a reflex minigame, care streaks and offline decay"
+  },
+  "raising-hell": {
+    "emoji": "😈",
+    "name": "Raising Hell",
+    "desc": "Raise an infernal companion through life stages, mini-games, sleep, and maybe resurrection"
+  },
+  "tamaputer": {
+    "emoji": "🐣",
+    "name": "Tamaputer",
+    "desc": "Play the original Tamagotchi P1 on your Cardputer"
+  },
+  "claude-buddy": {
+    "emoji": "🦞",
+    "name": "Claude Desktop Buddy",
+    "desc": "Desk pet for Claude Code on the ADV. Approve prompts with Y/N and watch it react"
+  },
+  "tamaguino": {
+    "emoji": "🦖",
+    "name": "Tamaguino",
+    "desc": "Arduboy Tamagotchi-style pet ported to Cardputer via Carduboy"
+  },
+  "doom": {
+    "emoji": "💀",
+    "name": "Doom",
+    "desc": "Full Doom on the ADV with sound, music and grove-cable multiplayer"
+  },
+  "hazke": {
+    "emoji": "🚀",
+    "name": "Hazke",
+    "desc": "Open-universe space sim with trade, quests, combat, and ADV gyro aiming"
+  },
+  "card-craft": {
+    "emoji": "⛏️",
+    "name": "Card Craft",
+    "desc": "First-person Minecraft-style survival: mine, build, craft, and last the night"
+  },
+  "silicon-casino": {
+    "emoji": "🎰",
+    "name": "Silicon Casino",
+    "desc": "Offline casino toy with slots, blackjack, poker, and roulette. Shake to spin"
+  },
+  "piano-tiles": {
+    "emoji": "🎹",
+    "name": "Piano Tiles",
+    "desc": "Rhythm game built for the ADV with deep arcade modes"
+  },
+  "chess": {
+    "emoji": "♟️",
+    "name": "Chess",
+    "desc": "Chess with AI, puzzles, Chess960 and ESP-NOW multiplayer on the ADV"
+  },
+  "wordle": {
+    "emoji": "🔤",
+    "name": "Wordle",
+    "desc": "Offline Wordle with 2000+ official words, no SD card needed"
+  },
+  "alchemy": {
+    "emoji": "⚗️",
+    "name": "Alchemy",
+    "desc": "Combine water, fire, earth and air into a world of elements on the ADV"
+  },
+  "cardputer-puzzles": {
+    "emoji": "🧠",
+    "name": "Puzzles",
+    "desc": "All 40 Simon Tatham puzzles in one ADV firmware, with IMU tilt pointer"
+  },
+  "battleship": {
+    "emoji": "🚢",
+    "name": "Battleship",
+    "desc": "Classic Battleship versus AI or local two-player on the ADV"
+  },
+  "minimaze": {
+    "emoji": "🧭",
+    "name": "MiniMaze",
+    "desc": "Procedural mazes with blind walls and auto-play pathfinding on the ADV"
+  },
+  "cardlife": {
+    "emoji": "🦠",
+    "name": "CardLife",
+    "desc": "Conway's Game of Life with resolution and generation options for ADV"
+  },
+  "sound-terrarium": {
+    "emoji": "🌍",
+    "name": "Sound Terrarium",
+    "desc": "A tiny living world shaped by sound, tilt, time and weather using the ADV's IMU"
+  },
+  "game-station": {
+    "emoji": "🎮",
+    "name": "Game Station",
+    "desc": "Multi-console emulator for Game Boy, NES, Master System, Genesis and more"
+  },
+  "gameboy-enhanced": {
+    "emoji": "🕹️",
+    "name": "Gameboy Enhanced",
+    "desc": "Game Boy emulator with save states"
+  },
+  "mini-launcher": {
+    "emoji": "📂",
+    "name": "Mini Launcher",
+    "desc": "Cycle through multiple apps packed into flash"
+  },
+  "launcher": {
+    "emoji": "🚀",
+    "name": "Launcher",
+    "desc": "Switch apps from the SD card or over Wi-Fi, without a computer"
+  },
+  "bruce": {
+    "emoji": "🦈",
+    "name": "Bruce",
+    "desc": "Security-research toolkit: Wi-Fi, Bluetooth, IR, RF and BadUSB"
+  },
+  "evil": {
+    "emoji": "👿",
+    "name": "Evil-Cardputer",
+    "desc": "Wi-Fi auditing with portals, scanning, deauth and more, SD card recommended"
+  },
+  "flashlight-adv": {
+    "emoji": "🔦",
+    "name": "Flashlight",
+    "desc": "Tactical flashlight using the ADV screen and RGB LED with white, red, and strobe"
+  },
+  "glide": {
+    "emoji": "🎸",
+    "name": "GLIDE",
+    "desc": "Pocket slide-synth with generative sounds, tilt morph, and mic key detection on ADV"
+  },
+  "miniacid": {
+    "emoji": "🎛️",
+    "name": "miniacid",
+    "desc": "Acid-style mini groovebox made for the ADV"
+  },
+  "microgroove": {
+    "emoji": "🎚️",
+    "name": "MicroGroove",
+    "desc": "Four-track acid groovebox with three 303 voices and 808/909 drums"
+  },
+  "webradio": {
+    "emoji": "📻",
+    "name": "WebRadio",
+    "desc": "Stream internet radio stations over Wi-Fi"
+  },
+  "cardputer-ai": {
+    "emoji": "🤖",
+    "name": "Cardputer AI",
+    "desc": "A fully offline tiny LLM baked into the firmware with no account or network"
+  },
+  "ai-offline-chat-adv": {
+    "emoji": "🧠",
+    "name": "AI Offline Chat",
+    "desc": "Offline ELIZA therapist chatbot for the ADV, saves session memory to SD"
+  },
+  "t3-cardputer": {
+    "emoji": "🧵",
+    "name": "T3 Cardputer",
+    "desc": "Pocket client for T3 Code agents: approvals, threads, new tasks and voice replies"
+  },
+  "meshtastic-adv": {
+    "emoji": "💬",
+    "name": "Meshtastic ADV",
+    "desc": "Keyboard-first Meshtastic client using its own Cap LoRa-1262 or any BLE node's radio"
+  },
+  "plai": {
+    "emoji": "📡",
+    "name": "Plai",
+    "desc": "Standalone Meshtastic node with no phone, needs the LoRa cap and an SD card for history"
+  },
+  "meshcore-tft": {
+    "emoji": "🌐",
+    "name": "MeshCore (TFT UI)",
+    "desc": "MeshCore client with an enhanced TFT interface, needs the Cap LoRa-1262"
+  },
+  "meshcore-adv": {
+    "emoji": "🕸️",
+    "name": "MeshCore",
+    "desc": "MeshCore companion radio client for the ADV, needs a LoRa cap"
+  },
+  "rscardputer": {
+    "emoji": "🐀",
+    "name": "rsCardputer",
+    "desc": "Reticulum / LXMF messenger and RNode in one, needs a LoRa cap"
+  },
+  "cardputer-ssh": {
+    "emoji": "🖥️",
+    "name": "SSH Client",
+    "desc": "A portable SSH client for the ADV over Wi-Fi"
+  },
+  "ultimate-remote": {
+    "emoji": "📺",
+    "name": "Ultimate Remote",
+    "desc": "Universal IR remote with 3498 profiles, load more from an SD card"
+  },
+  "ghostesp": {
+    "emoji": "👻",
+    "name": "GhostESP",
+    "desc": "Open-source wireless research platform with SD card for captures"
+  },
+  "chimerable": {
+    "emoji": "🧬",
+    "name": "ChimeraBLE",
+    "desc": "BLE security and reverse-engineering: scan, GATT dump, clone, MITM"
+  },
+  "badcard": {
+    "emoji": "💳",
+    "name": "BadCard",
+    "desc": "BadUSB with Ducky Script support"
+  },
+  "wifi-ble-radar": {
+    "emoji": "📶",
+    "name": "Wi-Fi & BLE Radar",
+    "desc": "Spectrum analyzer and tracking radar with a retro CRT UI for the ADV only"
+  },
+  "ghostble": {
+    "emoji": "👁️",
+    "name": "GhostBLE",
+    "desc": "BLE privacy scanner with a little mascot companion"
+  },
+  "csi-radar": {
+    "emoji": "🌊",
+    "name": "Wi-Fi CSI Radar",
+    "desc": "High-performance Wi-Fi CSI sensing, self-contained on the ADV"
+  },
+  "csi-human-detector": {
+    "emoji": "🚶",
+    "name": "CSI Human Detector",
+    "desc": "Detects people through Wi-Fi signal changes, radar scope wants an external TFT"
+  },
+  "cardsat": {
+    "emoji": "🛰️",
+    "name": "CardSat",
+    "desc": "Satellite tracker with multi-radio CAT Doppler control"
+  },
+  "imu-acoustic-analyzer": {
+    "emoji": "📐",
+    "name": "IMU Acoustic Analyzer",
+    "desc": "Acoustic scleroscope that measures surface hardness and elasticity with the ADV IMU"
+  },
+  "picoware": {
+    "emoji": "🐚",
+    "name": "Picoware",
+    "desc": "Custom MicroPython firmware with app store, games, REPL, Wi-Fi, Bluetooth, and more"
+  },
+  "microhydra": {
+    "emoji": "💧",
+    "name": "MicroHydra",
+    "desc": "MicroPython app switcher for apps in /apps on flash or SD, ADV build is a preview"
+  },
+  "paperos": {
+    "emoji": "📄",
+    "name": "PaperOS",
+    "desc": "A whole little OS with files, paint, browser, offline AI, emulator and Lua, keep an SD card in"
+  },
+  "nucleoos": {
+    "emoji": "⚛️",
+    "name": "NucleoOS",
+    "desc": "Web-native OS with a browser shell, offline AI and OTA, needs a FAT32 SD card"
+  },
+  "wikipedia-offline": {
+    "emoji": "📚",
+    "name": "Wikipedia Offline",
+    "desc": "6.4M offline Wikipedia articles needing a 32 GB SD card and the 18 GB database"
+  },
+  "original": {
+    "emoji": "📦",
+    "name": "Original firmware",
+    "desc": "M5Stack's official User Demo v0.3, the firmware the Cardputer came with"
+  },
+  "erase": {
+    "emoji": "🧹",
+    "name": "Erase device",
+    "desc": "Wipe the entire flash. The Cardputer stays blank until you install something"
+  },
+  "uiflow2-adv": {
+    "emoji": "🧩",
+    "name": "UIFlow2.0",
+    "desc": "Official visual/block programming firmware for Cardputer ADV"
+  },
+  "mesh-kit-meshtastic": {
+    "emoji": "📡",
+    "name": "Mesh Kit Meshtastic",
+    "desc": "Official Meshtastic firmware for Cardputer ADV with the Cap LoRa-1262"
+  },
+  "nemo-for-cardputer-adv": {
+    "emoji": "🐠",
+    "name": "NEMO",
+    "desc": "Wireless defense toolkit with BadUSB hunter and Wi-Fi tools"
+  },
+  "bit-pirate-cardputer-adv": {
+    "emoji": "🏴‍☠️",
+    "name": "Bit Pirate",
+    "desc": "Hardware hacking toolkit with a web CLI for many protocols"
+  },
+  "openwifi-scanner-cardputer-adv": {
+    "emoji": "🔎",
+    "name": "OpenWiFi Scanner",
+    "desc": "Continuously scans for open Wi-Fi networks with internet access"
+  },
+  "usb-bluetooth-mouse-keyboard-cardputer-adv": {
+    "emoji": "🖱️",
+    "name": "USB/Bluetooth HID",
+    "desc": "Emulates a USB and Bluetooth keyboard and mouse"
+  },
+  "password-manager-cardputer-adv": {
+    "emoji": "🔐",
+    "name": "Password Manager",
+    "desc": "Offline password manager for Cardputer and ADV"
+  },
+  "advanceos-for-cardputer-adv": {
+    "emoji": "📀",
+    "name": "AdvanceOS",
+    "desc": "Lightweight OS focused on file browsing and media playback"
+  },
+  "mp3player-for-cardputer-adv-load-2000-songs": {
+    "emoji": "🎧",
+    "name": "MP3 Player",
+    "desc": "SD-card MP3 player that can load thousands of tracks"
+  },
+  "m5gemini": {
+    "emoji": "♊",
+    "name": "M5Gemini",
+    "desc": "Conversational Gemini assistant using a single Google API key"
+  },
+  "audio-stream-server-cardputer-adv": {
+    "emoji": "🔊",
+    "name": "Audio Stream Server",
+    "desc": "Streams audio over Wi-Fi and can save network credentials"
+  },
+  "m5apps": {
+    "emoji": "📲",
+    "name": "M5Apps",
+    "desc": "On-device app installer from cloud, SD card, or USB"
+  },
+  "wifi-remote-display-adv": {
+    "emoji": "🖥️",
+    "name": "WiFi Remote Display",
+    "desc": "Streams a Windows PC screen to the Cardputer over Wi-Fi"
+  }
+}

@@ -1936,10 +1936,43 @@ const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>`;
 const ICON_INSTALL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
 
+const SITE_NAME = "Cardputer ADV Installers";
+const DEFAULT_DESCRIPTION =
+  "Installers for the Cardputer ADV, directly from the browser. Tamagotchis, Games, Tools, Music, mesh, and more. No M5Burner required.";
+
 function shareUrlFor(id) {
   const url = new URL(location.href);
-  url.hash = id;
+  url.hash = "";
+  url.search = "";
+  url.pathname = url.pathname.replace(/index\.html$/i, "") || "/";
+  url.searchParams.set("i", id);
   return url.href;
+}
+
+function findCatalogItem(id) {
+  for (const block of BLOCKS) {
+    const item = block.items.find((x) => x.id === id);
+    if (item) return item;
+  }
+  return null;
+}
+
+function setMetaContent(selector, content) {
+  const el = document.head.querySelector(selector);
+  if (el) el.setAttribute("content", content);
+}
+
+function applyInstallerMeta(item) {
+  const title = item ? `${item.emoji} ${item.name} · ${SITE_NAME}` : SITE_NAME;
+  const desc = item?.desc || DEFAULT_DESCRIPTION;
+  const pageUrl = item ? shareUrlFor(item.id) : `${location.origin}/`;
+  document.title = title;
+  setMetaContent('meta[name="description"]', desc);
+  setMetaContent('meta[property="og:title"]', title);
+  setMetaContent('meta[property="og:description"]', desc);
+  setMetaContent('meta[property="og:url"]', pageUrl);
+  setMetaContent('meta[name="twitter:title"]', title);
+  setMetaContent('meta[name="twitter:description"]', desc);
 }
 
 let flashTimer = 0;
@@ -1954,7 +1987,7 @@ function clearHashTarget() {
   }
 }
 
-function goToCatalogItem(id, { updateHash = true, flash = true, scroll = true } = {}) {
+function goToCatalogItem(id, { updateUrl = true, flash = true, scroll = true } = {}) {
   const card = $("catalog").querySelector(`[data-id="${CSS.escape(id)}"]`);
   if (!card) {
     clearHashTarget();
@@ -1967,9 +2000,10 @@ function goToCatalogItem(id, { updateHash = true, flash = true, scroll = true } 
   }
   const section = card.closest("section");
   if (section?.dataset.title) setActiveChip(section.dataset.title);
-  if (updateHash && decodeURIComponent(location.hash.slice(1)) !== id) {
-    history.replaceState(null, "", `#${encodeURIComponent(id)}`);
+  if (updateUrl && new URLSearchParams(location.search).get("i") !== id) {
+    history.replaceState(null, "", `?i=${encodeURIComponent(id)}`);
   }
+  applyInstallerMeta(findCatalogItem(id));
   for (const el of $("catalog").querySelectorAll(".pet.target")) {
     if (el !== card) el.classList.remove("target", "flash");
   }
@@ -1989,7 +2023,7 @@ function goToCatalogItem(id, { updateHash = true, flash = true, scroll = true } 
 
 async function copyShareLink(id) {
   const url = shareUrlFor(id);
-  goToCatalogItem(id, { updateHash: true, flash: true, scroll: false });
+  goToCatalogItem(id, { updateUrl: true, flash: true, scroll: false });
   await copyText(url);
 }
 
@@ -2013,7 +2047,7 @@ function cardEl(item, current, danger, added) {
   const nameRow = el.querySelector(".name");
   const label = document.createElement("a");
   label.className = "label";
-  label.href = `#${encodeURIComponent(item.id)}`;
+  label.href = `?i=${encodeURIComponent(item.id)}`;
   label.textContent = item.name;
   label.setAttribute("aria-label", `Copy link to ${item.name}`);
   label.onclick = (e) => {
@@ -3774,13 +3808,24 @@ async function eraseDevice() {
 render();
 prefetchCatalogSizes();
 
-function openHashTarget() {
-  const id = decodeURIComponent(location.hash.slice(1));
-  if (id) goToCatalogItem(id, { updateHash: false });
-  else clearHashTarget();
+function openDeepLink() {
+  const fromQuery = new URLSearchParams(location.search).get("i");
+  const fromHash = decodeURIComponent(location.hash.slice(1));
+  const id = fromQuery || fromHash;
+  if (!id) {
+    clearHashTarget();
+    applyInstallerMeta(null);
+    return;
+  }
+  // Upgrade legacy #id bookmarks so the address bar (and future shares) use ?i=
+  if (!fromQuery && fromHash) {
+    history.replaceState(null, "", `?i=${encodeURIComponent(id)}`);
+  }
+  goToCatalogItem(id, { updateUrl: false });
 }
-window.addEventListener("hashchange", openHashTarget);
-requestAnimationFrame(openHashTarget);
+window.addEventListener("hashchange", openDeepLink);
+window.addEventListener("popstate", openDeepLink);
+requestAnimationFrame(openDeepLink);
 </script>
 </body>
 </html>

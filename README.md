@@ -35,6 +35,20 @@ node scripts/fetch-catalog-keys.mjs
 
 Re-run after adding catalog entries, or when upstream READMEs change. Manual overrides can still be set per item with a `keys: { rows: [["Key", "Action"], ...] }` field.
 
+## Share links (Open Graph)
+
+Installer permalinks use a query param so crawlers can see them (URL hashes never reach the server):
+
+`https://cardputer-installers.netlify.app/?i=t3-cardputer`
+
+A Netlify edge function rewrites `og:title` / `og:description` (and Twitter equivalents) from [`catalog-meta.json`](catalog-meta.json). Regenerate after catalog edits:
+
+```bash
+npm run export-meta
+```
+
+Legacy `#id` bookmarks still open the card and are upgraded to `?i=` in the address bar.
+
 ## Using the installer
 
 1. Turn the Cardputer **off**, then plug it in over USB-C.
