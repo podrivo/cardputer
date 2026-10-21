@@ -1,0 +1,477 @@
+{
+  "version": 1,
+  "installers": {
+    "advanceos-for-cardputer-adv": {
+      "asset": "AdvanceOSv1.5.4.bin",
+      "assetKey": "advanceos",
+      "tag": "AdvanceOSv1.5.4",
+      "size": 4194304,
+      "file": "bins/advanceos-for-cardputer-adv-1.5.4.bin",
+      "sha256": "d96ec47e59a624d23e455da617b8d4eb6903ab4eaca50ccbda070dd5b55b98b8",
+      "repo": "bomberman30/AdvanceOS-for-cardputer"
+    },
+    "ai-offline-chat-adv": {
+      "asset": "ELIZA1.1.bin",
+      "assetKey": "eliza",
+      "tag": "v1.1",
+      "size": 4194304,
+      "file": "bins/ai-offline-chat-adv-v1.1.bin",
+      "sha256": "e23f8aee0be6fee04f5e5d1a1e4a324e077e807724cfb66dda418d546b2a7a95",
+      "repo": "Zeloksa/AI-Offline-Chat-ADV"
+    },
+    "alchemy": {
+      "asset": "Alchemy.ADV.bin",
+      "assetKey": "alchemy-adv",
+      "tag": "V1",
+      "size": 4194304,
+      "file": "bins/alchemy-adv-v1.bin",
+      "sha256": "91fde97be693f0f2470613e2fb94072e13486b50f5dd1b5c8054dfbe74ed0653",
+      "repo": "Zeloksa/Cardputer-Alchemy-ADV-Game"
+    },
+    "audio-stream-server-cardputer-adv": {
+      "asset": "AudioStreamServer_1_11_adv.bin",
+      "assetKey": "audiostreamserver-#-adv",
+      "tag": "v1.11",
+      "size": 980272,
+      "file": "bins/audio-stream-server-cardputer-adv-1.11.bin",
+      "sha256": "503c8381d41d32b0bfb858f008d8e97e04a47d03d2a8b50f069d88f7614c9fb1",
+      "repo": "geo-tp/M5Cardputer-Audio-Stream-Server"
+    },
+    "badcard": {
+      "asset": "BadCard.bin",
+      "assetKey": "badcard",
+      "tag": "1.7.2",
+      "size": 1006064,
+      "file": "bins/badcard-v1.7.2.bin",
+      "sha256": "8e8642b3cb98eb0cff42b6fd86c07131ec8563f8544a9a5b4eadefbd5c18f9b6",
+      "repo": "VoidNoi/BadCard"
+    },
+    "battleship": {
+      "asset": "battleship.bin",
+      "assetKey": "battleship",
+      "tag": "#Cardputer",
+      "size": 563168,
+      "file": "bins/battleship-adv.bin",
+      "sha256": "607632d98479f25833a01d7798e9bd63cad7efed39a207d886b9dbcfbfc6be37",
+      "repo": "sakkra-adv/battleship"
+    },
+    "bit-pirate-cardputer-adv": {
+      "asset": "bit_pirate_18_cardputer-adv.bin",
+      "assetKey": "bit-pirate-18-cardputer-adv",
+      "tag": "v1.8",
+      "size": 4127008,
+      "file": "bins/bit-pirate-cardputer-adv-1.8.bin",
+      "sha256": "822f66b83f25140964a1e8f25c2853f79bbf6da5498623169607c0467c8d5eab",
+      "repo": "geo-tp/ESP32-Bus-Pirate"
+    },
+    "bruce": {
+      "asset": "Bruce-m5stack-cardputer.bin",
+      "assetKey": "bruce-m5stack-cardputer",
+      "tag": "1.16.1",
+      "size": 4166960,
+      "file": "bins/bruce-v1.16.1.bin",
+      "sha256": "e0a06966e601fecdb78470168b423690392f5ca14502a703588d4d14d0722033",
+      "repo": "BruceDevices/firmware"
+    },
+    "card-craft": {
+      "asset": "card-craft-1.0.1-cardputer-full.bin",
+      "assetKey": "card-craft-#-cardputer-full",
+      "tag": "v1.0.1",
+      "size": 883120,
+      "file": "bins/card-craft-v1.0.1.bin",
+      "sha256": "88af1c537df2155d0e11e6260b1911551da5a8eecf05050206bbd91f37f90092",
+      "repo": "therezor/card-craft"
+    },
+    "cardlife": {
+      "asset": "CardLife.bin",
+      "assetKey": "cardlife",
+      "tag": "Main",
+      "size": 506528,
+      "file": "bins/cardlife.bin",
+      "sha256": "b5fa8c41ee7554f52802d3d3594dcbe123d8f1ac1f260fb5817675d240c11fc7",
+      "repo": "personwithbeans/CardLife"
+    },
+    "cardputer-ai": {
+      "asset": "cardputer_ai_2.2_full.bin",
+      "assetKey": "cardputer-ai-#-full",
+      "tag": "2.2",
+      "size": 6487936,
+      "file": "bins/cardputer-ai-v2.2.bin",
+      "sha256": "3f5d284a573f49d47361cb1c41211a5ab996f3e896d43a10d1c1949c667c0c8c",
+      "repo": "therezor/cardputer-ai"
+    },
+    "cardputer-puzzles": {
+      "asset": "cardputer-puzzles-v1.2.0-merged.bin",
+      "assetKey": "cardputer-puzzles-#-merged",
+      "tag": "v1.2.0",
+      "size": 1329008,
+      "file": "bins/cardputer-puzzles-v1.2.0.bin",
+      "sha256": "c1f2aeb29278b0dcde2d7a571c7f2b3daf098de03287aa6a1dee9b5e468adfb0",
+      "repo": "chongjiazhen/cardputer-puzzles"
+    },
+    "cardputer-ssh": {
+      "asset": "M5Stack-Cardputer-SSH-full.bin",
+      "assetKey": "m5stack-cardputer-ssh-full",
+      "tag": "v1.0.0",
+      "size": 1239904,
+      "file": "bins/cardputer-ssh-v1.0.0.bin",
+      "sha256": "6c4678ba3303d7e68ca503bb1aa31d06154b0539c76c6953e84492fbcad39c98",
+      "repo": "MangoX0567/M5Stack-Cardputer-SSH"
+    },
+    "cardsat": {
+      "asset": "CardSat-merged.bin",
+      "assetKey": "cardsat-merged",
+      "tag": "0.9.76",
+      "size": 8388608,
+      "file": "bins/cardsat-v0.9.76.bin",
+      "sha256": "b464e8f5c7e01ecd29d01a996e59a5a004c67775e39765759bc587fdc55b310f",
+      "repo": "prstoetzer/CardSat"
+    },
+    "chess": {
+      "asset": "cardputer-chess-0.20.0-m5-burner.bin",
+      "assetKey": "cardputer-chess-#-m5-burner",
+      "tag": "v0.20.0",
+      "size": 1050464,
+      "file": "bins/chess-adv-v0.20.0.bin",
+      "sha256": "6476a3518d421fb54971b35e644551f3e8646a93fb5e9149f047864715656de4",
+      "repo": "kaini-industries/cardputer-chess"
+    },
+    "chimerable": {
+      "asset": "ChimeraBLE_cardputer_merged.bin",
+      "assetKey": "chimerable-cardputer-merged",
+      "tag": "V1.0.1",
+      "size": 8323072,
+      "file": "bins/chimerable-v1.0.1.bin",
+      "sha256": "3dcd207f8914c1e491afd3b1aaecabec04a35b656f070855a9c33d1b82992563",
+      "repo": "MatthewKuKanich/ChimeraBLE"
+    },
+    "claude-buddy": {
+      "asset": "claude-buddy-cardputer-v1.0.0.bin",
+      "assetKey": "claude-buddy-cardputer-",
+      "tag": "v1.0.0",
+      "size": 1344192,
+      "file": "bins/claude-buddy-v1.0.0.bin",
+      "sha256": "f880dc30b6f976db63547ecc1b2fcbe8d48308082f9e9423de9aefaf19d232e2",
+      "repo": "y88huang/claude-desktop-buddy-cardputer"
+    },
+    "csi-human-detector": {
+      "asset": "cardputer-csi-v1.2.0.bin",
+      "assetKey": "cardputer-csi-",
+      "tag": "v1.2.0",
+      "size": 979152,
+      "file": "bins/csi-human-detector-v1.2.0.bin",
+      "sha256": "c049aae3fa8b6d1f7e843d920e9f9d160d96e48c585b91a82620ef77634d2e0a",
+      "repo": "skizzophrenic/Cardputer-CSI-Human-Detector"
+    },
+    "csi-radar": {
+      "asset": "WifiCSIRadarV2.0.ino.merged.bin",
+      "assetKey": "wificsiradar#-ino-merged",
+      "tag": "2.0",
+      "size": 4194304,
+      "file": "bins/csi-radar-v2.0.bin",
+      "sha256": "86a37d207c7a9f093db62e1218afccbf87cadc80a37085938919081fc63cf431",
+      "repo": "Zeloksa/Cardputer-ADV-CSI-Radar"
+    },
+    "demonym": {
+      "asset": "Demonym-M5Burner-v0.9.23.2-alpha-dev.bin",
+      "assetKey": "demonym-m5burner-#-alpha-dev",
+      "tag": "v0.9.22.2",
+      "size": 1423792,
+      "file": "bins/Demonym-M5Burner-v0.9.23.2-alpha-dev.bin",
+      "sha256": "9dfac1f447b7f66024e59778b9745f0564cb3511b19f445917e46528c121e1c1",
+      "repo": "eyeofbri/Demonym"
+    },
+    "flashlight-adv": {
+      "asset": "FlashlightV1.1.ino.merged.bin",
+      "assetKey": "flashlight#-ino-merged",
+      "tag": "V1.1",
+      "size": 4194304,
+      "file": "bins/flashlight-adv-v1.1.bin",
+      "sha256": "a70ffce6942319cfd6329ce484480e95543a6f2ac0d7192e2860f8b7f2645cf4",
+      "repo": "Zeloksa/Cardputer-Flashlight-ADV"
+    },
+    "game-station": {
+      "asset": "CardputerGameStation12.bin",
+      "assetKey": "cardputergamestation12",
+      "tag": "v1.2",
+      "size": 2686576,
+      "file": "bins/game-station-v1.2.bin",
+      "sha256": "cc6e14ea7d3688aabd2f958ef36c94c6ac37b9481bb523f1abfafa5ae281c7c8",
+      "repo": "geo-tp/Cardputer-Game-Station-Emulators"
+    },
+    "gameboy-enhanced": {
+      "asset": "gbe_v0_79_66.bin",
+      "assetKey": "gbe-",
+      "tag": "v0.79.66",
+      "size": 1030240,
+      "file": "bins/gameboy-enhanced-v0.79.66.bin",
+      "sha256": "7dd68b2d80ab59ef863faca08cbd83d937190f7cd9743f6869adce549a62cac7",
+      "repo": "Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-"
+    },
+    "ghostble": {
+      "asset": "GhostBLE-Cardputer-v1.4.9.bin",
+      "assetKey": "ghostble-cardputer-",
+      "tag": "v1.4.9",
+      "size": 2406096,
+      "file": "bins/ghostble-v1.4.9.bin",
+      "sha256": "07d9a58c1e87f8b43088c27f8f7e743ad396f389652a27db0788ec3abe42c41f",
+      "repo": "SmonSE/GhostBLE"
+    },
+    "glide": {
+      "asset": "GLIDE.bin",
+      "assetKey": "glide",
+      "tag": "v3.7",
+      "size": 952784,
+      "file": "bins/glide-v3.7.bin",
+      "sha256": "f1c993ae58786cfd8cff8ee6b9d08d9afbe2bec162330b6a61c69b945458f1b1",
+      "repo": "CHARL3X/GLIDE-Synth-Cardputer-ADV"
+    },
+    "hazke": {
+      "asset": "hazke-v1.4.0-cardputer.bin",
+      "assetKey": "hazke-#-cardputer",
+      "tag": "v1.4.0",
+      "size": 4194304,
+      "file": "bins/hazke-v1.4.0.bin",
+      "sha256": "46fa6f8373d1420ee70dcbfb3da90dadf9e8412fba3aab90ecc87bb73c6ed024",
+      "repo": "therezor/hazke"
+    },
+    "imu-acoustic-analyzer": {
+      "asset": "Sclero_V1.0.bin",
+      "assetKey": "sclero-",
+      "tag": "1.0",
+      "size": 4194304,
+      "file": "bins/imu-acoustic-analyzer-v1.0.bin",
+      "sha256": "c333e0704a00f4c658288d0708aedf38c3448b5bda65cd8d956736b966fc0231",
+      "repo": "Zeloksa/IMU-Acoustic-Analyzer"
+    },
+    "launcher": {
+      "asset": "Launcher-m5stack-cardputer.bin",
+      "assetKey": "launcher-m5stack-cardputer",
+      "tag": "2.9.1",
+      "size": 1422720,
+      "file": "bins/launcher-v2.9.1.bin",
+      "sha256": "2adff1ad67b5e08319dae682dc4edb01f1d857767c1738bdd0ccd097a8acb024",
+      "repo": "bmorcelli/Launcher"
+    },
+    "m5apps": {
+      "asset": "M5Apps_2.6_full.bin",
+      "assetKey": "m5apps-#-full",
+      "tag": "2.6",
+      "size": 1515952,
+      "file": "bins/m5apps-2.6.bin",
+      "sha256": "94fb96422f4ab7da570c7033992927fc1d75d9775c7c777faf658f9552313117",
+      "repo": "d4rkmen/M5Apps"
+    },
+    "m5gemini": {
+      "asset": "M5Gemini_30_full.bin",
+      "assetKey": "m5gemini-30-full",
+      "tag": "v3.0",
+      "size": 1561136,
+      "file": "bins/m5gemini-3.0.bin",
+      "sha256": "12b2448d5a15305f9353aba734dd4fef4857f4b4e0dba8a937898f1124fb0806",
+      "repo": "d4rkmen/M5Gemini"
+    },
+    "meshcore-adv": {
+      "asset": "M5Stack_Cardputer_ADV_companion_radio_ble-v1.15.81-35d04b56-merged.bin",
+      "assetKey": "m5stack-cardputer-adv-companion-radio-ble-#04b56-merged",
+      "tag": "v1.15.81",
+      "size": 1619744,
+      "file": "bins/meshcore-adv-v1.15.81.bin",
+      "sha256": "74f4434d225fdc2831f39bbc29f6ff04448cde2eab62f94b5535af66ceee3741",
+      "repo": "sosprz/meshcore-cardputer-adv"
+    },
+    "meshcore-tft": {
+      "asset": "firmware_CapLoRa1262.bin",
+      "assetKey": "firmware-caplora1262",
+      "tag": "Meshcore-Cardputerv1.10",
+      "size": 8388608,
+      "file": "bins/meshcore-tft-v1.10.bin",
+      "sha256": "54e9dbf1e901f088ce56755b317a66d8609d41a8c2e635ca3f0c5e22407162b9",
+      "repo": "Stachugit/MeshCore-Cardputer-ADV"
+    },
+    "meshtastic-adv": {
+      "asset": "meshtastic-adv-cardputer-adv-merged.bin",
+      "assetKey": "meshtastic-adv-cardputer-adv-merged",
+      "tag": "v1.1.2",
+      "size": 5671940,
+      "file": "bins/meshtastic-adv-v1.1.2.bin",
+      "sha256": "533ad6667c5171211bb2d8357ae5ced37e78f1b994ab6ccadcbc658ffe1821a1",
+      "repo": "anton-vinogradov/meshtastic-adv"
+    },
+    "microgroove": {
+      "asset": "Microgroove.bin",
+      "assetKey": "microgroove",
+      "tag": "v1.0.0",
+      "size": 4194304,
+      "file": "bins/microgroove-v1.0.bin",
+      "sha256": "7af9d85006bbaaf75d79679d5ab865cc13623b24856e893f1270ec8fa2ae6d14",
+      "repo": "matoslav/MicroGroove"
+    },
+    "microhydra": {
+      "asset": "CARDPUTER_ADV.bin",
+      "assetKey": "cardputer-adv",
+      "tag": "v2.6-preview",
+      "size": 2433920,
+      "file": "bins/microhydra-v2.6-preview.bin",
+      "sha256": "2ef98f063470004d8e9a1241e2b4957f4358b266337f8921b21d31a4cda13732",
+      "repo": "echo-lalia/MicroHydra",
+      "disabled": true,
+      "disabledReason": "asset-missing:CARDPUTER_ADV.bin"
+    },
+    "miniacid": {
+      "asset": "esp32fw-0_0_8.bin",
+      "assetKey": "esp32fw-",
+      "tag": "v0.0.8",
+      "size": 8388608,
+      "file": "bins/miniacid-v0.0.8.bin",
+      "sha256": "b0a95d4d1e600ab1ffa1e82e6266114a2808826759151f1961356e6f08f02d90",
+      "repo": "urtubia/miniacid"
+    },
+    "mp3player-for-cardputer-adv-load-2000-songs": {
+      "asset": "V.5.0.bin",
+      "assetKey": "v-",
+      "tag": "V5.0",
+      "size": 8388608,
+      "file": "bins/mp3player-for-cardputer-adv-load-2000-so-5.2.bin",
+      "sha256": "2112918f5577ea611c4b9528403a940344ac41e08e956bf42e1f0ba0bfdb0078",
+      "repo": "sanchitminda/MP3PlayerForM5Cardputer"
+    },
+    "nemo-for-cardputer-adv": {
+      "asset": "M5Nemo-v3.2.2-M5Cardputer.bin",
+      "assetKey": "m5nemo-#-m5cardputer",
+      "tag": "v3.2.2",
+      "size": 2324336,
+      "file": "bins/nemo-for-cardputer-adv-3.2.2-en-us.bin",
+      "sha256": "90e65f8c83081bd08b64c7343b5b0e6d603f0f04feda17b2985f3278b1a1faac",
+      "repo": "n0xa/m5stick-nemo"
+    },
+    "nucleoos": {
+      "asset": "nucleoos-0.7.2.0.bin",
+      "assetKey": "nucleoos-",
+      "tag": "v0.7.2",
+      "size": 3254272,
+      "file": "bins/nucleoos-v0.7.2.bin",
+      "sha256": "ac8ebe1a77a1daa90c49e8d87f1afa31f041526a5136de95d531b5c295b57121",
+      "repo": "indecenti/NucleoOs"
+    },
+    "openwifi-scanner-cardputer-adv": {
+      "asset": "OpenWiFiScanner_Cardputer.bin",
+      "assetKey": "openwifiscanner-cardputer",
+      "tag": "v1.1",
+      "size": 1308208,
+      "file": "bins/openwifi-scanner-cardputer-adv-1.1.bin",
+      "sha256": "21561b83cef6e71c8695ab851c854f09f693be2b0403087ddf7786f15d233636",
+      "repo": "geo-tp/Open-Wifi-Scanner",
+      "manual": true,
+      "updatedAt": "2026-10-21T18:49:08.382Z"
+    },
+    "original": {
+      "asset": "K132-Adv-Cardputer-Adv-UserDemo-V0.3_0x0.bin",
+      "assetKey": "k132-adv-cardputer-adv-userdemo-#0",
+      "tag": "ADV-V0.3",
+      "size": 2690480,
+      "file": "bins/cardputer-adv-user-demo-v0.3.bin",
+      "sha256": "7bb1532427c875445b16186b6139afa371f67ddbdc83ae5bfe4a9089c7883b74",
+      "repo": "m5stack/M5Cardputer-UserDemo"
+    },
+    "paperos": {
+      "asset": "PaperOS_full_v1.3.bin",
+      "assetKey": "paperos-full-",
+      "tag": "v1.3",
+      "size": 8388608,
+      "file": "bins/paperos-v1.3.bin",
+      "sha256": "0485e9102be43f37d8a748dc33358adb0afc66422778bdf76ca0fa7a794b5b84",
+      "repo": "Artem76228/PaperOS"
+    },
+    "piano-tiles": {
+      "asset": "PianoTilesV2.0.ino.merged.bin",
+      "assetKey": "pianotiles#-ino-merged",
+      "tag": "2.0",
+      "size": 4194304,
+      "file": "bins/piano-tiles-adv-v2.0.bin",
+      "sha256": "470aabe22c27a764ac0226058a94e856fcb14d767abfb66c41582fa2ac872f0a",
+      "repo": "Zeloksa/Piano-Tiles-ADV"
+    },
+    "plai": {
+      "asset": "Plai_21_full.bin",
+      "assetKey": "plai-21-full",
+      "tag": "v2.1",
+      "size": 1433360,
+      "file": "bins/plai-v2.1.bin",
+      "sha256": "f6e0cd89d946b7337c182df1f6055457115e6b2618403db2dd80508262cbd34e",
+      "repo": "d4rkmen/plai"
+    },
+    "silicon-casino": {
+      "asset": "silicon-casino-1.1-factory.bin",
+      "assetKey": "silicon-casino-#-factory",
+      "tag": "v1.1",
+      "size": 666832,
+      "file": "bins/silicon-casino-v1.1.bin",
+      "sha256": "d3559ecf16767039ef9a781bc7bf6e8d90f4af70067ce71d4687283fa30d985b",
+      "repo": "chatelp/geek-casino-cardputeradv"
+    },
+    "sound-terrarium": {
+      "asset": "SoundTerrarium_v108cs.ino.merged.bin",
+      "assetKey": "soundterrarium-v108cs-ino-merged",
+      "tag": "v108cs",
+      "size": 4194304,
+      "file": "bins/sound-terrarium-v108cs.bin",
+      "sha256": "5f26cdb91906244ffdd9c7208721546f0741dbcfb86adac635b12745448d1d04",
+      "repo": "kariagepompadour/SOUND-TERRARIUM"
+    },
+    "ultimate-remote": {
+      "asset": "ultimate_remote_1_3_cardputer_adv.bin",
+      "assetKey": "ultimate-remote-#-cardputer-adv",
+      "tag": "v1.3",
+      "size": 3487168,
+      "file": "bins/ultimate-remote-v1.3.bin",
+      "sha256": "a86e9cd9b116c02e704c928e3912c5ae59dd00758b33ba939d14847fff678da7",
+      "repo": "geo-tp/Ultimate-Remote"
+    },
+    "usb-bluetooth-mouse-keyboard-cardputer-adv": {
+      "asset": "MouseKeyboard.bin",
+      "assetKey": "mousekeyboard",
+      "tag": "v1.1",
+      "size": 1176096,
+      "file": "bins/usb-bluetooth-mouse-keyboard-cardputer-a-1.1.bin",
+      "sha256": "8ef49b4bf74bbd8bb85cbe382a008b3089d718fee53b2903cc4358147d0d5459",
+      "repo": "geo-tp/Bluetooth-Keyboard-Mouse-Emulator"
+    },
+    "webradio": {
+      "asset": "M5Cardputer_WebRadio.bin",
+      "assetKey": "m5cardputer-webradio",
+      "tag": "PrimeiraVersao",
+      "size": 4194304,
+      "file": "bins/webradio.bin",
+      "sha256": "be28c5130ba536b937deb2a1f06b79d49b79c620a16cbe2816c5829b7a9c9b0b",
+      "repo": "cyberwisk/M5Cardputer_WebRadio"
+    },
+    "wifi-ble-radar": {
+      "asset": "RadarV3.1.ino.merged.bin",
+      "assetKey": "radar#-ino-merged",
+      "tag": "v3.1",
+      "size": 4194304,
+      "file": "bins/wifi-ble-radar-v3.1.bin",
+      "sha256": "7f22a9f0ab2a26b2d19f0ff4da6130a9dc404bcd79de10b966bbaa9965df01e4",
+      "repo": "Zeloksa/Cardputer-ADV-WiFi-BLE-Radar"
+    },
+    "wifi-remote-display-adv": {
+      "asset": "WiFiRemoteDisplayADV1.1.bin",
+      "assetKey": "wifiremotedisplayad",
+      "tag": "1.1",
+      "size": 4194304,
+      "file": "bins/wifi-remote-display-adv-1.1-26.06.2026.bin",
+      "sha256": "f4869b4d3b18810696d08e5d97c0a8be19128b8b7b5427cf5a158afb8098c582",
+      "repo": "Zeloksa/WiFi-Remote-Display-ADV"
+    },
+    "wikipedia-offline": {
+      "asset": "Wikipedia_Offline_ADV1.2.bin",
+      "assetKey": "wikipedia-offline-ad",
+      "tag": "1.2",
+      "size": 4194304,
+      "file": "bins/wikipedia-offline-v1.2.bin",
+      "sha256": "1d8950b852e948b6631aa1633d145412499e8f58431ffb27ba605aea6186fcf1",
+      "repo": "Zeloksa/Wikipedia-Offline-ADV"
+    }
+  }
+}
