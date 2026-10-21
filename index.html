@@ -385,7 +385,8 @@
     transition: opacity 0.15s ease;
   }
   .pet:hover .actions,
-  .pet:focus-within .actions {
+  .pet:focus-within .actions,
+  .pet.target .actions {
     opacity: 1;
     pointer-events: auto;
   }
@@ -580,12 +581,30 @@
   }
   #confirmDialog .confirm-text a:hover { color: var(--text); }
   #confirmDialog.danger .confirm-text { color: color-mix(in srgb, var(--bad) 70%, var(--muted)); }
+  .pet.target {
+    border-color: color-mix(in srgb, var(--secondary) 65%, var(--line));
+    background: color-mix(in srgb, var(--secondary) 10%, var(--card));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--secondary) 25%, transparent);
+  }
   .pet.flash {
-    animation: pet-flash 1.2s ease;
+    animation: pet-flash 2.2s ease;
   }
   @keyframes pet-flash {
-    0%, 100% { border-color: var(--line); }
-    30%, 60% { border-color: color-mix(in srgb, var(--secondary) 70%, var(--line)); }
+    0% {
+      border-color: var(--secondary);
+      background: color-mix(in srgb, var(--secondary) 22%, var(--card));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--secondary) 45%, transparent);
+    }
+    35% {
+      border-color: color-mix(in srgb, var(--secondary) 80%, var(--line));
+      background: color-mix(in srgb, var(--secondary) 14%, var(--card));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--secondary) 30%, transparent);
+    }
+    100% {
+      border-color: color-mix(in srgb, var(--secondary) 65%, var(--line));
+      background: color-mix(in srgb, var(--secondary) 10%, var(--card));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--secondary) 25%, transparent);
+    }
   }
   #confirmMeta {
     list-style: none;
@@ -1923,9 +1942,24 @@ function shareUrlFor(id) {
   return url.href;
 }
 
-function goToCatalogItem(id, { updateHash = true } = {}) {
+let flashTimer = 0;
+
+function clearHashTarget() {
+  for (const el of $("catalog").querySelectorAll(".pet.target, .pet.flash")) {
+    el.classList.remove("target", "flash");
+  }
+  if (flashTimer) {
+    clearTimeout(flashTimer);
+    flashTimer = 0;
+  }
+}
+
+function goToCatalogItem(id, { updateHash = true, flash = true, scroll = true } = {}) {
   const card = $("catalog").querySelector(`[data-id="${CSS.escape(id)}"]`);
-  if (!card) return;
+  if (!card) {
+    clearHashTarget();
+    return;
+  }
   if (card.classList.contains("hidden") || card.closest("section")?.classList.contains("hidden")) {
     query = "";
     $("search").value = "";
@@ -1933,21 +1967,29 @@ function goToCatalogItem(id, { updateHash = true } = {}) {
   }
   const section = card.closest("section");
   if (section?.dataset.title) setActiveChip(section.dataset.title);
-  if (updateHash && location.hash.slice(1) !== id) {
+  if (updateHash && decodeURIComponent(location.hash.slice(1)) !== id) {
     history.replaceState(null, "", `#${encodeURIComponent(id)}`);
   }
-  card.scrollIntoView({ behavior: "smooth", block: "center" });
-  card.classList.remove("flash");
-  void card.offsetWidth;
-  card.classList.add("flash");
-  window.setTimeout(() => card.classList.remove("flash"), 1300);
+  for (const el of $("catalog").querySelectorAll(".pet.target")) {
+    if (el !== card) el.classList.remove("target", "flash");
+  }
+  card.classList.add("target");
+  if (scroll) card.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (flash) {
+    card.classList.remove("flash");
+    void card.offsetWidth;
+    card.classList.add("flash");
+    if (flashTimer) clearTimeout(flashTimer);
+    flashTimer = window.setTimeout(() => {
+      card.classList.remove("flash");
+      flashTimer = 0;
+    }, 2200);
+  }
 }
 
 async function copyShareLink(id) {
   const url = shareUrlFor(id);
-  if (location.hash.slice(1) !== id) {
-    history.replaceState(null, "", `#${encodeURIComponent(id)}`);
-  }
+  goToCatalogItem(id, { updateHash: true, flash: true, scroll: false });
   await copyText(url);
 }
 
@@ -2132,6 +2174,10 @@ function render() {
   applyFilters();
   observeSections();
   setBusy(busy);
+  const hashId = decodeURIComponent(location.hash.slice(1));
+  if (hashId) {
+    $("catalog").querySelector(`[data-id="${CSS.escape(hashId)}"]`)?.classList.add("target");
+  }
 }
 
 $("search").addEventListener("input", (e) => { query = e.target.value; applyFilters(); });
@@ -3731,6 +3777,7 @@ prefetchCatalogSizes();
 function openHashTarget() {
   const id = decodeURIComponent(location.hash.slice(1));
   if (id) goToCatalogItem(id, { updateHash: false });
+  else clearHashTarget();
 }
 window.addEventListener("hashchange", openHashTarget);
 requestAnimationFrame(openHashTarget);
