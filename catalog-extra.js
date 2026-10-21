@@ -12,7 +12,7 @@ export const EXTRA = {
     { id: "bit-pirate-cardputer-adv", emoji: "🏴‍☠️", name: "Bit Pirate", repo: "https://github.com/geo-tp/ESP32-Bus-Pirate", desc: "Hardware hacking toolkit with a web CLI for many protocols", parts: [{ file: "bins/bit-pirate-cardputer-adv-1.8.bin", address: 0x0 }] },
   ],
   tools: [
-    { id: "openwifi-scanner-cardputer-adv", emoji: "🔎", name: "OpenWiFi Scanner", repo: "https://github.com/geo-tp/Open-Wifi-Scanner", desc: "Continuously scans for open Wi-Fi networks with internet access", parts: [{ file: "bins/openwifi-scanner-cardputer-adv-1.0.bin", address: 0x0 }] },
+    { id: "openwifi-scanner-cardputer-adv", emoji: "🔎", name: "OpenWiFi Scanner", repo: "https://github.com/geo-tp/Open-Wifi-Scanner", desc: "Continuously scans for open Wi-Fi networks with internet access", parts: [{ file: "bins/openwifi-scanner-cardputer-adv-1.1.bin", address: 0x0 }] },
     { id: "usb-bluetooth-mouse-keyboard-cardputer-adv", emoji: "🖱️", name: "USB/Bluetooth HID", repo: "https://github.com/geo-tp/Bluetooth-Keyboard-Mouse-Emulator", desc: "Emulates a USB and Bluetooth keyboard and mouse", parts: [{ file: "bins/usb-bluetooth-mouse-keyboard-cardputer-a-1.1.bin", address: 0x0 }] },
     { id: "password-manager-cardputer-adv", emoji: "🔐", name: "Password Manager", repo: "https://github.com/geo-tp/Password-Manager", desc: "Offline password manager for Cardputer and ADV", parts: [{ file: "bins/password-manager-cardputer-adv-1.0.bin", address: 0x0 }] },
   ],

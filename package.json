@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "fetch-keys": "node scripts/fetch-catalog-keys.mjs",
-    "export-meta": "node scripts/export-catalog-meta.mjs"
+    "export-meta": "node scripts/export-catalog-meta.mjs",
+    "sync-installers": "node scripts/sync-installers.mjs"
   },
   "devDependencies": {
     "vite": "^6.3.5"

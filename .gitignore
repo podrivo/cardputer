@@ -1,5 +1,6 @@
 .venv/
 node_modules/
+.sync-tmp/
 *.zip
 !assets/*.zip
 .DS_Store
