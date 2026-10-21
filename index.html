@@ -1756,6 +1756,23 @@ function settleConfirm(ok) {
   pending?.resolve(ok);
 }
 
+function fillConfirmMeta(meta) {
+  const metaEl = $("confirmMeta");
+  metaEl.innerHTML = "";
+  metaEl.hidden = !meta.length;
+  for (const row of meta) {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.className = "meta-label";
+    label.textContent = row.label;
+    const value = document.createElement("span");
+    value.className = "meta-value" + (row.warn ? " warn" : "");
+    value.textContent = row.value;
+    li.append(label, value);
+    metaEl.appendChild(li);
+  }
+}
+
 function askConfirm({
   emoji,
   title,
@@ -1774,20 +1791,7 @@ function askConfirm({
   textEl.replaceChildren();
   if (typeof text === "string") textEl.textContent = text;
   else if (text) textEl.append(text);
-  const metaEl = $("confirmMeta");
-  metaEl.innerHTML = "";
-  metaEl.hidden = !meta.length;
-  for (const row of meta) {
-    const li = document.createElement("li");
-    const label = document.createElement("span");
-    label.className = "meta-label";
-    label.textContent = row.label;
-    const value = document.createElement("span");
-    value.className = "meta-value" + (row.warn ? " warn" : "");
-    value.textContent = row.value;
-    li.append(label, value);
-    metaEl.appendChild(li);
-  }
+  fillConfirmMeta(meta);
   $("confirmOkBtn").textContent = okLabel;
   $("confirmOkBtn").className = danger ? "danger" : "";
   $("confirmAltBtn").textContent = altLabel;
@@ -1820,14 +1824,18 @@ async function probeFileSize(url) {
     const len = head.headers.get("content-length");
     if (head.ok && len) size = Number(len);
   } catch {}
-  if (size == null) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) size = (await res.arrayBuffer()).byteLength;
-    } catch {}
-  }
+  // HEAD only — never download the whole .bin just to show Size in the confirm dialog.
   sizeCache.set(url, size);
   return size;
+}
+
+function prefetchCatalogSizes() {
+  for (const block of BLOCKS) {
+    for (const item of block.items || []) {
+      for (const p of item.parts || []) probeFileSize(p.file);
+      if (item.sdAssets?.file) probeFileSize(item.sdAssets.file);
+    }
+  }
 }
 
 async function confirmMetaFor(target) {
@@ -3085,7 +3093,6 @@ async function addToLauncher(target, { confirmed = false } = {}) {
   if (!target.parts?.length) return;
 
   if (!confirmed) {
-    const meta = await confirmMetaFor(target);
     const confirmCopy = document.createDocumentFragment();
     confirmCopy.append("Requires ");
     const launcherLink = document.createElement("a");
@@ -3098,6 +3105,7 @@ async function addToLauncher(target, { confirmed = false } = {}) {
     };
     confirmCopy.append(launcherLink);
     confirmCopy.append(" already installed. If this app is already on the device, it will be replaced.");
+    const meta = await confirmMetaFor(target);
     const ok = await askConfirm({
       emoji: "📂",
       title: target.name,
@@ -3401,33 +3409,21 @@ async function deviceHasMiniLauncher(port) {
 async function install(target) {
   if (busy) return;
 
-  let launcherDetected = false;
-  if (target.parts?.length && target.action !== "erase") {
-    setBusy(true);
-    try {
-      const { port } = await resolveSerialPort();
-      launcherDetected = await deviceHasMiniLauncher(port);
-    } catch (err) {
-      if (isPortPickCancelled(err)) return;
-      console.warn("Mini Launcher detection failed", err);
-    } finally {
-      setBusy(false);
-    }
-  }
-
+  // Offer Mini Launcher packing without probing the device first (that was the slow bit).
+  const offerLauncher = !!(target.parts?.length && target.action !== "erase" && target.id !== "original");
   const meta = await confirmMetaFor(target);
   const ok = await askConfirm({
     emoji: target.emoji,
     title: target.name,
-    subtitle: launcherDetected ? "Mini Launcher detected" : "Install firmware",
-    text: launcherDetected
-      ? `Install ${target.name} and replace everything on the Cardputer, or add it to Mini Launcher and keep your packed apps.`
-      : target.id === "original"
-        ? "This replaces whatever is on the Cardputer with the original User Demo."
+    subtitle: "Install firmware",
+    text: target.id === "original"
+      ? "This replaces whatever is on the Cardputer with the original User Demo."
+      : offerLauncher
+        ? `Install ${target.name} and replace everything on the Cardputer, or add it to Mini Launcher and keep your packed apps.`
         : `Flash ${target.name} onto the Cardputer? This replaces the firmware currently on the device.`,
     meta,
     okLabel: "Confirm and install",
-    altLabel: launcherDetected ? "Add to Mini Launcher" : "",
+    altLabel: offerLauncher ? "Add to Mini Launcher" : "",
   });
   if (!ok) return;
   if (ok === "alt") return addToLauncher(target, { confirmed: true });
@@ -3684,6 +3680,7 @@ async function eraseDevice() {
 }
 
 render();
+prefetchCatalogSizes();
 </script>
 </body>
 </html>
