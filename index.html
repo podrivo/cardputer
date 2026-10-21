@@ -1137,13 +1137,13 @@ const TOOLS = [
     name: "Mini Launcher",
     repo: "https://github.com/podrivo/cardputer-launcher",
     desc: "Cycle through multiple apps packed into flash",
-    link: "https://github.com/podrivo/cardputer-launcher#readme",
-    button: "Get",
+    parts: [{ file: bin("cardputer_launcher.bin"), address: 0x0 }],
     keys: {
       rows: [
         ["← / →", "Browse installed apps"],
         ["↑ / ↓", "Browse (same)"],
         ["Enter", "Open app (one-shot; power off returns here)"],
+        ["ESC (hold)", "Shortcuts + battery"],
       ],
       source: "https://github.com/podrivo/cardputer-launcher",
     },
