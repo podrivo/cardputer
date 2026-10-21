@@ -268,6 +268,7 @@
     display: flex;
     align-items: center;
     gap: 24px;
+    scroll-margin-top: 88px;
     --mx: 50%;
     --my: 50%;
   }
@@ -309,7 +310,17 @@
     font-size: 16px;
     min-width: 0;
   }
-  .name .label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .name .label {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .name .label:hover { color: var(--secondary); }
   .name .label + .tag { margin-left: 6px; }
   .desc { color: var(--muted); font-size: 16px; margin-top: 6px; }
   .icon-btn {
@@ -1906,7 +1917,13 @@ const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>`;
 const ICON_INSTALL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
 
-function goToCatalogItem(id) {
+function shareUrlFor(id) {
+  const url = new URL(location.href);
+  url.hash = id;
+  return url.href;
+}
+
+function goToCatalogItem(id, { updateHash = true } = {}) {
   const card = $("catalog").querySelector(`[data-id="${CSS.escape(id)}"]`);
   if (!card) return;
   if (card.classList.contains("hidden") || card.closest("section")?.classList.contains("hidden")) {
@@ -1916,11 +1933,22 @@ function goToCatalogItem(id) {
   }
   const section = card.closest("section");
   if (section?.dataset.title) setActiveChip(section.dataset.title);
+  if (updateHash && location.hash.slice(1) !== id) {
+    history.replaceState(null, "", `#${encodeURIComponent(id)}`);
+  }
   card.scrollIntoView({ behavior: "smooth", block: "center" });
   card.classList.remove("flash");
   void card.offsetWidth;
   card.classList.add("flash");
   window.setTimeout(() => card.classList.remove("flash"), 1300);
+}
+
+async function copyShareLink(id) {
+  const url = shareUrlFor(id);
+  if (location.hash.slice(1) !== id) {
+    history.replaceState(null, "", `#${encodeURIComponent(id)}`);
+  }
+  await copyText(url);
 }
 
 function cardEl(item, current, danger, added) {
@@ -1941,9 +1969,15 @@ function cardEl(item, current, danger, added) {
     <div class="actions"></div>`;
   el.dataset.search = `${item.name} ${item.desc} ${item.tag?.[1] || ""}`.toLowerCase();
   const nameRow = el.querySelector(".name");
-  const label = document.createElement("span");
+  const label = document.createElement("a");
   label.className = "label";
+  label.href = `#${encodeURIComponent(item.id)}`;
   label.textContent = item.name;
+  label.setAttribute("aria-label", `Copy link to ${item.name}`);
+  label.onclick = (e) => {
+    e.preventDefault();
+    copyShareLink(item.id);
+  };
   nameRow.appendChild(label);
   if (item.tag) {
     const tag = document.createElement("span");
@@ -3693,6 +3727,13 @@ async function eraseDevice() {
 
 render();
 prefetchCatalogSizes();
+
+function openHashTarget() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (id) goToCatalogItem(id, { updateHash: false });
+}
+window.addEventListener("hashchange", openHashTarget);
+requestAnimationFrame(openHashTarget);
 </script>
 </body>
 </html>
