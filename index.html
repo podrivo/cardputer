@@ -858,6 +858,7 @@ import {
   TABLE_SIZE,
   extractAppImage,
   listOtaPartitions,
+  pickPartitionLabel,
   planAppendOta,
   trimAppImage,
 } from "./launcher-partition.js";
@@ -2976,6 +2977,52 @@ function mapLauncherPlanError(err, targetName) {
   return err;
 }
 
+/** Match a packed partition label to a catalog app (for restore without reading flash). */
+function findCatalogByPartitionLabel(label) {
+  const key = String(label || "").toLowerCase().trim();
+  if (!key) return null;
+  for (const block of BLOCKS) {
+    for (const item of block.items || []) {
+      if (!item.parts?.length || item.launcherBase || item.action === "erase") continue;
+      if (item.name.toLowerCase() === key) return item;
+      if (item.id.toLowerCase() === key) return item;
+      if (pickPartitionLabel(item.name, 0).toLowerCase() === key) return item;
+    }
+  }
+  return null;
+}
+
+/** readFlash in small chunks with retries — large single reads often fail over Web Serial. */
+async function readFlashChunked(loader, address, size, {
+  chunk = 0x4000,
+  retries = 3,
+  onProgress,
+} = {}) {
+  const out = new Uint8Array(size);
+  let off = 0;
+  while (off < size) {
+    const n = Math.min(chunk, size - off);
+    let lastErr;
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const part = await loader.readFlash(address + off, n);
+        const bytes = part instanceof Uint8Array ? part : new Uint8Array(part);
+        out.set(bytes.subarray(0, n), off);
+        lastErr = null;
+        break;
+      } catch (err) {
+        lastErr = err;
+        log(`Flash read retry ${attempt + 1}/${retries} at ${hex(address + off)} (${n} bytes)`);
+        await sleep(250);
+      }
+    }
+    if (lastErr) throw lastErr;
+    off += n;
+    onProgress?.(off, size);
+  }
+  return out;
+}
+
 /** Pack an app into the next sized ota_* slot on a Mini Launcher device. */
 async function addToLauncher(target) {
   if (busy) return;
@@ -3098,11 +3145,27 @@ async function addToLauncher(target) {
           const ota = otas[i];
           setStatus(`Backing up packed apps… (${i + 1}/${otas.length})`);
           step(`Backing up ${ota.label || `ota_${i}`}`);
-          const raw = await loader.readFlash(ota.address, ota.size);
-          const bytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw);
-          const image = trimAppImage(bytes);
+
+          // Prefer catalog bins — full-slot readFlash often dies on serial noise at high baud.
+          const catalogItem = findCatalogByPartitionLabel(ota.label);
+          let image;
+          if (catalogItem) {
+            const binData = await loadFile(catalogItem.parts[0].file);
+            image = extractAppImage(binData);
+            log(
+              `Restoring ${ota.label} from catalog (${image.length.toLocaleString()} bytes)`,
+              "ok"
+            );
+          } else {
+            const raw = await readFlashChunked(loader, ota.address, ota.size, {
+              onProgress: (done, total) => {
+                setProgress((i + done / total) / Math.max(otas.length, 1));
+              },
+            });
+            image = trimAppImage(raw);
+            log(`Backed up ${ota.label} from flash (${image.length.toLocaleString()} bytes)`, "ok");
+          }
           packedApps.push({ label: ota.label, image });
-          log(`Backed up ${ota.label} (${image.length.toLocaleString()} bytes)`, "ok");
           setProgress((i + 1) / Math.max(otas.length, 1));
         }
       } finally {
