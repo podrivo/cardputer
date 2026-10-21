@@ -559,7 +559,20 @@
     line-height: 1.45;
     margin: 0;
   }
+  #confirmDialog .confirm-text a {
+    color: var(--secondary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  #confirmDialog .confirm-text a:hover { color: var(--text); }
   #confirmDialog.danger .confirm-text { color: color-mix(in srgb, var(--bad) 70%, var(--muted)); }
+  .pet.flash {
+    animation: pet-flash 1.2s ease;
+  }
+  @keyframes pet-flash {
+    0%, 100% { border-color: var(--line); }
+    30%, 60% { border-color: color-mix(in srgb, var(--secondary) 70%, var(--line)); }
+  }
   #confirmMeta {
     list-style: none;
     margin: 16px 0 0;
@@ -1753,7 +1766,10 @@ function askConfirm({
   $("confirmEmoji").textContent = emoji || "↺";
   $("confirmTitle").textContent = title;
   $("confirmSubtitle").textContent = subtitle;
-  $("confirmText").textContent = text;
+  const textEl = $("confirmText");
+  textEl.replaceChildren();
+  if (typeof text === "string") textEl.textContent = text;
+  else if (text) textEl.append(text);
   const metaEl = $("confirmMeta");
   metaEl.innerHTML = "";
   metaEl.hidden = !meta.length;
@@ -1866,6 +1882,23 @@ const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>`;
 const ICON_INSTALL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
 
+function goToCatalogItem(id) {
+  const card = $("catalog").querySelector(`[data-id="${CSS.escape(id)}"]`);
+  if (!card) return;
+  if (card.classList.contains("hidden") || card.closest("section")?.classList.contains("hidden")) {
+    query = "";
+    $("search").value = "";
+    applyFilters();
+  }
+  const section = card.closest("section");
+  if (section?.dataset.title) setActiveChip(section.dataset.title);
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.remove("flash");
+  void card.offsetWidth;
+  card.classList.add("flash");
+  window.setTimeout(() => card.classList.remove("flash"), 1300);
+}
+
 function cardEl(item, current, danger, added) {
   const el = document.createElement("div");
   const isCurrent = current === item.id;
@@ -1874,6 +1907,7 @@ function cardEl(item, current, danger, added) {
     + (danger ? " danger" : "")
     + (isCurrent ? " current" : "")
     + (isAdded ? " added" : "");
+  el.dataset.id = item.id;
   el.innerHTML = `
     <div class="emoji">${item.emoji}</div>
     <div class="info">
@@ -3029,11 +3063,23 @@ async function addToLauncher(target) {
   if (!target.parts?.length) return;
 
   const meta = await confirmMetaFor(target);
+  const confirmCopy = document.createDocumentFragment();
+  confirmCopy.append("Requires ");
+  const launcherLink = document.createElement("a");
+  launcherLink.href = "#mini-launcher";
+  launcherLink.textContent = "Mini Launcher";
+  launcherLink.onclick = (e) => {
+    e.preventDefault();
+    settleConfirm(false);
+    goToCatalogItem("mini-launcher");
+  };
+  confirmCopy.append(launcherLink);
+  confirmCopy.append(" already installed. If this app is already on the device, it will be replaced.");
   const ok = await askConfirm({
     emoji: "📂",
     title: target.name,
     subtitle: "Add to Mini Launcher",
-    text: "Requires Mini Launcher already installed. If this app is already on the device, it will be replaced.",
+    text: confirmCopy,
     meta,
     okLabel: "Add to Mini Launcher",
   });
