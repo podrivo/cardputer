@@ -2011,11 +2011,12 @@ function applyFilters() {
   $("empty").hidden = anyVisible;
 }
 
-/** Apps packed into Mini Launcher this browser session (not persisted). */
+/** Last firmware installed / apps packed this browser session (not persisted). */
+let installedThisSession = null;
 const addedThisSession = new Set();
+try { localStorage.removeItem("installed"); } catch {}
 
 function render() {
-  const current = localStorage.getItem("installed");
   const catalog = $("catalog");
   catalog.innerHTML = "";
   buttons.length = 0;
@@ -2030,7 +2031,7 @@ function render() {
     const grid = document.createElement("div");
     grid.className = "pets";
     for (const item of block.items) {
-      grid.appendChild(cardEl(item, current, block.danger || item.danger, addedThisSession));
+      grid.appendChild(cardEl(item, installedThisSession, block.danger || item.danger, addedThisSession));
     }
     section.appendChild(grid);
     catalog.appendChild(section);
@@ -3173,7 +3174,7 @@ async function install(target) {
       await loader.after("hard_reset");
       setProgress(1);
       log(`Done. ${target.name} is installed.`, "ok");
-      localStorage.setItem("installed", target.id);
+      installedThisSession = target.id;
       addedThisSession.clear();
     } finally {
       try { await transport.disconnect(); } catch {}
@@ -3266,7 +3267,7 @@ async function eraseDevice() {
     setStatus("Restarting the Cardputer…");
     step("Restarting");
     await loader.after("hard_reset");
-    localStorage.removeItem("installed");
+    installedThisSession = null;
     addedThisSession.clear();
     finishDialog(true);
   } catch (err) {
