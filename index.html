@@ -1259,6 +1259,18 @@ const MORE = [
         },
         parts: [{ file: bin("ai-offline-chat-adv-v1.1.bin"), address: 0x0 }],
       },
+      {
+        id: "t3-cardputer",
+        emoji: "🧵",
+        name: "T3 Cardputer",
+        repo: "https://github.com/joaopcm/t3-cardputer",
+        desc: "Pocket client for T3 Code agents: approvals, threads, new tasks and voice replies",
+        parts: [
+          { file: bin("t3-cardputer-bootloader-v0.1.0.bin"), address: 0x0 },
+          { file: bin("t3-cardputer-partition-table-v0.1.0.bin"), address: 0x8000 },
+          { file: bin("t3-cardputer-v0.1.0.bin"), address: 0x10000 },
+        ],
+      },
     ],
   },
   {
