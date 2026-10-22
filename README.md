@@ -64,7 +64,7 @@ Serve the folder over HTTP if you want `bins/` to load automatically (e.g. Netli
 
 1. Install Mini Launcher once from this catalog (replaces the flash layout). Binary from [cardputer-launcher](https://github.com/podrivo/cardputer-launcher).
 2. On other catalog apps, click **Install**. If Mini Launcher is detected on the device, choose **Add to Mini Launcher** to carve the next `ota_*` slot and write that app only.
-3. On device: **← / →** browse, **Enter** open. Hold **ESC** for shortcuts + battery. Power off always returns to the launcher.
+3. On device: **← / →** browse, **Enter** open, **− / +** brightness, **[ / ]** palette, **DEL** delete. Hold **ESC** for shortcuts + battery. Power off always returns to the launcher.
 4. Choosing **Confirm and install** wipes the launcher layout. To clear packed apps, reinstall Mini Launcher.
 
 If flash is full or you already have 16 apps, adding stops with a clear error.

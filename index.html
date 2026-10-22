@@ -50,7 +50,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 28px;
-    margin: 0 0 28px;
+    margin: 0 0 40px;
   }
   .hero-copy { min-width: 0; }
   h1 { font-size: 32px; margin: 0 0 4px; letter-spacing: -0.01em; }
@@ -181,6 +181,39 @@
   .hero-img.is-expanded { opacity: 0; }
   @media (max-width: 720px) {
     .hero { gap: 16px; }
+  }
+  .featured {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0 0 40px;
+  }
+  .featured .pet {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px;
+    height: 100%;
+  }
+  .featured .pet-main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+  }
+  .featured .emoji {
+    width: auto;
+  }
+  .featured .actions {
+    opacity: 1;
+    pointer-events: auto;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+  @media (max-width: 900px) {
+    .featured { grid-template-columns: 1fr; }
   }
   .notice {
     border: 1px solid var(--warn);
@@ -744,6 +777,8 @@
 
   <div class="notice" id="notice"></div>
 
+  <div class="featured" id="featured"></div>
+
   <div class="nav-sentinel" id="navSentinel" aria-hidden="true"></div>
   <div class="nav" id="nav">
     <div class="chips" id="chips"></div>
@@ -1140,9 +1175,11 @@ const TOOLS = [
     parts: [{ file: bin("cardputer_launcher.bin"), address: 0x0 }],
     keys: {
       rows: [
-        ["← / →", "Browse installed apps"],
-        ["↑ / ↓", "Browse (same)"],
-        ["Enter", "Open app (one-shot; power off returns here)"],
+        ["← / → (also ↑ / ↓)", "Browse installed apps"],
+        ["− / +", "Brightness"],
+        ["[ / ]", "Cycle color palette"],
+        ["Enter (OK)", "Open (one-shot boot)"],
+        ["DEL", "Delete app (Enter confirms, DEL/ESC cancels)"],
         ["ESC (hold)", "Shortcuts + battery"],
       ],
       source: "https://github.com/podrivo/cardputer-launcher",
@@ -1933,8 +1970,10 @@ $("confirmDialog").addEventListener("cancel", (e) => {
 });
 
 const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`;
+const ICON_ARROW_OUT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>`;
 const ICON_KEYBOARD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>`;
 const ICON_INSTALL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
+const ICON_UPLOAD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m8 8 4-4 4 4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
 
 const SITE_NAME = "Cardputer ADV Installers";
 const DEFAULT_DESCRIPTION =
@@ -1978,7 +2017,7 @@ function applyInstallerMeta(item) {
 let flashTimer = 0;
 
 function clearHashTarget() {
-  for (const el of $("catalog").querySelectorAll(".pet.target, .pet.flash")) {
+  for (const el of document.querySelectorAll("#featured .pet.target, #featured .pet.flash, #catalog .pet.target, #catalog .pet.flash")) {
     el.classList.remove("target", "flash");
   }
   if (flashTimer) {
@@ -1988,7 +2027,7 @@ function clearHashTarget() {
 }
 
 function goToCatalogItem(id, { updateUrl = true, flash = true, scroll = true } = {}) {
-  const card = $("catalog").querySelector(`[data-id="${CSS.escape(id)}"]`);
+  const card = document.querySelector(`#featured [data-id="${CSS.escape(id)}"], #catalog [data-id="${CSS.escape(id)}"]`);
   if (!card) {
     clearHashTarget();
     return;
@@ -2003,8 +2042,12 @@ function goToCatalogItem(id, { updateUrl = true, flash = true, scroll = true } =
   if (updateUrl && new URLSearchParams(location.search).get("i") !== id) {
     history.replaceState(null, "", `?i=${encodeURIComponent(id)}`);
   }
-  applyInstallerMeta(findCatalogItem(id));
-  for (const el of $("catalog").querySelectorAll(".pet.target")) {
+  applyInstallerMeta(
+    findCatalogItem(id)
+    || FEATURED_ITEMS.find((item) => item.id === id)
+    || null
+  );
+  for (const el of document.querySelectorAll("#featured .pet.target, #catalog .pet.target")) {
     if (el !== card) el.classList.remove("target", "flash");
   }
   card.classList.add("target");
@@ -2027,7 +2070,7 @@ async function copyShareLink(id) {
   await copyText(url);
 }
 
-function cardEl(item, current, danger, added) {
+function cardEl(item, current, danger, added, { featured = false } = {}) {
   const el = document.createElement("div");
   const isCurrent = current === item.id;
   const isAdded = added?.has(item.id);
@@ -2036,7 +2079,17 @@ function cardEl(item, current, danger, added) {
     + (isCurrent ? " current" : "")
     + (isAdded ? " added" : "");
   el.dataset.id = item.id;
-  el.innerHTML = `
+  el.innerHTML = featured
+    ? `
+    <div class="pet-main">
+      <div class="emoji">${item.emoji}</div>
+      <div class="info">
+        <div class="name"></div>
+        <div class="desc">${item.desc}</div>
+      </div>
+    </div>
+    <div class="actions"></div>`
+    : `
     <div class="emoji">${item.emoji}</div>
     <div class="info">
       <div class="name"></div>
@@ -2074,7 +2127,8 @@ function cardEl(item, current, danger, added) {
     nameRow.appendChild(addedTag);
   }
   const actions = el.querySelector(".actions");
-  if (item.repo) {
+  const appendSource = () => {
+    if (!item.repo) return;
     const origin = document.createElement("a");
     origin.className = "icon-btn";
     origin.href = item.repo;
@@ -2084,9 +2138,10 @@ function cardEl(item, current, danger, added) {
     origin.setAttribute("aria-label", "Source");
     origin.innerHTML = ICON_EXTERNAL;
     actions.appendChild(origin);
-  }
-  const keys = resolveKeys(item);
-  if (keys) {
+  };
+  const appendShortcuts = () => {
+    const keys = resolveKeys(item);
+    if (!keys) return;
     const keysBtn = document.createElement("button");
     keysBtn.type = "button";
     keysBtn.className = "icon-btn";
@@ -2095,26 +2150,78 @@ function cardEl(item, current, danger, added) {
     keysBtn.innerHTML = ICON_KEYBOARD;
     keysBtn.onclick = () => openKeysDialog(item, keys);
     actions.appendChild(keysBtn);
-  }
-  if (item.link) {
-    const linkBtn = document.createElement("button");
-    linkBtn.textContent = item.button;
-    linkBtn.onclick = () => window.open(item.link, "_blank", "noopener");
-    actions.appendChild(linkBtn);
-    return el;
-  }
-  const btn = document.createElement("button");
-  const btnLabel = item.button || "Install";
-  if (item.buttonClass) btn.className = item.buttonClass;
-  if (btnLabel === "Install") {
-    btn.innerHTML = ICON_INSTALL + `<span>${btnLabel}</span>`;
+  };
+  const appendPrimary = () => {
+    if (item.link) {
+      const linkBtn = document.createElement("button");
+      const linkLabel = item.button || "Open";
+      linkBtn.innerHTML = `<span>${linkLabel}</span>` + ICON_ARROW_OUT;
+      linkBtn.onclick = () => window.open(item.link, "_blank", "noopener");
+      actions.appendChild(linkBtn);
+      return;
+    }
+    const btn = document.createElement("button");
+    const btnLabel = item.button || "Install";
+    if (item.buttonClass) btn.className = item.buttonClass;
+    if (item.action === "custom" || btnLabel === "Upload") {
+      btn.innerHTML = ICON_UPLOAD + `<span>${btnLabel}</span>`;
+    } else if (btnLabel === "Install") {
+      btn.innerHTML = ICON_INSTALL + `<span>${btnLabel}</span>`;
+    } else {
+      btn.textContent = btnLabel;
+    }
+    btn.onclick = () => {
+      if (item.action === "erase") eraseDevice();
+      else if (item.action === "custom") installCustom();
+      else install(item);
+    };
+    actions.appendChild(btn);
+    buttons.push(btn);
+  };
+  // Featured: Install / Upload / Get, then Shortcuts, then Source.
+  // Catalog: Source, Shortcuts, then primary (icons sit left of the CTA).
+  if (featured) {
+    appendPrimary();
+    appendShortcuts();
+    appendSource();
   } else {
-    btn.textContent = btnLabel;
+    appendSource();
+    appendShortcuts();
+    appendPrimary();
   }
-  btn.onclick = () => (item.action === "erase" ? eraseDevice() : install(item));
-  actions.appendChild(btn);
-  buttons.push(btn);
   return el;
+}
+
+const UPLOAD_ITEM = {
+  id: "custom",
+  emoji: "📤",
+  name: "Upload your own",
+  desc: "Flash a .bin you built or downloaded",
+  action: "custom",
+  button: "Upload",
+};
+
+const CREATE_ITEM = {
+  id: "create-your-own",
+  emoji: "✨",
+  name: "Create your own",
+  desc: "ESP-IDF starter template for Cardputer ADV apps",
+  link: "https://github.com/podrivo/cardputer-adv-template",
+  button: "Get",
+};
+
+const FEATURED_ITEMS = [UPLOAD_ITEM, CREATE_ITEM];
+
+function renderFeatured() {
+  const root = $("featured");
+  root.innerHTML = "";
+  const mini = findCatalogItem("mini-launcher");
+  if (mini) {
+    root.appendChild(cardEl(mini, installedThisSession, false, addedThisSession, { featured: true }));
+  }
+  for (const item of FEATURED_ITEMS) {
+    root.appendChild(cardEl(item, installedThisSession, false, addedThisSession, { featured: true }));
+  }
 }
 
 function setActiveChip(cat) {
@@ -2188,6 +2295,7 @@ function render() {
   const catalog = $("catalog");
   catalog.innerHTML = "";
   buttons.length = 0;
+  renderFeatured();
   for (const block of BLOCKS) {
     const section = document.createElement("section");
     section.dataset.title = block.title;
@@ -2239,7 +2347,7 @@ document.addEventListener("keydown", (e) => {
   const tick = () => {
     raf = 0;
     let moving = false;
-    for (const pet of $("catalog").querySelectorAll(".pet:hover")) {
+    for (const pet of document.querySelectorAll("#featured .pet:hover, #catalog .pet:hover")) {
       const state = glow.get(pet);
       if (!state) continue;
       state.x += (state.tx - state.x) * 0.025;
@@ -2255,7 +2363,7 @@ document.addEventListener("keydown", (e) => {
     if (!raf) raf = requestAnimationFrame(tick);
   };
 
-  $("catalog").addEventListener("pointermove", (e) => {
+  const onPetMove = (e) => {
     const pet = e.target.closest(".pet");
     if (!pet) return;
     const r = pet.getBoundingClientRect();
@@ -2270,7 +2378,9 @@ document.addEventListener("keydown", (e) => {
       state.ty = ty;
     }
     kick();
-  });
+  };
+  $("catalog").addEventListener("pointermove", onPetMove);
+  $("featured").addEventListener("pointermove", onPetMove);
 }
 
 new IntersectionObserver(
@@ -3071,6 +3181,53 @@ async function loadFile(name) {
   }
   fileCache.set(name, data);
   return data;
+}
+
+/** Pick a local .bin, then run the normal install / Add to Mini Launcher flow. */
+async function installCustom() {
+  if (busy) return;
+
+  openDialog({
+    emoji: UPLOAD_ITEM.emoji,
+    title: UPLOAD_ITEM.name,
+    doneTitle: "Firmware installed",
+    doneText: "Your Cardputer is restarting. Have fun!",
+    pickFile: true,
+  });
+
+  let picked;
+  try {
+    picked = await promptForExtraFile(
+      {
+        emoji: UPLOAD_ITEM.emoji,
+        name: UPLOAD_ITEM.name,
+        needsFile: {
+          title: "Choose a firmware",
+          status: "Flash a .bin onto the Cardputer, or pack it into Mini Launcher",
+          dropTitle: "Drop a .bin here",
+          dropHint: "or click to choose",
+          accept: ".bin,application/octet-stream",
+        },
+      },
+      { continueLabel: "Continue" }
+    );
+  } catch {
+    return;
+  }
+
+  $("dialog").close();
+
+  const displayName = picked.name.replace(/\.bin$/i, "") || "Custom firmware";
+  const cacheKey = `custom:${picked.name}`;
+  fileCache.set(cacheKey, picked.data);
+  sizeCache.set(cacheKey, picked.data.length);
+
+  await install({
+    id: "custom",
+    emoji: UPLOAD_ITEM.emoji,
+    name: displayName,
+    parts: [{ file: cacheKey, address: 0x0 }],
+  });
 }
 
 /** App-only images lack a partition table at 0x8000; flashing them at 0x0 overwrites the bootloader. */
