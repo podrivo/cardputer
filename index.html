@@ -223,7 +223,40 @@
     background: color-mix(in srgb, var(--accent) 8%, var(--card));
   }
   @media (max-width: 900px) {
-    .featured { grid-template-columns: 1fr; }
+    .featured {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    /* Compact row layout on mobile — matches catalog cards */
+    .featured .pet {
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      height: auto;
+    }
+    .featured .pet-main {
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      min-width: 0;
+    }
+    .featured .emoji {
+      width: 44px;
+      flex-shrink: 0;
+    }
+    .featured .desc { margin-top: 6px; }
+    .featured .actions { margin-top: 0; flex-shrink: 0; }
+  }
+  @media (max-width: 520px) {
+    .featured .pet {
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .featured .pet-main { flex: 1 1 auto; }
+    .featured .actions { width: 100%; }
   }
   .notice {
     border: 1px solid var(--warn);
