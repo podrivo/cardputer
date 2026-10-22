@@ -107,7 +107,7 @@
   "mini-launcher": {
     "emoji": "📂",
     "name": "Mini Launcher",
-    "desc": "Cycle through multiple apps packed into flash"
+    "desc": "Pack up to 16 apps and switch between them from a tiny factory menu"
   },
   "launcher": {
     "emoji": "🚀",
@@ -278,6 +278,16 @@
     "emoji": "🧹",
     "name": "Erase device",
     "desc": "Wipe the entire flash. The Cardputer stays blank until you install something"
+  },
+  "custom": {
+    "emoji": "💾",
+    "name": "Upload your own",
+    "desc": "Drop a .bin you built or downloaded, or click Upload"
+  },
+  "create-your-own": {
+    "emoji": "✨",
+    "name": "Create your own",
+    "desc": "Fork the open-source starter and build your own Cardputer ADV app"
   },
   "uiflow2-adv": {
     "emoji": "🧩",

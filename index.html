@@ -191,7 +191,7 @@
   .featured .pet {
     flex-direction: column;
     align-items: stretch;
-    gap: 14px;
+    gap: 28px;
     padding: 18px;
     height: 100%;
   }
@@ -199,11 +199,14 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 14px;
     min-width: 0;
   }
   .featured .emoji {
     width: auto;
+  }
+  .featured .desc {
+    margin-top: 8px;
   }
   .featured .actions {
     opacity: 1;
@@ -211,6 +214,13 @@
     justify-content: flex-start;
     flex-wrap: wrap;
     margin-top: auto;
+  }
+  .featured .pet.upload-drop {
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .featured .pet.upload-drop.over {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--card));
   }
   @media (max-width: 900px) {
     .featured { grid-template-columns: 1fr; }
@@ -1171,7 +1181,7 @@ const TOOLS = [
     emoji: "📂",
     name: "Mini Launcher",
     repo: "https://github.com/podrivo/cardputer-launcher",
-    desc: "Cycle through multiple apps packed into flash",
+    desc: "Pack up to 16 apps and switch between them from a tiny factory menu",
     parts: [{ file: bin("cardputer_launcher.bin"), address: 0x0 }],
     keys: {
       rows: [
@@ -2192,11 +2202,19 @@ function cardEl(item, current, danger, added, { featured = false } = {}) {
   return el;
 }
 
+const UPLOAD_NEEDS = {
+  title: "Choose a firmware",
+  status: "Flash a .bin onto the Cardputer, or pack it into Mini Launcher",
+  dropTitle: "Drop a .bin here",
+  dropHint: "or click to choose",
+  accept: ".bin,application/octet-stream",
+};
+
 const UPLOAD_ITEM = {
   id: "custom",
-  emoji: "📤",
+  emoji: "💾",
   name: "Upload your own",
-  desc: "Flash a .bin you built or downloaded",
+  desc: "Drop a .bin you built or downloaded, or click Upload",
   action: "custom",
   button: "Upload",
 };
@@ -2205,12 +2223,51 @@ const CREATE_ITEM = {
   id: "create-your-own",
   emoji: "✨",
   name: "Create your own",
-  desc: "ESP-IDF starter template for Cardputer ADV apps",
+  desc: "Fork the open-source starter and build your own Cardputer ADV app",
   link: "https://github.com/podrivo/cardputer-adv-template",
-  button: "Get",
+  button: "Get template",
 };
 
 const FEATURED_ITEMS = [UPLOAD_ITEM, CREATE_ITEM];
+
+function wireUploadDrop(card) {
+  card.classList.add("upload-drop");
+  let depth = 0;
+  card.addEventListener("dragenter", (e) => {
+    e.preventDefault();
+    depth += 1;
+    card.classList.add("over");
+  });
+  card.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+  });
+  card.addEventListener("dragleave", () => {
+    depth -= 1;
+    if (depth <= 0) {
+      depth = 0;
+      card.classList.remove("over");
+    }
+  });
+  card.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    depth = 0;
+    card.classList.remove("over");
+    if (busy) return;
+    try {
+      const files = await filesFromDataTransfer(e.dataTransfer);
+      const result = pickBestExtraFile(files, UPLOAD_NEEDS);
+      if (result.error) {
+        showNotice(result.error);
+        return;
+      }
+      const data = new Uint8Array(await result.file.arrayBuffer());
+      await installCustom({ data, name: result.file.name });
+    } catch (err) {
+      showNotice(err?.message || String(err));
+    }
+  });
+}
 
 function renderFeatured() {
   const root = $("featured");
@@ -2220,7 +2277,9 @@ function renderFeatured() {
     root.appendChild(cardEl(mini, installedThisSession, false, addedThisSession, { featured: true }));
   }
   for (const item of FEATURED_ITEMS) {
-    root.appendChild(cardEl(item, installedThisSession, false, addedThisSession, { featured: true }));
+    const el = cardEl(item, installedThisSession, false, addedThisSession, { featured: true });
+    if (item.action === "custom") wireUploadDrop(el);
+    root.appendChild(el);
   }
 }
 
@@ -3183,39 +3242,35 @@ async function loadFile(name) {
   return data;
 }
 
-/** Pick a local .bin, then run the normal install / Add to Mini Launcher flow. */
-async function installCustom() {
+/** Pick a local .bin (or accept a dropped one), then run install / Add to Mini Launcher. */
+async function installCustom(prePicked) {
   if (busy) return;
 
-  openDialog({
-    emoji: UPLOAD_ITEM.emoji,
-    title: UPLOAD_ITEM.name,
-    doneTitle: "Firmware installed",
-    doneText: "Your Cardputer is restarting. Have fun!",
-    pickFile: true,
-  });
+  let picked = prePicked;
+  if (!picked) {
+    openDialog({
+      emoji: UPLOAD_ITEM.emoji,
+      title: UPLOAD_ITEM.name,
+      doneTitle: "Firmware installed",
+      doneText: "Your Cardputer is restarting. Have fun!",
+      pickFile: true,
+    });
 
-  let picked;
-  try {
-    picked = await promptForExtraFile(
-      {
-        emoji: UPLOAD_ITEM.emoji,
-        name: UPLOAD_ITEM.name,
-        needsFile: {
-          title: "Choose a firmware",
-          status: "Flash a .bin onto the Cardputer, or pack it into Mini Launcher",
-          dropTitle: "Drop a .bin here",
-          dropHint: "or click to choose",
-          accept: ".bin,application/octet-stream",
+    try {
+      picked = await promptForExtraFile(
+        {
+          emoji: UPLOAD_ITEM.emoji,
+          name: UPLOAD_ITEM.name,
+          needsFile: UPLOAD_NEEDS,
         },
-      },
-      { continueLabel: "Continue" }
-    );
-  } catch {
-    return;
-  }
+        { continueLabel: "Continue" }
+      );
+    } catch {
+      return;
+    }
 
-  $("dialog").close();
+    $("dialog").close();
+  }
 
   const displayName = picked.name.replace(/\.bin$/i, "") || "Custom firmware";
   const cacheKey = `custom:${picked.name}`;
