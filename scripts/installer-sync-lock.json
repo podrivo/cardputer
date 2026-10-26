@@ -220,11 +220,12 @@
     "glide": {
       "asset": "GLIDE.bin",
       "assetKey": "glide",
-      "tag": "v3.7",
-      "size": 952784,
-      "file": "bins/glide-v3.7.bin",
-      "sha256": "f1c993ae58786cfd8cff8ee6b9d08d9afbe2bec162330b6a61c69b945458f1b1",
-      "repo": "CHARL3X/GLIDE-Synth-Cardputer-ADV"
+      "tag": "v3.8",
+      "size": 965824,
+      "file": "bins/glide-v3.8.bin",
+      "sha256": "01209a554afb103063ebfd1e9ef09bdeaa8f850c07096d31e5a36d710d725a2e",
+      "repo": "CHARL3X/GLIDE-Synth-Cardputer-ADV",
+      "updatedAt": "2026-10-26T14:13:52.973Z"
     },
     "hazke": {
       "asset": "hazke-v1.4.0-cardputer.bin",
@@ -346,13 +347,14 @@
       "repo": "n0xa/m5stick-nemo"
     },
     "nucleoos": {
-      "asset": "nucleoos-0.7.2.0.bin",
+      "asset": "nucleoos-0.7.5.0.bin",
       "assetKey": "nucleoos-",
-      "tag": "v0.7.2",
-      "size": 3254272,
-      "file": "bins/nucleoos-v0.7.2.bin",
-      "sha256": "ac8ebe1a77a1daa90c49e8d87f1afa31f041526a5136de95d531b5c295b57121",
-      "repo": "indecenti/NucleoOs"
+      "tag": "v0.7.5",
+      "size": 3271776,
+      "file": "bins/nucleoos-v0.7.5.bin",
+      "sha256": "2511910f12d0e7d38378b46ea1fcc577671688699d64619a98d25bc4b5b50556",
+      "repo": "indecenti/NucleoOs",
+      "updatedAt": "2026-10-26T14:14:04.149Z"
     },
     "openwifi-scanner-cardputer-adv": {
       "asset": "OpenWiFiScanner_Cardputer.bin",
