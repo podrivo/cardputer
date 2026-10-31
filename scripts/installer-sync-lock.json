@@ -220,11 +220,12 @@
     "glide": {
       "asset": "GLIDE.bin",
       "assetKey": "glide",
-      "tag": "v3.7",
-      "size": 952784,
-      "file": "bins/glide-v3.7.bin",
-      "sha256": "f1c993ae58786cfd8cff8ee6b9d08d9afbe2bec162330b6a61c69b945458f1b1",
-      "repo": "CHARL3X/GLIDE-Synth-Cardputer-ADV"
+      "tag": "v3.8",
+      "size": 965824,
+      "file": "bins/glide-v3.8.bin",
+      "sha256": "01209a554afb103063ebfd1e9ef09bdeaa8f850c07096d31e5a36d710d725a2e",
+      "repo": "CHARL3X/GLIDE-Synth-Cardputer-ADV",
+      "updatedAt": "2026-10-31T12:59:27.155Z"
     },
     "hazke": {
       "asset": "hazke-v1.4.0-cardputer.bin",
@@ -346,13 +347,14 @@
       "repo": "n0xa/m5stick-nemo"
     },
     "nucleoos": {
-      "asset": "nucleoos-0.7.2.0.bin",
+      "asset": "nucleoos-0.8.3.0.bin",
       "assetKey": "nucleoos-",
-      "tag": "v0.7.2",
-      "size": 3254272,
-      "file": "bins/nucleoos-v0.7.2.bin",
-      "sha256": "ac8ebe1a77a1daa90c49e8d87f1afa31f041526a5136de95d531b5c295b57121",
-      "repo": "indecenti/NucleoOs"
+      "tag": "v0.8.3",
+      "size": 3278368,
+      "file": "bins/nucleoos-v0.8.3.bin",
+      "sha256": "58447ace38beecca673a08342f4c1613d8c4229783ff67b4f90ee789ae93dd6e",
+      "repo": "indecenti/NucleoOs",
+      "updatedAt": "2026-10-31T12:59:33.380Z"
     },
     "openwifi-scanner-cardputer-adv": {
       "asset": "OpenWiFiScanner_Cardputer.bin",
@@ -447,13 +449,14 @@
       "repo": "cyberwisk/M5Cardputer_WebRadio"
     },
     "wifi-ble-radar": {
-      "asset": "RadarV3.1.ino.merged.bin",
+      "asset": "RadarV4.0.ino.merged.bin",
       "assetKey": "radar#-ino-merged",
-      "tag": "v3.1",
+      "tag": "v4.0",
       "size": 4194304,
-      "file": "bins/wifi-ble-radar-v3.1.bin",
-      "sha256": "7f22a9f0ab2a26b2d19f0ff4da6130a9dc404bcd79de10b966bbaa9965df01e4",
-      "repo": "Zeloksa/Cardputer-ADV-WiFi-BLE-Radar"
+      "file": "bins/wifi-ble-radar-v4.0.bin",
+      "sha256": "7091c217ce047f379595e94e55b88f6ef579c9782f9457983d24424d833d4791",
+      "repo": "Zeloksa/Cardputer-ADV-WiFi-BLE-Radar",
+      "updatedAt": "2026-10-31T12:59:31.133Z"
     },
     "wifi-remote-display-adv": {
       "asset": "WiFiRemoteDisplayADV1.1.bin",
@@ -462,7 +465,9 @@
       "size": 4194304,
       "file": "bins/wifi-remote-display-adv-1.1-26.06.2026.bin",
       "sha256": "f4869b4d3b18810696d08e5d97c0a8be19128b8b7b5427cf5a158afb8098c582",
-      "repo": "Zeloksa/WiFi-Remote-Display-ADV"
+      "repo": "Zeloksa/WiFi-Remote-Display-ADV",
+      "disabled": true,
+      "disabledReason": "asset-missing:WiFiRemoteDisplayADV1.1.bin"
     },
     "wikipedia-offline": {
       "asset": "Wikipedia_Offline_ADV1.2.bin",
