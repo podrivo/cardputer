@@ -1,7 +1,7 @@
 name: Sync installers
 
 # Weekly check of GitHub Releases for catalog firmwares.
-# When newer bins are found: update bins + catalog refs, open a PR, and merge it.
+# When newer bins are found: update bins + catalog refs and push to main.
 
 on:
   schedule:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Report only (no branch / PR)"
+        description: "Report only (no commit / push)"
         type: boolean
         default: false
 
@@ -19,7 +19,6 @@ concurrency:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   sync:
@@ -45,21 +44,17 @@ jobs:
             node scripts/sync-installers.mjs
           fi
 
-      - name: Open and merge PR
+      - name: Commit and push
         if: >-
           steps.sync.outputs.updated != '0' &&
           !(github.event_name == 'workflow_dispatch' && inputs.dry_run)
         env:
-          GH_TOKEN: ${{ github.token }}
           SUMMARY: ${{ steps.sync.outputs.summary }}
         run: |
           set -euo pipefail
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          BRANCH="chore/sync-installers"
-          git checkout -B "$BRANCH"
 
           git add -A bins scripts/installer-sync-lock.json index.html catalog-extra.js
           if git diff --cached --quiet; then
@@ -75,35 +70,7 @@ jobs:
           EOF
           )"
 
-          git push --force --set-upstream origin "$BRANCH"
-
-          TITLE="chore: sync ${COUNT} installer(s) from upstream"
-          BODY="$(cat <<EOF
-          ## Summary
-          Automated weekly sync of Cardputer ADV catalog firmwares from upstream GitHub Releases.
-
-          ${SUMMARY}
-
-          ## Test plan
-          - [ ] Spot-check updated installer cards on the site
-          - [ ] Confirm bin filenames match catalog entries
-          EOF
-          )"
-
-          EXISTING="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
-          if [ -n "$EXISTING" ]; then
-            gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
-            PR="$EXISTING"
-          else
-            gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
-            PR="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')"
-          fi
-
-          echo "Merging PR #$PR"
-          if ! gh pr merge "$PR" --squash --delete-branch; then
-            echo "Immediate merge blocked; enabling auto-merge"
-            gh pr merge "$PR" --auto --squash --delete-branch
-          fi
+          git push
 
       - name: No updates
         if: steps.sync.outputs.updated == '0'
