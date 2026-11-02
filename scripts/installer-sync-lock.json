@@ -209,13 +209,14 @@
       "repo": "Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-"
     },
     "ghostble": {
-      "asset": "GhostBLE-Cardputer-v1.4.9.bin",
+      "asset": "GhostBLE-Cardputer-v1.5.0.bin",
       "assetKey": "ghostble-cardputer-",
-      "tag": "v1.4.9",
-      "size": 2406096,
-      "file": "bins/ghostble-v1.4.9.bin",
-      "sha256": "07d9a58c1e87f8b43088c27f8f7e743ad396f389652a27db0788ec3abe42c41f",
-      "repo": "SmonSE/GhostBLE"
+      "tag": "v1.5.0",
+      "size": 2415632,
+      "file": "bins/ghostble-v1.5.0.bin",
+      "sha256": "1d7a3de283a56b31888230572039d5dca20d619d442fbe8420d23442f1c98ca1",
+      "repo": "SmonSE/GhostBLE",
+      "updatedAt": "2026-11-02T17:02:04.151Z"
     },
     "glide": {
       "asset": "GLIDE.bin",
@@ -347,14 +348,14 @@
       "repo": "n0xa/m5stick-nemo"
     },
     "nucleoos": {
-      "asset": "nucleoos-0.8.3.0.bin",
+      "asset": "nucleoos-0.8.4.0.bin",
       "assetKey": "nucleoos-",
-      "tag": "v0.8.3",
-      "size": 3278368,
-      "file": "bins/nucleoos-v0.8.3.bin",
-      "sha256": "58447ace38beecca673a08342f4c1613d8c4229783ff67b4f90ee789ae93dd6e",
+      "tag": "v0.8.4",
+      "size": 3285136,
+      "file": "bins/nucleoos-v0.8.4.bin",
+      "sha256": "f4ad2b2df8b517db288e9282de759b184c702f973b7d06607ae17c0f269c76c0",
       "repo": "indecenti/NucleoOs",
-      "updatedAt": "2026-10-31T12:59:33.380Z"
+      "updatedAt": "2026-11-02T17:02:07.633Z"
     },
     "openwifi-scanner-cardputer-adv": {
       "asset": "OpenWiFiScanner_Cardputer.bin",
