@@ -200,13 +200,14 @@
       "repo": "geo-tp/Cardputer-Game-Station-Emulators"
     },
     "gameboy-enhanced": {
-      "asset": "gbe_v0_79_66.bin",
+      "asset": "gbe_v0_79_68.bin",
       "assetKey": "gbe-",
-      "tag": "v0.79.66",
-      "size": 1030240,
-      "file": "bins/gameboy-enhanced-v0.79.66.bin",
-      "sha256": "7dd68b2d80ab59ef863faca08cbd83d937190f7cd9743f6869adce549a62cac7",
-      "repo": "Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-"
+      "tag": "v0.79.68",
+      "size": 780240,
+      "file": "bins/gameboy-enhanced-v0.79.68.bin",
+      "sha256": "2c1ab36807cef5fa110ac490e975426d69ea9937d61c4c40faf85808128a9195",
+      "repo": "Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
+      "updatedAt": "2026-11-09T17:27:07.798Z"
     },
     "ghostble": {
       "asset": "GhostBLE-Cardputer-v1.5.0.bin",
@@ -249,11 +250,12 @@
     "launcher": {
       "asset": "Launcher-m5stack-cardputer.bin",
       "assetKey": "launcher-m5stack-cardputer",
-      "tag": "2.9.1",
-      "size": 1422720,
-      "file": "bins/launcher-v2.9.1.bin",
-      "sha256": "2adff1ad67b5e08319dae682dc4edb01f1d857767c1738bdd0ccd097a8acb024",
-      "repo": "bmorcelli/Launcher"
+      "tag": "3.0.0",
+      "size": 1431680,
+      "file": "bins/launcher-v3.0.0.bin",
+      "sha256": "de1f3f285f9873e4cc083c6e11281e610acfed4049e9b8381b2c752a4dc4adee",
+      "repo": "bmorcelli/Launcher",
+      "updatedAt": "2026-11-09T17:27:09.233Z"
     },
     "m5apps": {
       "asset": "M5Apps_2.6_full.bin",
@@ -348,14 +350,14 @@
       "repo": "n0xa/m5stick-nemo"
     },
     "nucleoos": {
-      "asset": "nucleoos-0.8.4.0.bin",
+      "asset": "nucleoos-0.8.7.0.bin",
       "assetKey": "nucleoos-",
-      "tag": "v0.8.4",
-      "size": 3285136,
-      "file": "bins/nucleoos-v0.8.4.bin",
-      "sha256": "f4ad2b2df8b517db288e9282de759b184c702f973b7d06607ae17c0f269c76c0",
+      "tag": "v0.8.7",
+      "size": 3308144,
+      "file": "bins/nucleoos-v0.8.7.bin",
+      "sha256": "620a0471011547e38d62d7fa72b8fd295a8f3ad444c88b20fdd51cfaca7e4720",
       "repo": "indecenti/NucleoOs",
-      "updatedAt": "2026-11-02T17:02:07.633Z"
+      "updatedAt": "2026-11-09T17:27:19.554Z"
     },
     "openwifi-scanner-cardputer-adv": {
       "asset": "OpenWiFiScanner_Cardputer.bin",
