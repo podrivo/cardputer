@@ -9,7 +9,24 @@ export const EXTRA = {
   games: [],
   security: [
     { id: "nemo-for-cardputer-adv", emoji: "🐠", name: "NEMO", repo: "https://github.com/n0xa/m5stick-nemo", desc: "Wireless defense toolkit with BadUSB hunter and Wi-Fi tools", tag: ["warn", "Use responsibly"], parts: [{ file: "bins/nemo-for-cardputer-adv-3.2.2-en-us.bin", address: 0x0 }] },
-    { id: "bit-pirate-cardputer-adv", emoji: "🏴‍☠️", name: "Bit Pirate", repo: "https://github.com/geo-tp/ESP32-Bus-Pirate", desc: "Hardware hacking toolkit with a web CLI for many protocols", parts: [{ file: "bins/bit-pirate-cardputer-adv-1.8.bin", address: 0x0 }] },
+    {
+      id: "bit-pirate-cardputer-adv",
+      emoji: "🏴‍☠️",
+      name: "Bit Pirate",
+      repo: "https://github.com/geo-tp/ESP32-Bit-Pirate",
+      desc: "Hardware hacking toolkit with a web CLI for many protocols",
+      tag: ["warn", "Use responsibly"],
+      keys: {
+        rows: [
+          ["↑ / ↓", "Scroll output"],
+          ["Esc", "Scroll line by line"],
+          ["Tab", "Restore previous command"],
+          ["Keyboard", "Type CLI commands in standalone mode"],
+        ],
+        source: "https://github.com/geo-tp/ESP32-Bit-Pirate/wiki/00-Terminal",
+      },
+      parts: [{ file: "bins/bit-pirate-cardputer-adv-1.8.bin", address: 0x0 }],
+    },
   ],
   tools: [
     { id: "openwifi-scanner-cardputer-adv", emoji: "🔎", name: "OpenWiFi Scanner", repo: "https://github.com/geo-tp/Open-Wifi-Scanner", desc: "Continuously scans for open Wi-Fi networks with internet access", parts: [{ file: "bins/openwifi-scanner-cardputer-adv-1.1.bin", address: 0x0 }] },

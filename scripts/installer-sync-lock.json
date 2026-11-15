@@ -62,7 +62,7 @@
       "size": 4127008,
       "file": "bins/bit-pirate-cardputer-adv-1.8.bin",
       "sha256": "822f66b83f25140964a1e8f25c2853f79bbf6da5498623169607c0467c8d5eab",
-      "repo": "geo-tp/ESP32-Bus-Pirate"
+      "repo": "geo-tp/ESP32-Bit-Pirate"
     },
     "bruce": {
       "asset": "Bruce-m5stack-cardputer.bin",
