@@ -46,7 +46,7 @@ export const EXTRA = {
   sensing: [],
   misc: [
     { id: "audio-stream-server-cardputer-adv", emoji: "🔊", name: "Audio Stream Server", repo: "https://github.com/geo-tp/M5Cardputer-Audio-Stream-Server", desc: "Streams audio over Wi-Fi and can save network credentials", parts: [{ file: "bins/audio-stream-server-cardputer-adv-1.11.bin", address: 0x0 }] },
-    { id: "m5apps", emoji: "📲", name: "M5Apps", repo: "https://github.com/d4rkmen/M5Apps", desc: "On-device app installer from cloud, SD card, or USB", parts: [{ file: "bins/m5apps-2.6.bin", address: 0x0 }] },
+    { id: "m5apps", emoji: "📲", name: "M5Apps", repo: "https://github.com/d4rkmen/M5Apps", desc: "On-device app installer from cloud, SD card, or USB", parts: [{ file: "bins/m5apps-2.7.bin", address: 0x0 }] },
     { id: "wifi-remote-display-adv", emoji: "🖥️", name: "WiFi Remote Display", repo: "https://github.com/Zeloksa/WiFi-Remote-Display-ADV", desc: "Streams a Windows PC screen to the Cardputer over Wi-Fi", parts: [{ file: "bins/wifi-remote-display-adv-1.1-26.06.2026.bin", address: 0x0 }] },
   ],
 };

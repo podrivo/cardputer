@@ -17,7 +17,9 @@
       "size": 4194304,
       "file": "bins/ai-offline-chat-adv-v1.1.bin",
       "sha256": "e23f8aee0be6fee04f5e5d1a1e4a324e077e807724cfb66dda418d546b2a7a95",
-      "repo": "Zeloksa/AI-Offline-Chat-ADV"
+      "repo": "Zeloksa/AI-Offline-Chat-ADV",
+      "disabled": true,
+      "disabledReason": "asset-missing:ELIZA1.1.bin"
     },
     "alchemy": {
       "asset": "Alchemy.ADV.bin",
@@ -67,11 +69,12 @@
     "bruce": {
       "asset": "Bruce-m5stack-cardputer.bin",
       "assetKey": "bruce-m5stack-cardputer",
-      "tag": "1.16.1",
-      "size": 4166960,
-      "file": "bins/bruce-v1.16.1.bin",
-      "sha256": "e0a06966e601fecdb78470168b423690392f5ca14502a703588d4d14d0722033",
-      "repo": "BruceDevices/firmware"
+      "tag": "1.17",
+      "size": 4564256,
+      "file": "bins/bruce-v1.17.bin",
+      "sha256": "b5609a1f96b07a6de6c3402b4b932467d1147277b6bb1d587ae1780e3f3146c6",
+      "repo": "BruceDevices/firmware",
+      "updatedAt": "2026-11-16T16:58:31.484Z"
     },
     "card-craft": {
       "asset": "card-craft-1.0.1-cardputer-full.bin",
@@ -200,14 +203,14 @@
       "repo": "geo-tp/Cardputer-Game-Station-Emulators"
     },
     "gameboy-enhanced": {
-      "asset": "gbe_v0_79_68.bin",
+      "asset": "gbe_v0_79_69.bin",
       "assetKey": "gbe-",
-      "tag": "v0.79.68",
-      "size": 780240,
-      "file": "bins/gameboy-enhanced-v0.79.68.bin",
-      "sha256": "2c1ab36807cef5fa110ac490e975426d69ea9937d61c4c40faf85808128a9195",
+      "tag": "v0.79.69",
+      "size": 809152,
+      "file": "bins/gameboy-enhanced-v0.79.69.bin",
+      "sha256": "c4729117cabc84535647eb730748acdcfa7e0d9ac5bc771270d708e0cd4f562d",
       "repo": "Mr-PauI/Gameboy-Enhanced-Firmware-m5stack-cardputer-",
-      "updatedAt": "2026-11-09T17:27:07.798Z"
+      "updatedAt": "2026-11-16T16:58:29.271Z"
     },
     "ghostble": {
       "asset": "GhostBLE-Cardputer-v1.5.0.bin",
@@ -222,12 +225,12 @@
     "glide": {
       "asset": "GLIDE.bin",
       "assetKey": "glide",
-      "tag": "v3.8",
-      "size": 965824,
-      "file": "bins/glide-v3.8.bin",
-      "sha256": "01209a554afb103063ebfd1e9ef09bdeaa8f850c07096d31e5a36d710d725a2e",
+      "tag": "v3.9",
+      "size": 965888,
+      "file": "bins/glide-v3.9.bin",
+      "sha256": "2ad18a6a8e55bbd22be9834987cdf70e62d977b8b540bf0fbfbaaa7d42ecd73e",
       "repo": "CHARL3X/GLIDE-Synth-Cardputer-ADV",
-      "updatedAt": "2026-10-31T12:59:27.155Z"
+      "updatedAt": "2026-11-16T16:58:33.275Z"
     },
     "hazke": {
       "asset": "hazke-v1.4.0-cardputer.bin",
@@ -258,13 +261,14 @@
       "updatedAt": "2026-11-09T17:27:09.233Z"
     },
     "m5apps": {
-      "asset": "M5Apps_2.6_full.bin",
+      "asset": "M5Apps_2.7_full.bin",
       "assetKey": "m5apps-#-full",
-      "tag": "2.6",
-      "size": 1515952,
-      "file": "bins/m5apps-2.6.bin",
-      "sha256": "94fb96422f4ab7da570c7033992927fc1d75d9775c7c777faf658f9552313117",
-      "repo": "d4rkmen/M5Apps"
+      "tag": "2.7",
+      "size": 1517728,
+      "file": "bins/m5apps-2.7.bin",
+      "sha256": "04a87f9352ad402ede9a7f683ccd657dc6b2ff7339aa9b0895fe69f01c47348f",
+      "repo": "d4rkmen/M5Apps",
+      "updatedAt": "2026-11-16T16:58:48.701Z"
     },
     "m5gemini": {
       "asset": "M5Gemini_30_full.bin",
