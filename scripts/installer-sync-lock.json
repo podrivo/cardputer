@@ -354,14 +354,14 @@
       "repo": "n0xa/m5stick-nemo"
     },
     "nucleoos": {
-      "asset": "nucleoos-0.8.7.0.bin",
+      "asset": "nucleoos-0.8.8.0.bin",
       "assetKey": "nucleoos-",
-      "tag": "v0.8.7",
-      "size": 3308144,
-      "file": "bins/nucleoos-v0.8.7.bin",
-      "sha256": "620a0471011547e38d62d7fa72b8fd295a8f3ad444c88b20fdd51cfaca7e4720",
+      "tag": "v0.8.8",
+      "size": 3319504,
+      "file": "bins/nucleoos-v0.8.8.bin",
+      "sha256": "e4337b87fad17b605364b0b6d57c962d5e99ef23f72b800ad6190ca97bb752fa",
       "repo": "indecenti/NucleoOs",
-      "updatedAt": "2026-11-09T17:27:19.554Z"
+      "updatedAt": "2026-11-23T19:13:03.574Z"
     },
     "openwifi-scanner-cardputer-adv": {
       "asset": "OpenWiFiScanner_Cardputer.bin",
